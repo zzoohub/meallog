@@ -100,16 +100,24 @@ export default function AccountSettings() {
     <Card style={styles.profileCard}>
       <View style={styles.profileHeader}>
         <View style={[styles.avatar, { backgroundColor: theme.colors.primary }]}>
-          <Text style={styles.avatarText}>
+          <Text style={[styles.avatarText, { color: '#fff' }]}>
             {user?.username?.charAt(0).toUpperCase() || 'U'}
+          </Text>
+        </View>
+        <View style={styles.profileInfo}>
+          <Text style={[styles.username, { color: theme.colors.text }]}>
+            {user?.username || 'Not set'}
+          </Text>
+          <Text style={[styles.email, { color: theme.colors.textSecondary }]}>
+            {user?.email || 'Not set'}
           </Text>
         </View>
         <View style={styles.profileActions}>
           {!isEditing ? (
             <Button
-              title="Edit Profile"
+              title="Edit"
               icon="create-outline"
-              variant="secondary"
+              variant="ghost"
               size="small"
               onPress={() => setIsEditing(true)}
               disabled={isLoading}
@@ -121,7 +129,6 @@ export default function AccountSettings() {
                 variant="ghost"
                 size="small"
                 onPress={handleCancelEdit}
-                style={styles.editButton}
               />
               <Button
                 title="Save"
@@ -129,19 +136,18 @@ export default function AccountSettings() {
                 size="small"
                 onPress={handleSaveProfile}
                 loading={isLoading}
-                style={styles.editButton}
               />
             </View>
           )}
         </View>
       </View>
 
-      <View style={styles.profileFields}>
-        <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: theme.colors.textSecondary }]}>
-            Username
-          </Text>
-          {isEditing ? (
+      {isEditing && (
+        <View style={styles.editForm}>
+          <View style={styles.inputGroup}>
+            <Text style={[styles.inputLabel, { color: theme.colors.textSecondary }]}>
+              Username
+            </Text>
             <TextInput
               style={[styles.input, { 
                 borderColor: theme.colors.border, 
@@ -154,18 +160,12 @@ export default function AccountSettings() {
               placeholderTextColor={theme.colors.textSecondary}
               autoCapitalize="none"
             />
-          ) : (
-            <Text style={[styles.fieldValue, { color: theme.colors.text }]}>
-              {user?.username || 'Not set'}
-            </Text>
-          )}
-        </View>
+          </View>
 
-        <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: theme.colors.textSecondary }]}>
-            Email
-          </Text>
-          {isEditing ? (
+          <View style={styles.inputGroup}>
+            <Text style={[styles.inputLabel, { color: theme.colors.textSecondary }]}>
+              Email
+            </Text>
             <TextInput
               style={[styles.input, { 
                 borderColor: theme.colors.border, 
@@ -179,22 +179,9 @@ export default function AccountSettings() {
               keyboardType="email-address"
               autoCapitalize="none"
             />
-          ) : (
-            <Text style={[styles.fieldValue, { color: theme.colors.text }]}>
-              {user?.email || 'Not set'}
-            </Text>
-          )}
+          </View>
         </View>
-
-        <View style={styles.fieldContainer}>
-          <Text style={[styles.fieldLabel, { color: theme.colors.textSecondary }]}>
-            Member Since
-          </Text>
-          <Text style={[styles.fieldValue, { color: theme.colors.text }]}>
-            {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}
-          </Text>
-        </View>
-      </View>
+      )}
     </Card>
   );
 
@@ -276,53 +263,56 @@ const styles = StyleSheet.create({
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
   },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
   },
   avatarText: {
-    color: 'white',
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '600',
   },
-  profileActions: {
+  profileInfo: {
     flex: 1,
-    alignItems: 'flex-end',
+  },
+  username: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  email: {
+    fontSize: 14,
+  },
+  profileActions: {
+    marginLeft: 12,
   },
   editActions: {
     flexDirection: 'row',
     gap: 8,
   },
-  editButton: {
-    minWidth: 80,
-  },
-  profileFields: {
+  editForm: {
+    paddingTop: 20,
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
     gap: 16,
   },
-  fieldContainer: {
-    gap: 4,
+  inputGroup: {
+    gap: 6,
   },
-  fieldLabel: {
-    fontSize: 13,
+  inputLabel: {
+    fontSize: 14,
     fontWeight: '500',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  fieldValue: {
-    fontSize: 16,
-    fontWeight: '400',
   },
   input: {
     borderWidth: 1,
     borderRadius: 8,
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     fontSize: 16,
-    fontWeight: '400',
   },
 });
