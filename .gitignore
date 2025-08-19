@@ -9,11 +9,11 @@
 *.mobileprovision
 
 # mobile
-# mobile/node_modules/
-# mobile/dist/
-# mobile/build/
-# mobile/.expo/
-# mobile/.env
-# mobile/expo-env.d.ts
-# mobile/web-build/
+mobile/node_modules/
+mobile/dist/
+mobile/build/
+mobile/.expo/
+mobile/web-build/
+mobile/.env
+mobile/expo-env.d.ts
 
