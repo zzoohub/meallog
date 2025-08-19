@@ -1,0 +1,244 @@
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/lib/theme";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { SettingsSection, SettingsLayout } from "@/components/settings";
+import { useUserStore } from "@/domains/user/stores/userStore";
+import * as Haptics from "expo-haptics";
+
+interface SettingsCategory {
+  id: string;
+  title: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  description?: string;
+  onPress: () => void;
+}
+
+export default function SettingsScreen() {
+  const { theme } = useTheme();
+  const { user } = useUserStore();
+
+  const handleCategoryPress = (categoryId: string) => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch (error) {
+      console.warn("Haptics feedback failed:", error);
+    }
+
+    // Navigate to specific setting category
+    router.push(`/settings/${categoryId}` as any);
+  };
+
+  const settingsCategories: SettingsCategory[] = [
+    {
+      id: "account",
+      title: "Account & Profile",
+      icon: "person-outline",
+      description: "Manage your profile and account security",
+      onPress: () => handleCategoryPress("account"),
+    },
+    {
+      id: "privacy",
+      title: "Privacy & Data",
+      icon: "shield-outline",
+      description: "Control your data and privacy settings",
+      onPress: () => handleCategoryPress("privacy"),
+    },
+    {
+      id: "notifications",
+      title: "Notifications",
+      icon: "notifications-outline",
+      description: "Customize your notification preferences",
+      onPress: () => handleCategoryPress("notifications"),
+    },
+    {
+      id: "display",
+      title: "Display & Appearance",
+      icon: "color-palette-outline",
+      description: "Theme, language, and visual preferences",
+      onPress: () => handleCategoryPress("display"),
+    },
+    {
+      id: "goals",
+      title: "Goals & Targets",
+      icon: "trophy-outline",
+      description: "Set your health and nutrition goals",
+      onPress: () => handleCategoryPress("goals"),
+    },
+    {
+      id: "data",
+      title: "Data Management",
+      icon: "download-outline",
+      description: "Export, backup, and manage your data",
+      onPress: () => handleCategoryPress("data"),
+    },
+  ];
+
+  const renderSettingCategory = (category: SettingsCategory) => (
+    <TouchableOpacity key={category.id} style={styles.categoryContent} onPress={category.onPress} activeOpacity={0.7}>
+      <View style={styles.categoryLeft}>
+        <View style={[styles.iconContainer, { backgroundColor: theme.colors.primary + "20" }]}>
+          <Ionicons name={category.icon} size={24} color={theme.colors.primary} />
+        </View>
+        <View style={styles.categoryTextContainer}>
+          <Text style={[styles.categoryTitle, { color: theme.colors.text }]}>{category.title}</Text>
+          {category.description && (
+            <Text style={[styles.categoryDescription, { color: theme.colors.textSecondary }]}>
+              {category.description}
+            </Text>
+          )}
+        </View>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+    </TouchableOpacity>
+  );
+
+  const renderUserInfo = () => (
+    <Card variant="elevated" style={styles.userCard}>
+      <View style={styles.userInfo}>
+        <View style={[styles.avatar, { backgroundColor: theme.colors.primary }]}>
+          <Text style={styles.avatarText}>{user?.username?.charAt(0).toUpperCase() || "U"}</Text>
+        </View>
+        <View style={styles.userDetails}>
+          <Text style={[styles.username, { color: theme.colors.text }]}>{user?.username || "Guest User"}</Text>
+          <Text style={[styles.email, { color: theme.colors.textSecondary }]}>{user?.email || "Not logged in"}</Text>
+        </View>
+      </View>
+    </Card>
+  );
+
+  const renderQuickActions = () => (
+    <View style={styles.quickActions}>
+      <Button
+        title="Help & Support"
+        icon="help-circle-outline"
+        variant="ghost"
+        size="small"
+        onPress={() => {
+          // TODO: Navigate to help screen
+          console.log("Navigate to help");
+        }}
+        style={styles.quickActionButton}
+      />
+      <Button
+        title="About"
+        icon="information-circle-outline"
+        variant="ghost"
+        size="small"
+        onPress={() => {
+          // TODO: Show about modal
+          console.log("Show about modal");
+        }}
+        style={styles.quickActionButton}
+      />
+    </View>
+  );
+
+  return (
+    <SettingsLayout title="Settings">
+      {/* User Info Section */}
+      {renderUserInfo()}
+
+      {/* Settings Categories */}
+      <SettingsSection title="Settings" variant="grouped" style={styles.categoriesContainer}>
+        {settingsCategories.map(renderSettingCategory)}
+      </SettingsSection>
+
+      {/* Quick Actions */}
+      {renderQuickActions()}
+
+      {/* App Info */}
+      <View style={styles.appInfo}>
+        <Text style={[styles.appVersion, { color: theme.colors.textSecondary }]}>Food Log v1.0.0</Text>
+      </View>
+    </SettingsLayout>
+  );
+}
+
+const styles = StyleSheet.create({
+  userCard: {
+    marginBottom: 24,
+    padding: 16,
+  },
+  userInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 16,
+  },
+  avatarText: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "600",
+  },
+  userDetails: {
+    flex: 1,
+  },
+  username: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  email: {
+    fontSize: 14,
+  },
+  categoriesContainer: {
+    marginBottom: 32,
+  },
+  categoryContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+    minHeight: 72,
+  },
+  categoryLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 16,
+  },
+  categoryTextContainer: {
+    flex: 1,
+  },
+  categoryTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  categoryDescription: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  quickActions: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 24,
+  },
+  quickActionButton: {
+    flex: 1,
+  },
+  appInfo: {
+    alignItems: "center",
+    paddingVertical: 16,
+  },
+  appVersion: {
+    fontSize: 12,
+  },
+});

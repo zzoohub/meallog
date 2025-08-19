@@ -1,0 +1,129 @@
+{
+  "navigation": {
+    "camera": "Camera",
+    "timeline": "Timeline",
+    "discover": "Discover"
+  },
+  "camera": {
+    "title": "FoodLog",
+    "subtitle": "Capture your meals instantly",
+    "quickHint": "Tap to log your meal",
+    "hintText": "Tap anywhere to capture",
+    "capturingText": "Saving...",
+    "preparing": "Preparing camera...",
+    "flip": "Flip",
+    "discover": "Discover",
+    "welcome": {
+      "title": "Welcome to FoodLog",
+      "message": "Capture your meals instantly with one tap. Enable camera access to get started.",
+      "enableCamera": "Enable Camera"
+    },
+    "permissions": {
+      "title": "Camera Permission Required",
+      "message": "To log your meals with photos, please allow camera access.",
+      "cancel": "Cancel",
+      "openSettings": "Open Settings"
+    },
+    "capture": {
+      "success": "Meal Logged!",
+      "successMessage": "Your food has been automatically saved and analyzed.",
+      "viewTimeline": "View Timeline",
+      "error": "Error",
+      "errorMessage": "Failed to capture photo. Please try again."
+    }
+  },
+  "timeline": {
+    "title": "Your Food Journey",
+    "thisWeek": "This Week",
+    "recentMeals": "Recent Meals",
+    "quickCapture": "Quick Capture",
+    "periods": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "dates": {
+      "today": "Today",
+      "yesterday": "Yesterday"
+    },
+    "mealTypes": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Snack"
+    },
+    "stats": {
+      "meals": "Meals",
+      "avgCalories": "Avg Calories",
+      "goalProgress": "Goal Progress"
+    }
+  },
+  "discover": {
+    "title": "Discover",
+    "subtitle": "Find meal inspiration",
+    "categories": {
+      "all": "All",
+      "healthy": "Healthy",
+      "quick": "Quick",
+      "comfort": "Comfort",
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner"
+    },
+    "social": {
+      "follow": "Follow",
+      "following": "Following",
+      "timeAgo": {
+        "now": "now",
+        "minute_one": "{{count}} minute ago",
+        "minute_other": "{{count}} minutes ago",
+        "hour_one": "{{count}} hour ago",
+        "hour_other": "{{count}} hours ago",
+        "day_one": "{{count}} day ago",
+        "day_other": "{{count}} days ago"
+      }
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No",
+    "calories": "{{count}} cal",
+    "likes": "{{count}} likes",
+    "settings": "Settings",
+    "language": "Language",
+    "about": "About"
+  },
+  "errors": {
+    "networkError": "Network connection failed. Please check your internet connection.",
+    "genericError": "Something went wrong. Please try again.",
+    "cameraError": "Camera access failed. Please check your permissions.",
+    "storageError": "Failed to save data. Please try again."
+  },
+  "settings": {
+    "title": "Settings",
+    "language": {
+      "title": "Language",
+      "description": "Choose your preferred language"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Manage your notification preferences"
+    },
+    "privacy": {
+      "title": "Privacy",
+      "description": "Control your data and privacy settings"
+    },
+    "about": {
+      "title": "About FoodLog",
+      "version": "Version {{version}}",
+      "description": "A minimalist food diary app that makes food logging effortless through instant photo capture."
+    }
+  }
+}
