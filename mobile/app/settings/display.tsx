@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTheme } from '@/lib/theme';
 import { SettingsItem, SettingsSection, SelectionModal, SettingsLayout } from '@/components/settings';
 import { useSettingsStore } from '@/domains/settings/stores/settingsStore';
+import { changeLanguage, useSettingsI18n } from '@/lib/i18n';
 
 interface SelectionState {
   type: 'theme' | 'language' | 'units' | 'nutrition' | 'fontSize' | null;
@@ -11,6 +12,7 @@ interface SelectionState {
 export default function DisplaySettings() {
   const { display, updateDisplay, isLoading } = useSettingsStore();
   const [selection, setSelection] = useState<SelectionState>({ type: null, visible: false });
+  const settings = useSettingsI18n();
 
   const openSelection = (type: SelectionState['type']) => {
     setSelection({ type, visible: true });
@@ -31,6 +33,8 @@ export default function DisplaySettings() {
         break;
       case 'language': 
         updates.language = value;
+        // Also update i18n language
+        await changeLanguage(value);
         break;
       case 'units': 
         updates.measurementUnits = value;
@@ -47,9 +51,9 @@ export default function DisplaySettings() {
   };
 
   const themeOptions = [
-    { value: 'light', label: 'Light', description: 'Always use light theme' },
-    { value: 'dark', label: 'Dark', description: 'Always use dark theme' },
-    { value: 'system', label: 'System', description: 'Follow device theme setting' },
+    { value: 'light', label: settings.display.theme.light, description: settings.display.theme.lightDesc },
+    { value: 'dark', label: settings.display.theme.dark, description: settings.display.theme.darkDesc },
+    { value: 'system', label: settings.display.theme.system, description: settings.display.theme.systemDesc },
   ];
 
   const languageOptions = [
@@ -58,19 +62,19 @@ export default function DisplaySettings() {
   ];
 
   const unitsOptions = [
-    { value: 'metric', label: 'Metric', description: 'Kilograms, grams, celsius' },
-    { value: 'imperial', label: 'Imperial', description: 'Pounds, ounces, fahrenheit' },
+    { value: 'metric', label: settings.display.units.metric, description: settings.display.units.metricDesc },
+    { value: 'imperial', label: settings.display.units.imperial, description: settings.display.units.imperialDesc },
   ];
 
   const nutritionOptions = [
-    { value: 'detailed', label: 'Detailed', description: 'Show all nutrition information' },
-    { value: 'simple', label: 'Simple', description: 'Show only calories and macros' },
+    { value: 'detailed', label: settings.display.nutrition.detailed, description: settings.display.nutrition.detailedDesc },
+    { value: 'simple', label: settings.display.nutrition.simple, description: settings.display.nutrition.simpleDesc },
   ];
 
   const fontSizeOptions = [
-    { value: 'small', label: 'Small', description: 'Smaller text for more content' },
-    { value: 'medium', label: 'Medium', description: 'Standard text size' },
-    { value: 'large', label: 'Large', description: 'Larger text for better readability' },
+    { value: 'small', label: settings.display.fontSize.small, description: settings.display.fontSize.smallDesc },
+    { value: 'medium', label: settings.display.fontSize.medium, description: settings.display.fontSize.mediumDesc },
+    { value: 'large', label: settings.display.fontSize.large, description: settings.display.fontSize.largeDesc },
   ];
 
   const getSelectionOptions = () => {
@@ -87,10 +91,10 @@ export default function DisplaySettings() {
   const getSelectionTitle = () => {
     switch (selection.type) {
       case 'theme': return 'Choose Theme';
-      case 'language': return 'Choose Language';
-      case 'units': return 'Measurement Units';
-      case 'nutrition': return 'Nutrition Display';
-      case 'fontSize': return 'Font Size';
+      case 'language': return settings.display.language.select;
+      case 'units': return settings.display.units.select;
+      case 'nutrition': return settings.display.nutrition.select;
+      case 'fontSize': return settings.display.fontSize.select;
       default: return '';
     }
   };
@@ -127,15 +131,15 @@ export default function DisplaySettings() {
   };
 
   return (
-    <SettingsLayout title="Display & Appearance">
+    <SettingsLayout title={settings.display.title}>
         <SettingsSection
-          title="Appearance"
-          footer="Choose how the app looks and feels"
+          title={settings.display.appearance.title}
+          footer={settings.display.appearance.description}
           variant="grouped"
         >
           <SettingsItem
-            title="Theme"
-            description="App appearance"
+            title={settings.display.theme.title}
+            description={settings.display.theme.description}
             icon="color-palette-outline"
             type="select"
             value={getDisplayValue('theme')}
@@ -145,8 +149,8 @@ export default function DisplaySettings() {
           />
           
           <SettingsItem
-            title="Font Size"
-            description="Text size throughout the app"
+            title={settings.display.fontSize.title}
+            description={settings.display.fontSize.description}
             icon="text-outline"
             type="select"
             value={getDisplayValue('fontSize')}
@@ -157,13 +161,13 @@ export default function DisplaySettings() {
         </SettingsSection>
 
         <SettingsSection
-          title="Language & Region"
-          footer="Language and regional settings"
+          title={settings.display.languageRegion.title}
+          footer={settings.display.languageRegion.description}
           variant="grouped"
         >
           <SettingsItem
-            title="Language"
-            description="App language"
+            title={settings.language.title}
+            description={settings.language.description}
             icon="language-outline"
             type="select"
             value={getDisplayValue('language')}
@@ -173,8 +177,8 @@ export default function DisplaySettings() {
           />
           
           <SettingsItem
-            title="Measurement Units"
-            description="Units for weight, temperature, etc."
+            title={settings.display.units.title}
+            description={settings.display.units.description}
             icon="calculator-outline"
             type="select"
             value={getDisplayValue('measurementUnits')}
@@ -185,13 +189,13 @@ export default function DisplaySettings() {
         </SettingsSection>
 
         <SettingsSection
-          title="Content Display"
-          footer="Customize how information is presented"
+          title={settings.display.content.title}
+          footer={settings.display.content.description}
           variant="grouped"
         >
           <SettingsItem
-            title="Nutrition Display"
-            description="Detail level for nutrition information"
+            title={settings.display.nutrition.title}
+            description={settings.display.nutrition.description}
             icon="nutrition-outline"
             type="select"
             value={getDisplayValue('nutritionDisplay')}

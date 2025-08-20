@@ -10,14 +10,13 @@ import {
   ActivityIndicator,
   SectionList,
   Modal,
-  Platform,
 } from "react-native";
-import { Calendar, CalendarList } from "react-native-calendars";
+import { Calendar } from "react-native-calendars";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Meal, MealHistoryFilter } from "@/domains/meals/types";
 import { MealStorageService, generateMockMeals } from "@/domains/meals/services/mealStorage";
-import { MealType } from "@/types";
+import { useTimelineI18n } from "@/lib/i18n";
 
 interface MealSection {
   title: string;
@@ -26,6 +25,7 @@ interface MealSection {
 
 export default function MealHistory() {
   const router = useRouter();
+  const timeline = useTimelineI18n();
   const [meals, setMeals] = useState<Meal[]>([]);
   const [sections, setSections] = useState<MealSection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -144,9 +144,9 @@ export default function MealHistory() {
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return "Today";
+      return timeline.today;
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return "Yesterday";
+      return timeline.yesterday;
     } else {
       return date.toLocaleDateString("en-US", {
         weekday: "long",
@@ -283,7 +283,7 @@ export default function MealHistory() {
   const renderSectionHeader = ({ section }: { section: MealSection }) => (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{section.title}</Text>
-      <Text style={styles.sectionCount}>{section.data.length} meals</Text>
+      <Text style={styles.sectionCount}>{section.data.length} {timeline.stat('meals')}</Text>
     </View>
   );
 
@@ -298,7 +298,7 @@ export default function MealHistory() {
     return (
       <View style={styles.loadingMoreContainer}>
         <ActivityIndicator size="small" color="#FF6B35" />
-        <Text style={styles.loadingMoreText}>Loading more meals...</Text>
+        <Text style={styles.loadingMoreText}>{timeline.loadMore}</Text>
       </View>
     );
   };
@@ -436,7 +436,7 @@ export default function MealHistory() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Meal History</Text>
+        <Text style={styles.headerTitle}>{timeline.mealHistory}</Text>
         <TouchableOpacity onPress={openDateRangeModal} style={styles.dateButton}>
           <Ionicons name="calendar" size={24} color="white" />
         </TouchableOpacity>
@@ -448,7 +448,7 @@ export default function MealHistory() {
           <Ionicons name="search" size={20} color="rgba(255, 255, 255, 0.5)" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search meals or ingredients..."
+            placeholder={timeline.searchPlaceholder}
             placeholderTextColor="rgba(255, 255, 255, 0.5)"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -483,13 +483,13 @@ export default function MealHistory() {
       ) : sections.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="restaurant-outline" size={64} color="rgba(255, 255, 255, 0.3)" />
-          <Text style={styles.emptyTitle}>No meals found</Text>
+          <Text style={styles.emptyTitle}>{timeline.noMealsFound}</Text>
           <Text style={styles.emptyText}>
             {searchQuery ? "Try adjusting your search" : "Start logging meals to see your history here!"}
           </Text>
           <TouchableOpacity style={styles.addMealButton} onPress={() => router.push("/")}>
             <Ionicons name="camera" size={20} color="white" />
-            <Text style={styles.addMealButtonText}>Take Photo</Text>
+            <Text style={styles.addMealButtonText}>Quick Capture</Text>
           </TouchableOpacity>
         </View>
       ) : (

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTheme } from '@/lib/theme';
 import { SettingsItem, SettingsSection, SelectionModal, SettingsLayout } from '@/components/settings';
 import { useSettingsStore } from '@/domains/settings/stores/settingsStore';
+import { useSettingsI18n } from '@/lib/i18n';
 
 interface SelectionState {
   type: 'frequency' | null;
@@ -11,6 +12,7 @@ interface SelectionState {
 export default function NotificationSettings() {
   const { notifications, updateNotifications } = useSettingsStore();
   const [selection, setSelection] = useState<SelectionState>({ type: null, visible: false });
+  const settings = useSettingsI18n();
 
   const openSelection = (type: SelectionState['type']) => {
     setSelection({ type, visible: true });
@@ -38,9 +40,9 @@ export default function NotificationSettings() {
   };
 
   const frequencyOptions = [
-    { value: 'immediate', label: 'Immediate', description: 'Get notifications right away' },
-    { value: 'daily', label: 'Daily Digest', description: 'One summary per day' },
-    { value: 'weekly', label: 'Weekly Summary', description: 'One summary per week' },
+    { value: 'immediate', label: 'Immediate', description: 'Get notified right away' },
+    { value: 'daily', label: 'Daily Digest', description: 'Once per day summary' },
+    { value: 'weekly', label: 'Weekly Summary', description: 'Weekly progress summary' },
   ];
 
   const getFrequencyLabel = () => {
@@ -48,14 +50,14 @@ export default function NotificationSettings() {
   };
 
   return (
-    <SettingsLayout title="Notifications">
+    <SettingsLayout title={settings.notifications.title}>
         <SettingsSection
-          title="Notification Types"
-          footer="Choose which notifications you want to receive"
+          title={settings.notifications.title}
+          footer={settings.notifications.description}
         >
           <SettingsItem
             title="Meal Reminders"
-            description="Reminders to log your meals"
+            description="Remind me to log my meals"
             icon="restaurant-outline"
             type="toggle"
             value={notifications.mealReminders}
@@ -64,7 +66,7 @@ export default function NotificationSettings() {
           
           <SettingsItem
             title="Social Notifications"
-            description="Likes, follows, and comments"
+            description="Comments, likes, and follows"
             icon="people-outline"
             type="toggle"
             value={notifications.socialNotifications}
@@ -73,7 +75,7 @@ export default function NotificationSettings() {
           
           <SettingsItem
             title="Progress Updates"
-            description="Goal achievements and milestones"
+            description="Weekly progress and achievements"
             icon="trophy-outline"
             type="toggle"
             value={notifications.progressUpdates}
@@ -82,7 +84,7 @@ export default function NotificationSettings() {
           
           <SettingsItem
             title="AI Insights"
-            description="Personalized recommendations and tips"
+            description="Personalized nutrition insights"
             icon="bulb-outline"
             type="toggle"
             value={notifications.aiInsights}
@@ -104,8 +106,8 @@ export default function NotificationSettings() {
           />
           
           <SettingsItem
-            title="Notification Frequency"
-            description="How often to group notifications"
+            title="Frequency"
+            description="How often to receive notifications"
             icon="time-outline"
             type="select"
             value={getFrequencyLabel()}

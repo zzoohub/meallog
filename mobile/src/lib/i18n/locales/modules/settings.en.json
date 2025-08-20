@@ -1,0 +1,79 @@
+{
+  "title": "Settings",
+  "language": {
+    "title": "Language",
+    "description": "Choose your preferred language",
+    "select": "Choose Language"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "description": "Manage your notification preferences"
+  },
+  "privacy": {
+    "title": "Privacy",
+    "description": "Control your data and privacy settings"
+  },
+  "about": {
+    "title": "About FoodLog",
+    "version": "Version {{version}}",
+    "description": "A minimalist food diary app that makes food logging effortless through instant photo capture."
+  },
+  "display": {
+    "title": "Display & Appearance",
+    "appearance": {
+      "title": "Appearance",
+      "description": "Choose how the app looks and feels"
+    },
+    "theme": {
+      "title": "Theme",
+      "description": "App appearance",
+      "select": "Choose Theme",
+      "light": "Light",
+      "lightDesc": "Always use light theme",
+      "dark": "Dark",
+      "darkDesc": "Always use dark theme",
+      "system": "System",
+      "systemDesc": "Follow device theme setting"
+    },
+    "fontSize": {
+      "title": "Font Size",
+      "description": "Text size throughout the app",
+      "select": "Font Size",
+      "small": "Small",
+      "smallDesc": "Smaller text for more content",
+      "medium": "Medium",
+      "mediumDesc": "Standard text size",
+      "large": "Large",
+      "largeDesc": "Larger text for better readability"
+    },
+    "languageRegion": {
+      "title": "Language & Region",
+      "description": "Language and regional settings"
+    },
+    "language": {
+      "select": "Choose Language"
+    },
+    "units": {
+      "title": "Measurement Units",
+      "description": "Units for weight, temperature, etc.",
+      "select": "Measurement Units",
+      "metric": "Metric",
+      "metricDesc": "Kilograms, grams, celsius",
+      "imperial": "Imperial",
+      "imperialDesc": "Pounds, ounces, fahrenheit"
+    },
+    "content": {
+      "title": "Content Display",
+      "description": "Customize how information is presented"
+    },
+    "nutrition": {
+      "title": "Nutrition Display",
+      "description": "Detail level for nutrition information",
+      "select": "Nutrition Display",
+      "detailed": "Detailed",
+      "detailedDesc": "Show all nutrition information",
+      "simple": "Simple",
+      "simpleDesc": "Show only calories and macros"
+    }
+  }
+}

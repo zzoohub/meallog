@@ -1,0 +1,79 @@
+{
+  "title": "설정",
+  "language": {
+    "title": "언어",
+    "description": "선호하는 언어를 선택하세요",
+    "select": "언어 선택"
+  },
+  "notifications": {
+    "title": "알림",
+    "description": "알림 설정을 관리하세요"
+  },
+  "privacy": {
+    "title": "개인정보",
+    "description": "데이터 및 개인정보 설정을 제어하세요"
+  },
+  "about": {
+    "title": "푸드로그 정보",
+    "version": "버전 {{version}}",
+    "description": "즉석 사진 촬영을 통해 음식 기록을 손쉽게 만들어주는 미니멀한 음식 일기 앱입니다."
+  },
+  "display": {
+    "title": "디스플레이 및 모양",
+    "appearance": {
+      "title": "모양",
+      "description": "앱의 모양과 느낌을 선택하세요"
+    },
+    "theme": {
+      "title": "테마",
+      "description": "앱 모양",
+      "select": "테마 선택",
+      "light": "라이트",
+      "lightDesc": "항상 밝은 테마 사용",
+      "dark": "다크",
+      "darkDesc": "항상 어두운 테마 사용",
+      "system": "시스템",
+      "systemDesc": "기기 테마 설정 따르기"
+    },
+    "fontSize": {
+      "title": "글꼴 크기",
+      "description": "앱 전체의 텍스트 크기",
+      "select": "글꼴 크기",
+      "small": "작게",
+      "smallDesc": "더 많은 콘텐츠를 위한 작은 텍스트",
+      "medium": "보통",
+      "mediumDesc": "표준 텍스트 크기",
+      "large": "크게",
+      "largeDesc": "더 나은 가독성을 위한 큰 텍스트"
+    },
+    "languageRegion": {
+      "title": "언어 및 지역",
+      "description": "언어 및 지역 설정"
+    },
+    "language": {
+      "select": "언어 선택"
+    },
+    "units": {
+      "title": "측정 단위",
+      "description": "무게, 온도 등의 단위",
+      "select": "측정 단위",
+      "metric": "미터법",
+      "metricDesc": "킬로그램, 그램, 섭씨",
+      "imperial": "야드파운드법",
+      "imperialDesc": "파운드, 온스, 화씨"
+    },
+    "content": {
+      "title": "콘텐츠 표시",
+      "description": "정보가 표시되는 방식을 사용자 지정"
+    },
+    "nutrition": {
+      "title": "영양 정보 표시",
+      "description": "영양 정보의 세부 수준",
+      "select": "영양 정보 표시",
+      "detailed": "상세",
+      "detailedDesc": "모든 영양 정보 표시",
+      "simple": "간단",
+      "simpleDesc": "칼로리와 주요 영양소만 표시"
+    }
+  }
+}

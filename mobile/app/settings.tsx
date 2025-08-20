@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { SettingsSection, SettingsLayout } from "@/components/settings";
 import { useUserStore } from "@/domains/user/stores/userStore";
 import * as Haptics from "expo-haptics";
+import { useSettingsI18n } from "@/lib/i18n";
 
 interface SettingsCategory {
   id: string;
@@ -20,6 +21,7 @@ interface SettingsCategory {
 export default function SettingsScreen() {
   const { theme } = useTheme();
   const { user } = useUserStore();
+  const settings = useSettingsI18n();
 
   const handleCategoryPress = (categoryId: string) => {
     try {
@@ -37,42 +39,42 @@ export default function SettingsScreen() {
       id: "account",
       title: "Account & Profile",
       icon: "person-outline",
-      description: "Manage your profile and account security",
+      description: "Manage your account information and preferences",
       onPress: () => handleCategoryPress("account"),
     },
     {
       id: "privacy",
-      title: "Privacy & Data",
+      title: settings.privacy.title,
       icon: "shield-outline",
-      description: "Control your data and privacy settings",
+      description: settings.privacy.description,
       onPress: () => handleCategoryPress("privacy"),
     },
     {
       id: "notifications",
-      title: "Notifications",
+      title: settings.notifications.title,
       icon: "notifications-outline",
-      description: "Customize your notification preferences",
+      description: settings.notifications.description,
       onPress: () => handleCategoryPress("notifications"),
     },
     {
       id: "display",
-      title: "Display & Appearance",
+      title: settings.display.title,
       icon: "color-palette-outline",
-      description: "Theme, language, and visual preferences",
+      description: settings.display.appearance.description,
       onPress: () => handleCategoryPress("display"),
     },
     {
       id: "goals",
       title: "Goals & Targets",
       icon: "trophy-outline",
-      description: "Set your health and nutrition goals",
+      description: "Set and track your nutrition and health goals",
       onPress: () => handleCategoryPress("goals"),
     },
     {
       id: "data",
-      title: "Data Management",
+      title: "Data Management", 
       icon: "download-outline",
-      description: "Export, backup, and manage your data",
+      description: "Export, import, and manage your data",
       onPress: () => handleCategoryPress("data"),
     },
   ];
@@ -113,7 +115,7 @@ export default function SettingsScreen() {
   const renderQuickActions = () => (
     <View style={styles.quickActions}>
       <Button
-        title="Help & Support"
+        title="Help"
         icon="help-circle-outline"
         variant="ghost"
         size="small"
@@ -124,7 +126,7 @@ export default function SettingsScreen() {
         style={styles.quickActionButton}
       />
       <Button
-        title="About"
+        title={settings.about.title}
         icon="information-circle-outline"
         variant="ghost"
         size="small"
@@ -138,12 +140,12 @@ export default function SettingsScreen() {
   );
 
   return (
-    <SettingsLayout title="Settings">
+    <SettingsLayout title={settings.title}>
       {/* User Info Section */}
       {renderUserInfo()}
 
       {/* Settings Categories */}
-      <SettingsSection title="Settings" variant="grouped" style={styles.categoriesContainer}>
+      <SettingsSection title={settings.title} variant="grouped" style={styles.categoriesContainer}>
         {settingsCategories.map(renderSettingCategory)}
       </SettingsSection>
 
@@ -152,7 +154,7 @@ export default function SettingsScreen() {
 
       {/* App Info */}
       <View style={styles.appInfo}>
-        <Text style={[styles.appVersion, { color: theme.colors.textSecondary }]}>Food Log v1.0.0</Text>
+        <Text style={[styles.appVersion, { color: theme.colors.textSecondary }]}>Version 1.0.0</Text>
       </View>
     </SettingsLayout>
   );

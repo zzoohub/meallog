@@ -1,0 +1,33 @@
+{
+  "title": "푸드로그",
+  "subtitle": "음식을 즉시 기록하세요",
+  "quickHint": "탭하여 식사 기록하기",
+  "hintText": "음식에 카메라를 향하면 즉시 분석됩니다",
+  "capturingText": "분석 중...",
+  "preparing": "카메라 준비 중...",
+  "flip": "전환",
+  "discover": "둘러보기",
+  "progress": "진행 상황",
+  "aiCoach": "AI 코치",
+  "recent": "최근",
+  "aiAnalysis": "AI 분석 진행 중",
+  "aiAnalysisDesc": "음식 항목을 식별하고 영양 정보를 계산하는 중...",
+  "welcome": {
+    "title": "푸드로그에 오신 것을 환영합니다",
+    "message": "원터치로 식사를 즉시 기록하세요. 시작하려면 카메라 접근을 허용해 주세요.",
+    "enableCamera": "카메라 활성화"
+  },
+  "permissions": {
+    "title": "카메라 권한이 필요합니다",
+    "message": "사진으로 식사를 기록하려면 카메라 접근을 허용해 주세요.",
+    "cancel": "취소",
+    "openSettings": "설정 열기"
+  },
+  "capture": {
+    "success": "식사 기록 완료!",
+    "successMessage": "음식이 자동으로 저장되고 분석되었습니다.",
+    "viewTimeline": "타임라인 보기",
+    "error": "오류",
+    "errorMessage": "사진 촬영에 실패했습니다. 다시 시도해 주세요."
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "networkError": "Network connection failed. Please check your internet connection.",
+  "genericError": "Something went wrong. Please try again.",
+  "cameraError": "Camera access failed. Please check your permissions.",
+  "storageError": "Failed to save data. Please try again."
+}

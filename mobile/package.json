@@ -12,7 +12,13 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "jest --coverage --watchAll=false --passWithNoTests"
+    "test:ci": "jest --coverage --watchAll=false --passWithNoTests",
+    "i18n:validate": "node scripts/i18n-tools.js validate",
+    "i18n:extract": "node scripts/i18n-tools.js extract",
+    "i18n:split": "node scripts/i18n-tools.js split",
+    "i18n:merge": "node scripts/i18n-tools.js merge",
+    "i18n:unused": "node scripts/i18n-tools.js unused",
+    "i18n:stats": "node scripts/i18n-tools.js stats"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",

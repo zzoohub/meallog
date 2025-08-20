@@ -5,6 +5,7 @@ import { CircularProgress } from "@/components/CircularProgress";
 import { NutritionChart } from "@/components/NutritionChart";
 import RecentMeals from "@/domains/meals/components/RecentMeals";
 import { useRouter } from "expo-router";
+import { useProgressI18n } from "@/lib/i18n";
 
 interface ProgressDashboardProps {
   onNavigate: (section: string) => void;
@@ -39,42 +40,43 @@ const mockStats: DailyStats = {
   fiber: { current: 22, target: 25 },
 };
 
-const mockAchievements: Achievement[] = [
-  {
-    id: "1",
-    title: "Protein Master",
-    description: "Hit protein goal 7 days in a row",
-    emoji: "💪",
-    progress: 5,
-    target: 7,
-    isCompleted: false,
-  },
-  {
-    id: "2",
-    title: "Veggie Warrior",
-    description: "Log 25 different vegetables",
-    emoji: "🥗",
-    progress: 18,
-    target: 25,
-    isCompleted: false,
-  },
-  {
-    id: "3",
-    title: "Consistency King",
-    description: "Log meals for 30 days straight",
-    emoji: "🔥",
-    progress: 14,
-    target: 30,
-    isCompleted: false,
-  },
-];
-
 export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<"day" | "week" | "month">("day");
   const router = useRouter();
+  const progress = useProgressI18n();
+
+  const mockAchievements: Achievement[] = [
+    {
+      id: "1",
+      title: progress.proteinMaster,
+      description: progress.proteinMasterDesc,
+      emoji: "💪",
+      progress: 5,
+      target: 7,
+      isCompleted: false,
+    },
+    {
+      id: "2",
+      title: progress.veggieWarrior,
+      description: progress.veggieWarriorDesc,
+      emoji: "🥗",
+      progress: 18,
+      target: 25,
+      isCompleted: false,
+    },
+    {
+      id: "3",
+      title: progress.consistencyKing,
+      description: progress.consistencyKingDesc,
+      emoji: "🔥",
+      progress: 14,
+      target: 30,
+      isCompleted: false,
+    },
+  ];
 
   const handleSeeAllHistory = () => {
-    router.push('/meal-history');
+    router.push("/meal-history");
   };
 
   const renderProgressRing = (label: string, current: number, target: number, color: string, unit: string) => {
@@ -130,7 +132,7 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Progress</Text>
+        <Text style={styles.headerTitle}>{progress.title}</Text>
 
         <TouchableOpacity onPress={() => onNavigate("settings")}>
           <Ionicons name="settings-outline" size={24} color="white" />
@@ -147,7 +149,7 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
               onPress={() => setSelectedPeriod(period)}
             >
               <Text style={[styles.periodButtonText, selectedPeriod === period && styles.periodButtonTextActive]}>
-                {period.charAt(0).toUpperCase() + period.slice(1)}
+                {progress[period]}
               </Text>
             </TouchableOpacity>
           ))}
@@ -156,7 +158,7 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
         {/* Daily Summary */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryHeader}>
-            <Text style={styles.summaryTitle}>Today's Summary</Text>
+            <Text style={styles.summaryTitle}>{progress.todaySummary}</Text>
             <Text style={styles.summaryDate}>
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",
@@ -169,11 +171,11 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
           <View style={styles.calorieOverview}>
             <View style={styles.calorieMain}>
               <Text style={styles.calorieValue}>{mockStats.calories.current}</Text>
-              <Text style={styles.calorieLabel}>calories consumed</Text>
+              <Text style={styles.calorieLabel}>{progress.caloriesConsumed}</Text>
             </View>
             <View style={styles.calorieRemaining}>
               <Text style={styles.remainingValue}>{mockStats.calories.target - mockStats.calories.current}</Text>
-              <Text style={styles.remainingLabel}>remaining</Text>
+              <Text style={styles.remainingLabel}>{progress.remaining}</Text>
             </View>
           </View>
 
@@ -192,20 +194,20 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
 
         {/* Nutrition Rings */}
         <View style={styles.nutritionSection}>
-          <Text style={styles.sectionTitle}>Macronutrients</Text>
+          <Text style={styles.sectionTitle}>{progress.macronutrients}</Text>
           <View style={styles.nutritionRings}>
-            {renderProgressRing("Protein", mockStats.protein.current, mockStats.protein.target, "#FF6B35", "g")}
-            {renderProgressRing("Carbs", mockStats.carbs.current, mockStats.carbs.target, "#4ECDC4", "g")}
-            {renderProgressRing("Fat", mockStats.fat.current, mockStats.fat.target, "#45B7D1", "g")}
+            {renderProgressRing(progress.protein, mockStats.protein.current, mockStats.protein.target, "#FF6B35", "g")}
+            {renderProgressRing(progress.carbs, mockStats.carbs.current, mockStats.carbs.target, "#4ECDC4", "g")}
+            {renderProgressRing(progress.fat, mockStats.fat.current, mockStats.fat.target, "#45B7D1", "g")}
           </View>
         </View>
 
         {/* Eating Pattern */}
         <View style={styles.patternSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Eating Pattern</Text>
+            <Text style={styles.sectionTitle}>{progress.eatingPattern}</Text>
             <TouchableOpacity>
-              <Text style={styles.seeAllText}>See all</Text>
+              <Text style={styles.seeAllText}>{progress.seeAll}</Text>
             </TouchableOpacity>
           </View>
 
@@ -219,8 +221,8 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
           <View style={styles.characterCard}>
             <Text style={styles.characterEmoji}>🌟</Text>
             <View style={styles.characterInfo}>
-              <Text style={styles.characterTitle}>The Balanced Explorer</Text>
-              <Text style={styles.characterDescription}>You're doing great at maintaining variety in your diet!</Text>
+              <Text style={styles.characterTitle}>{progress.balancedExplorer}</Text>
+              <Text style={styles.characterDescription}>{progress.balancedExplorerDesc}</Text>
             </View>
             <View style={styles.characterLevel}>
               <Text style={styles.levelText}>Lv.7</Text>
@@ -228,18 +230,18 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
           </View>
 
           <View style={styles.diversityScore}>
-            <Text style={styles.diversityLabel}>Food Diversity Score</Text>
+            <Text style={styles.diversityLabel}>{progress.foodDiversityScore}</Text>
             <Text style={styles.diversityValue}>82/100</Text>
-            <Text style={styles.diversityTip}>Try a new cuisine this week to boost your score!</Text>
+            <Text style={styles.diversityTip}>{progress.diversityTip}</Text>
           </View>
         </View>
 
         {/* Achievements */}
         <View style={styles.achievementsSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Achievements</Text>
+            <Text style={styles.sectionTitle}>{progress.achievements}</Text>
             <TouchableOpacity>
-              <Text style={styles.seeAllText}>View all</Text>
+              <Text style={styles.seeAllText}>{progress.viewAll}</Text>
             </TouchableOpacity>
           </View>
 
@@ -262,7 +264,7 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
             <Ionicons name="restaurant" size={24} color="#FF6B35" />
             <View style={styles.insightContent}>
               <Text style={styles.insightTitle}>New favorite: Mediterranean</Text>
-              <Text style={styles.insightDescription}>You've logged 4 Mediterranean meals this week.</Text>
+              <Text style={styles.insightDescription}>You&apos;ve logged 4 Mediterranean meals this week.</Text>
             </View>
           </View>
         </View>

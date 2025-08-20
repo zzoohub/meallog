@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useCameraPermissions } from "expo-camera";
+import { useCommonI18n } from "@/lib/i18n";
 
 const { width } = Dimensions.get("window");
 
@@ -15,35 +16,36 @@ interface OnboardingStep {
   component: React.ComponentType<any>;
 }
 
+// Note: steps titles and subtitles will be populated by translation hook
 const steps: OnboardingStep[] = [
   {
     id: "welcome",
-    title: "Your AI Nutrition Companion",
-    subtitle: "Transform every meal into insights",
+    title: "",
+    subtitle: "",
     component: WelcomeStep,
   },
   {
-    id: "camera",
-    title: "Enable Quick Capture",
-    subtitle: "Take photos of your food for instant analysis",
+    id: "camera", 
+    title: "",
+    subtitle: "",
     component: CameraStep,
   },
   {
     id: "demo",
-    title: "Try It Now!",
-    subtitle: "See how our AI analyzes your food",
+    title: "",
+    subtitle: "",
     component: DemoStep,
   },
   {
     id: "goals",
-    title: "What brings you here?",
-    subtitle: "We'll personalize your experience",
+    title: "",
+    subtitle: "",
     component: GoalsStep,
   },
   {
     id: "profile",
-    title: "Almost done!",
-    subtitle: "Help us create your food character",
+    title: "",
+    subtitle: "",
     component: ProfileStep,
   },
 ];
@@ -54,6 +56,7 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const common = useCommonI18n();
 
   const nextStep = () => {
     if (currentStep < steps.length - 1) {
@@ -92,7 +95,7 @@ export default function OnboardingScreen() {
     <LinearGradient colors={["#FF6B35", "#F7931E", "#FFD23F"]} style={styles.container}>
       {/* Skip Button */}
       <TouchableOpacity style={styles.skipButton} onPress={skip}>
-        <Text style={styles.skipText}>Skip</Text>
+        <Text style={styles.skipText}>{common.onboarding.buttons.skip}</Text>
       </TouchableOpacity>
 
       {/* Progress Indicator */}
@@ -129,6 +132,7 @@ export default function OnboardingScreen() {
 
 function WelcomeStep({ onNext }: { onNext: () => void }) {
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const common = useCommonI18n();
 
   useEffect(() => {
     Animated.spring(scaleAnim, {
@@ -147,15 +151,14 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
           <Ionicons name="restaurant" size={60} color="white" />
           <Text style={styles.heroEmoji}>🍎📱🧠</Text>
         </View>
-        <Text style={styles.stepTitle}>Your AI Nutrition Companion</Text>
+        <Text style={styles.stepTitle}>{common.onboarding.welcome.title}</Text>
         <Text style={styles.stepSubtitle}>
-          Transform every meal into insights that help you eat better, feel better, and connect with others on the same
-          journey
+          {common.onboarding.welcome.subtitle}
         </Text>
       </Animated.View>
 
       <TouchableOpacity style={styles.primaryButton} onPress={onNext}>
-        <Text style={styles.primaryButtonText}>Start Your Food Journey</Text>
+        <Text style={styles.primaryButtonText}>{common.onboarding.welcome.startJourney}</Text>
         <Ionicons name="arrow-forward" size={20} color="white" style={styles.buttonIcon} />
       </TouchableOpacity>
     </View>

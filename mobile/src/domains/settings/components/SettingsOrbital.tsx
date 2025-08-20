@@ -5,6 +5,7 @@ import { router } from "expo-router";
 import { Card } from "@/components/ui/Card";
 import { useUserStore } from "@/domains/user/stores/userStore";
 import { useSettingsStore } from "@/domains/settings/stores/settingsStore";
+import { useSettingsI18n } from "@/lib/i18n";
 
 interface SettingsOrbitalProps {
   onNavigate: (section: string) => void;
@@ -22,6 +23,7 @@ interface QuickSetting {
 export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
   const { user } = useUserStore();
   const { display, notifications } = useSettingsStore();
+  const settings = useSettingsI18n();
 
   const handleSettingsPress = () => {
     router.push("/settings");
@@ -30,21 +32,21 @@ export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
   const quickSettings: QuickSetting[] = [
     {
       id: "theme",
-      title: "Theme",
+      title: settings.display.theme.title,
       icon: "color-palette-outline",
-      value: display.theme === "system" ? "System" : display.theme === "dark" ? "Dark" : "Light",
+      value: display.theme === "system" ? settings.display.theme.system : display.theme === "dark" ? settings.display.theme.dark : settings.display.theme.light,
       onPress: () => router.push("/settings/display"),
     },
     {
       id: "notifications",
-      title: "Notifications",
+      title: settings.notifications.title,
       icon: "notifications-outline",
-      value: notifications.mealReminders ? "On" : "Off",
+      value: notifications.mealReminders ? "Yes" : "No",
       onPress: () => router.push("/settings/notifications"),
     },
     {
       id: "language",
-      title: "Language",
+      title: settings.language.title,
       icon: "language-outline",
       value: display.language === "ko" ? "한국어" : "English",
       onPress: () => router.push("/settings/display"),
@@ -117,7 +119,7 @@ export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
                 </View>
                 <View>
                   <Text style={styles.allSettingsTitle}>All Settings</Text>
-                  <Text style={styles.allSettingsDescription}>Account, Privacy, Goals & More</Text>
+                  <Text style={styles.allSettingsDescription}>Manage all app preferences</Text>
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={20} color="rgba(255, 255, 255, 0.5)" />

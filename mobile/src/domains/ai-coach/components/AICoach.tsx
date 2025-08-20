@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAICoachI18n } from '@/lib/i18n';
 
 interface AICoachProps {
   onNavigate: (section: string) => void;
@@ -72,11 +73,56 @@ const mockConversation: Message[] = [
 ];
 
 export default function AICoach({ onNavigate, isActive }: AICoachProps) {
-  const [messages, setMessages] = useState<Message[]>(mockConversation);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const aiCoach = useAICoachI18n();
+
+  const mockInsights: Insight[] = [
+    {
+      id: '1',
+      title: aiCoach.proteinGoal,
+      description: aiCoach.proteinGoalDesc,
+      type: 'achievement',
+      icon: '💪',
+      priority: 'high',
+    },
+    {
+      id: '2',
+      title: aiCoach.hydrationReminder,
+      description: aiCoach.hydrationReminderDesc,
+      type: 'habit',
+      icon: '💧',
+      priority: 'medium',
+    },
+    {
+      id: '3',
+      title: aiCoach.vegetableVariety,
+      description: aiCoach.vegetableVarietyDesc,
+      type: 'nutrition',
+      icon: '🥗',
+      priority: 'medium',
+    },
+  ];
+
+  const mockConversation: Message[] = [
+    {
+      id: '1',
+      text: aiCoach.greeting,
+      isUser: false,
+      timestamp: new Date(Date.now() - 10 * 60 * 1000),
+      suggestions: [aiCoach.analyzeMy, aiCoach.setGoals, aiCoach.weeklyReport, aiCoach.mealSuggestions],
+    },
+  ];
+
+  // Initialize conversation with translated content
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages(mockConversation);
+    }
+  }, [aiCoach]);
 
   useEffect(() => {
     if (isActive) {
@@ -222,8 +268,8 @@ export default function AICoach({ onNavigate, isActive }: AICoachProps) {
         </TouchableOpacity>
         
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>AI Coach</Text>
-          <Text style={styles.headerSubtitle}>Your nutrition companion</Text>
+          <Text style={styles.headerTitle}>{aiCoach.title}</Text>
+          <Text style={styles.headerSubtitle}>{aiCoach.subtitle}</Text>
         </View>
         
         <TouchableOpacity>
@@ -233,7 +279,7 @@ export default function AICoach({ onNavigate, isActive }: AICoachProps) {
 
       {/* Insights Section */}
       <Animated.View style={[styles.insightsSection, { opacity: fadeAnim }]}>
-        <Text style={styles.sectionTitle}>Today's Insights</Text>
+        <Text style={styles.sectionTitle}>{aiCoach.insights}</Text>
         <View style={styles.insightsRow}>
           {mockInsights.slice(0, 2).map(renderInsight)}
         </View>
@@ -271,7 +317,7 @@ export default function AICoach({ onNavigate, isActive }: AICoachProps) {
             style={styles.textInput}
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Ask me about nutrition, goals, or recipes..."
+            placeholder={aiCoach.typeMessage}
             placeholderTextColor="rgba(255, 255, 255, 0.5)"
             multiline
             maxLength={500}
@@ -287,7 +333,7 @@ export default function AICoach({ onNavigate, isActive }: AICoachProps) {
         
         {/* Quick Actions */}
         <View style={styles.quickActions}>
-          {['Weekly Report', 'Meal Ideas', 'Goal Check'].map((action, index) => (
+          {[aiCoach.weeklyReport, aiCoach.mealIdeas, aiCoach.goalCheck].map((action, index) => (
             <TouchableOpacity
               key={index}
               style={styles.quickActionButton}

@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { useCameraI18n } from "@/lib/i18n";
 
 interface OrbitalCameraProps {
   onNavigate: (section: string) => void;
@@ -18,6 +19,7 @@ export default function OrbitalCamera({ onNavigate }: OrbitalCameraProps) {
   const [recentMeals] = useState([]);
   const cameraRef = useRef<CameraView>(null);
   const router = useRouter();
+  const t = useCameraI18n();
 
   // Animations
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -132,7 +134,7 @@ export default function OrbitalCamera({ onNavigate }: OrbitalCameraProps) {
   if (!permission) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Preparing camera...</Text>
+        <Text style={styles.loadingText}>{t.preparing}</Text>
       </View>
     );
   }
@@ -141,10 +143,10 @@ export default function OrbitalCamera({ onNavigate }: OrbitalCameraProps) {
     return (
       <View style={styles.permissionContainer}>
         <Ionicons name="camera-outline" size={80} color="#FF6B35" />
-        <Text style={styles.permissionTitle}>Camera Access Needed</Text>
-        <Text style={styles.permissionMessage}>Enable camera access to start logging your meals instantly</Text>
+        <Text style={styles.permissionTitle}>{t.permissions.title}</Text>
+        <Text style={styles.permissionMessage}>{t.permissions.message}</Text>
         <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
-          <Text style={styles.permissionButtonText}>Enable Camera</Text>
+          <Text style={styles.permissionButtonText}>{t.welcome.enableCamera}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -180,7 +182,7 @@ export default function OrbitalCamera({ onNavigate }: OrbitalCameraProps) {
             <View style={[styles.gridLine, styles.gridLineVertical]} />
           </View>
 
-          <Text style={styles.hintText}>Point camera at your food for instant analysis</Text>
+          <Text style={styles.hintText}>{t.hintText}</Text>
         </View>
 
         {/* Center Capture Area */}
@@ -197,7 +199,7 @@ export default function OrbitalCamera({ onNavigate }: OrbitalCameraProps) {
           <View style={styles.leftControls}>
             <TouchableOpacity style={styles.secondaryButton} onPress={() => onNavigate("progress")}>
               <Ionicons name="bar-chart-outline" size={20} color="white" />
-              <Text style={styles.secondaryButtonText}>Progress</Text>
+              <Text style={styles.secondaryButtonText}>{t.progress}</Text>
             </TouchableOpacity>
             {/* Phase 2: Social feature
             <TouchableOpacity style={styles.secondaryButton} onPress={() => onNavigate("social")}>
@@ -209,20 +211,20 @@ export default function OrbitalCamera({ onNavigate }: OrbitalCameraProps) {
 
           <View style={styles.centerHint}>
             {isCapturing && (
-              <Text style={styles.capturingText}>Analyzing...</Text>
+              <Text style={styles.capturingText}>{t.capturingText}</Text>
             )}
           </View>
 
           <TouchableOpacity style={styles.secondaryButton} onPress={() => onNavigate("ai-coach")}>
             <Ionicons name="chatbubble-outline" size={20} color="white" />
-            <Text style={styles.secondaryButtonText}>AI Coach</Text>
+            <Text style={styles.secondaryButtonText}>{t.aiCoach}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Recent Meals Quick Access */}
         {recentMeals.length > 0 && (
           <View style={styles.recentMeals}>
-            <Text style={styles.recentMealsTitle}>Recent</Text>
+            <Text style={styles.recentMealsTitle}>{t.recent}</Text>
             {/* Recent meals carousel would go here */}
           </View>
         )}
@@ -237,8 +239,8 @@ export default function OrbitalCamera({ onNavigate }: OrbitalCameraProps) {
               <View style={styles.aiScanningAnimation}>
                 <Ionicons name="scan" size={60} color="#FF6B35" />
               </View>
-              <Text style={styles.aiProcessingTitle}>AI Analysis in Progress</Text>
-              <Text style={styles.aiProcessingSubtitle}>Identifying food items and calculating nutrition...</Text>
+              <Text style={styles.aiProcessingTitle}>{t.aiAnalysis}</Text>
+              <Text style={styles.aiProcessingSubtitle}>{t.aiAnalysisDesc}</Text>
               <View style={styles.aiProgressBar}>
                 <Animated.View style={styles.aiProgressFill} />
               </View>

@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Meal } from '@/domains/meals/types';
 import { MealStorageService } from '@/domains/meals/services/mealStorage';
 import { MealType } from '@/types';
+import { useMealDetailI18n } from '@/lib/i18n';
 
 interface NutritionInfo {
   calories: number;
@@ -41,6 +42,7 @@ export default function MealDetail() {
     mealId?: string;
   }>();
   const router = useRouter();
+  const mealDetail = useMealDetailI18n();
   const [mealData, setMealData] = useState<MealData | null>(null);
   const [existingMeal, setExistingMeal] = useState<Meal | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -66,14 +68,14 @@ export default function MealDetail() {
       setError(null);
 
       if (!mealId) {
-        throw new Error('No meal ID provided');
+        throw new Error(mealDetail.noMealId);
       }
 
       const meals = await MealStorageService.getAllMeals();
       const meal = meals.find(m => m.id === mealId);
       
       if (!meal) {
-        throw new Error('Meal not found');
+        throw new Error(mealDetail.mealNotFound);
       }
 
       setExistingMeal(meal);
@@ -85,7 +87,7 @@ export default function MealDetail() {
         ingredients: meal.ingredients,
       });
     } catch (err) {
-      setError('Failed to load meal. Please try again.');
+      setError(mealDetail.failedToLoad);
       console.error('Meal loading error:', err);
     } finally {
       setIsLoading(false);
@@ -229,7 +231,7 @@ export default function MealDetail() {
       setTimeout(() => router.back(), 1000);
     } catch (error) {
       console.error('Error saving meal:', error);
-      setError('Failed to save meal. Please try again.');
+      setError(mealDetail.failedToSave);
     }
   };
 
@@ -257,13 +259,13 @@ export default function MealDetail() {
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle" size={60} color="#FF6B35" />
-          <Text style={styles.errorTitle}>Analysis Failed</Text>
+          <Text style={styles.errorTitle}>{mealDetail.analysisFailed}</Text>
           <Text style={styles.errorMessage}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={analyzeMeal}>
-            <Text style={styles.retryButtonText}>Try Again</Text>
+            <Text style={styles.retryButtonText}>{mealDetail.tryAgain}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>Go Back</Text>
+            <Text style={styles.backButtonText}>{mealDetail.goBack}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -279,10 +281,10 @@ export default function MealDetail() {
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-          {isNew === 'true' ? 'Meal Analysis' : 'Edit Meal'}
+          {isNew === 'true' ? mealDetail.title : mealDetail.editTitle}
         </Text>
           <TouchableOpacity onPress={handleSave} style={styles.saveBtn}>
-            <Text style={styles.saveText}>Save</Text>
+            <Text style={styles.saveText}>{mealDetail.save}</Text>
           </TouchableOpacity>
         </View>
 
@@ -304,7 +306,7 @@ export default function MealDetail() {
           ]}
         >
           <Ionicons name="checkmark-circle" size={20} color="#4ECDC4" />
-          <Text style={styles.saveIndicatorText}>Saved</Text>
+          <Text style={styles.saveIndicatorText}>{mealDetail.saved}</Text>
         </Animated.View>
 
         <ScrollView 
@@ -326,12 +328,12 @@ export default function MealDetail() {
             <View style={styles.analyzingContainer}>
               <ActivityIndicator size="large" color="#FF6B35" />
               <Text style={styles.analyzingText}>
-                {isAnalyzing ? 'Analyzing your meal...' : 'Loading meal data...'}
+                {isAnalyzing ? mealDetail.analyzing : mealDetail.loadingMeal}
               </Text>
               <Text style={styles.analyzingSubtext}>
                 {isAnalyzing 
-                  ? 'Our AI is identifying ingredients and calculating nutrition'
-                  : 'Retrieving your saved meal details'
+                  ? mealDetail.analyzingSubtext
+                  : mealDetail.loadingSubtext
                 }
               </Text>
             </View>
@@ -362,13 +364,13 @@ export default function MealDetail() {
                   )}
                 </TouchableOpacity>
                 <Text style={styles.confidence}>
-                  {mealData.confidence}% confidence
+                  {`${mealData.confidence}% confidence`}
                 </Text>
               </View>
 
               {/* Nutrition */}
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Nutrition Facts</Text>
+                <Text style={styles.sectionTitle}>{mealDetail.nutritionFacts}</Text>
                 <View style={styles.nutritionGrid}>
                   {/* Calories */}
                   <TouchableOpacity
@@ -394,7 +396,7 @@ export default function MealDetail() {
                         <View style={styles.editHintSmall} />
                       </View>
                     )}
-                    <Text style={styles.nutritionLabel}>Calories</Text>
+                    <Text style={styles.nutritionLabel}>{mealDetail.calories}</Text>
                   </TouchableOpacity>
 
                   {/* Protein */}
@@ -424,7 +426,7 @@ export default function MealDetail() {
                         <View style={styles.editHintSmall} />
                       </View>
                     )}
-                    <Text style={styles.nutritionLabel}>Protein</Text>
+                    <Text style={styles.nutritionLabel}>{mealDetail.protein}</Text>
                   </TouchableOpacity>
 
                   {/* Carbs */}
@@ -454,7 +456,7 @@ export default function MealDetail() {
                         <View style={styles.editHintSmall} />
                       </View>
                     )}
-                    <Text style={styles.nutritionLabel}>Carbs</Text>
+                    <Text style={styles.nutritionLabel}>{mealDetail.carbs}</Text>
                   </TouchableOpacity>
 
                   {/* Fat */}
@@ -484,7 +486,7 @@ export default function MealDetail() {
                         <View style={styles.editHintSmall} />
                       </View>
                     )}
-                    <Text style={styles.nutritionLabel}>Fat</Text>
+                    <Text style={styles.nutritionLabel}>{mealDetail.fat}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -492,7 +494,7 @@ export default function MealDetail() {
               {/* Ingredients */}
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Detected Ingredients</Text>
+                  <Text style={styles.sectionTitle}>{mealDetail.ingredients}</Text>
                   <TouchableOpacity onPress={handleAddIngredient} style={styles.addButton}>
                     <Ionicons name="add-circle" size={24} color="#4ECDC4" />
                   </TouchableOpacity>
