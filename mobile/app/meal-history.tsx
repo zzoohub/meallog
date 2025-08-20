@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,13 +11,13 @@ import {
   SectionList,
   Modal,
   Platform,
-} from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Meal, MealHistoryFilter } from '@/domains/meals/types';
-import { MealStorageService, generateMockMeals } from '@/domains/meals/services/mealStorage';
-import { MealType } from '@/types';
+} from "react-native";
+import { Calendar, CalendarList } from "react-native-calendars";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { Meal, MealHistoryFilter } from "@/domains/meals/types";
+import { MealStorageService, generateMockMeals } from "@/domains/meals/services/mealStorage";
+import { MealType } from "@/types";
 
 interface MealSection {
   title: string;
@@ -30,19 +30,26 @@ export default function MealHistory() {
   const [sections, setSections] = useState<MealSection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [datePickerMode, setDatePickerMode] = useState<'start' | 'end'>('start');
-  const [tempDate, setTempDate] = useState(new Date());
+  const [showDateRangeModal, setShowDateRangeModal] = useState(false);
+  const [markedDates, setMarkedDates] = useState<{ [key: string]: any }>({});
   const ITEMS_PER_PAGE = 20;
 
   useEffect(() => {
-    loadMeals(true);
+    const timeoutId = setTimeout(() => {
+      loadMeals(true);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
   }, [searchQuery, startDate, endDate]);
+
+  useEffect(() => {
+    updateMarkedDates();
+  }, [startDate, endDate]);
 
   const loadMeals = async (isRefresh = false) => {
     try {
@@ -53,14 +60,14 @@ export default function MealHistory() {
       } else {
         setIsLoadingMore(true);
       }
-      
+
       const filter: MealHistoryFilter = {};
       if (searchQuery) filter.searchQuery = searchQuery;
       if (startDate) filter.startDate = startDate;
       if (endDate) filter.endDate = endDate;
-      
+
       let loadedMeals = await MealStorageService.getMealsFiltered(filter);
-      
+
       // For development: add mock data if no meals exist
       if (loadedMeals.length === 0 && !searchQuery && isRefresh) {
         const mockMeals = generateMockMeals();
@@ -76,35 +83,37 @@ export default function MealHistory() {
               nutrition: mockMeal.nutrition,
               ingredients: mockMeal.ingredients,
               aiAnalysis: mockMeal.aiAnalysis,
+              location: mockMeal.location,
+              notes: mockMeal.notes,
               isVerified: mockMeal.isVerified,
             });
           } catch (error) {
-            console.error('Error saving mock meal:', error);
+            console.error("Error saving mock meal:", error);
           }
         }
         loadedMeals = await MealStorageService.getMealsFiltered(filter);
       }
-      
+
       // Simulate pagination for infinite scroll
       const currentPage = isRefresh ? 1 : page;
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
       const endIndex = startIndex + ITEMS_PER_PAGE;
       const paginatedMeals = loadedMeals.slice(0, endIndex);
-      
+
       if (isRefresh) {
         setMeals(paginatedMeals);
       } else {
         setMeals(prev => [...prev, ...loadedMeals.slice(startIndex, endIndex)]);
       }
-      
+
       setSections(groupMealsByDate(paginatedMeals));
       setHasMore(endIndex < loadedMeals.length);
-      
+
       if (!isRefresh) {
         setPage(prev => prev + 1);
       }
     } catch (error) {
-      console.error('Error loading meals:', error);
+      console.error("Error loading meals:", error);
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
@@ -126,7 +135,7 @@ export default function MealHistory() {
         title: formatSectionDate(new Date(date)),
         data: meals.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()),
       }))
-      .sort((a, b) => new Date(b.data[0].timestamp).getTime() - new Date(a.data[0].timestamp).getTime());
+      .sort((a, b) => (b.data[0]?.timestamp?.getTime() ?? 0) - (a.data[0]?.timestamp?.getTime() ?? 0));
   };
 
   const formatSectionDate = (date: Date): string => {
@@ -135,58 +144,54 @@ export default function MealHistory() {
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return 'Today';
+      return "Today";
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
+      return "Yesterday";
     } else {
-      return date.toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'short',
-        day: 'numeric',
+      return date.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
       });
     }
   };
 
   const handleMealPress = (meal: Meal) => {
     router.push({
-      pathname: '/meal-detail',
+      pathname: "/meal-detail",
       params: {
         mealId: meal.id,
-        photoUri: meal.photoUri || '',
-        isNew: 'false',
+        photoUri: meal.photoUri || "",
+        isNew: "false",
       },
     });
   };
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
       hour12: true,
     });
   };
 
   const getMealTypeIcon = (mealType: string) => {
     switch (mealType.toLowerCase()) {
-      case 'breakfast':
-        return '🌅';
-      case 'lunch':
-        return '☀️';
-      case 'dinner':
-        return '🌙';
-      case 'snack':
-        return '🍎';
+      case "breakfast":
+        return "🌅";
+      case "lunch":
+        return "☀️";
+      case "dinner":
+        return "🌙";
+      case "snack":
+        return "🍎";
       default:
-        return '🍽️';
+        return "🍽️";
     }
   };
 
   const renderMealItem = ({ item: meal }: { item: Meal }) => (
-    <TouchableOpacity
-      style={styles.mealItem}
-      onPress={() => handleMealPress(meal)}
-      activeOpacity={0.7}
-    >
+    <TouchableOpacity style={styles.mealItem} onPress={() => handleMealPress(meal)} activeOpacity={0.7}>
       {/* Photo */}
       <View style={styles.mealPhotoContainer}>
         {meal.photoUri ? (
@@ -196,7 +201,7 @@ export default function MealHistory() {
             <Ionicons name="camera" size={20} color="rgba(255, 255, 255, 0.3)" />
           </View>
         )}
-        
+
         {/* Verification badge */}
         {meal.isVerified && (
           <View style={styles.verifiedBadge}>
@@ -210,18 +215,18 @@ export default function MealHistory() {
         <View style={styles.mealHeader}>
           <View style={styles.mealTitleRow}>
             <Text style={styles.mealEmoji}>{getMealTypeIcon(meal.mealType)}</Text>
-            <Text style={styles.mealName} numberOfLines={1}>{meal.name}</Text>
+            <Text style={styles.mealName} numberOfLines={1}>
+              {meal.name}
+            </Text>
             <Text style={styles.mealTime}>{formatTime(meal.timestamp)}</Text>
           </View>
-          
+
           {/* AI Insights Preview */}
           {meal.aiAnalysis?.insights && (
             <View style={styles.insightsPreview}>
               <View style={styles.healthScore}>
                 <Ionicons name="fitness" size={12} color="#4ECDC4" />
-                <Text style={styles.healthScoreText}>
-                  {meal.aiAnalysis.insights.healthScore}/100
-                </Text>
+                <Text style={styles.healthScoreText}>{meal.aiAnalysis.insights.healthScore}/100</Text>
               </View>
               <Text style={styles.nutritionBalance} numberOfLines={1}>
                 {meal.aiAnalysis.insights.nutritionBalance}
@@ -253,7 +258,7 @@ export default function MealHistory() {
         {/* Ingredients Preview */}
         <View style={styles.ingredientsPreview}>
           <Text style={styles.ingredientsText} numberOfLines={2}>
-            {meal.ingredients.join(', ')}
+            {meal.ingredients.join(", ")}
           </Text>
         </View>
 
@@ -298,40 +303,85 @@ export default function MealHistory() {
     );
   };
 
-  const handleDatePickerOpen = (mode: 'start' | 'end') => {
-    setDatePickerMode(mode);
-    setTempDate(mode === 'start' ? (startDate || new Date()) : (endDate || new Date()));
-    setShowDatePicker(true);
-  };
+  const updateMarkedDates = () => {
+    const marked: { [key: string]: any } = {};
 
-  const handleDatePickerChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
-    
-    if (selectedDate) {
-      setTempDate(selectedDate);
-      if (Platform.OS === 'android') {
-        if (datePickerMode === 'start') {
-          setStartDate(selectedDate);
-        } else {
-          setEndDate(selectedDate);
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      // Mark the start date
+      const startDateString = start.toISOString().split("T")[0];
+      if (startDateString) {
+        marked[startDateString] = {
+          startingDay: true,
+          color: "#FF6B35",
+          textColor: "white",
+        };
+      }
+
+      // Mark the end date
+      const endDateString = end.toISOString().split("T")[0];
+      if (endDateString) {
+        marked[endDateString] = {
+          endingDay: true,
+          color: "#FF6B35",
+          textColor: "white",
+        };
+      }
+
+      // Mark dates in between
+      const currentDate = new Date(start);
+      currentDate.setDate(currentDate.getDate() + 1);
+
+      while (currentDate < end) {
+        const dateString = currentDate.toISOString().split("T")[0];
+        if (dateString) {
+          marked[dateString] = {
+            color: "#FF6B35",
+            textColor: "white",
+          };
         }
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    } else if (startDate) {
+      const startDateString = startDate.toISOString().split("T")[0];
+      if (startDateString) {
+        marked[startDateString] = {
+          selected: true,
+          selectedColor: "#FF6B35",
+        };
+      }
+    } else if (endDate) {
+      const endDateString = endDate.toISOString().split("T")[0];
+      if (endDateString) {
+        marked[endDateString] = {
+          selected: true,
+          selectedColor: "#FF6B35",
+        };
       }
     }
+
+    setMarkedDates(marked);
   };
 
-  const handleDatePickerConfirm = () => {
-    if (datePickerMode === 'start') {
-      setStartDate(tempDate);
-    } else {
-      setEndDate(tempDate);
+  const handleDayPress = (day: any) => {
+    const selectedDate = new Date(day.dateString);
+
+    if (!startDate || (startDate && endDate)) {
+      // Starting a new selection
+      setStartDate(selectedDate);
+      setEndDate(null);
+    } else if (startDate && !endDate) {
+      // Selecting end date
+      if (selectedDate >= startDate) {
+        setEndDate(selectedDate);
+      } else {
+        // If selected date is before start date, make it the new start date
+        setStartDate(selectedDate);
+        setEndDate(null);
+      }
     }
-    setShowDatePicker(false);
-  };
-
-  const handleDatePickerCancel = () => {
-    setShowDatePicker(false);
   };
 
   const clearDateFilter = () => {
@@ -340,19 +390,44 @@ export default function MealHistory() {
   };
 
   const formatDateRange = () => {
-    if (!startDate && !endDate) return 'All time';
+    if (!startDate && !endDate) return "All time";
     if (startDate && endDate) {
-      return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+      return `${startDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      })} - ${endDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
     }
     if (startDate) {
-      return `From ${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+      return `From ${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
     }
     if (endDate) {
-      return `Until ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+      return `Until ${endDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
     }
-    return 'All time';
+    return "All time";
   };
 
+  const setDateRangePreset = (days: number | null) => {
+    if (days === null) {
+      setStartDate(null);
+      setEndDate(null);
+    } else {
+      const today = new Date();
+      const start = new Date();
+      start.setDate(today.getDate() - days + 1);
+      start.setHours(0, 0, 0, 0);
+
+      const end = new Date();
+      end.setHours(23, 59, 59, 999);
+
+      setStartDate(start);
+      setEndDate(end);
+    }
+    setShowDateRangeModal(false);
+  };
+
+  const openDateRangeModal = () => {
+    setShowDateRangeModal(true);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -362,10 +437,7 @@ export default function MealHistory() {
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Meal History</Text>
-        <TouchableOpacity
-          onPress={() => handleDatePickerOpen('start')}
-          style={styles.dateButton}
-        >
+        <TouchableOpacity onPress={openDateRangeModal} style={styles.dateButton}>
           <Ionicons name="calendar" size={24} color="white" />
         </TouchableOpacity>
       </View>
@@ -382,7 +454,7 @@ export default function MealHistory() {
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
               <Ionicons name="close-circle" size={20} color="rgba(255, 255, 255, 0.5)" />
             </TouchableOpacity>
           )}
@@ -391,23 +463,16 @@ export default function MealHistory() {
 
       {/* Date Range Filter */}
       <View style={styles.dateFilterContainer}>
-        <TouchableOpacity
-          style={styles.dateRangeButton}
-          onPress={() => handleDatePickerOpen('start')}
-        >
+        <TouchableOpacity style={styles.dateRangeButton} onPress={openDateRangeModal}>
           <Ionicons name="calendar-outline" size={16} color="#FF6B35" />
           <Text style={styles.dateRangeText}>{formatDateRange()}</Text>
         </TouchableOpacity>
         {(startDate || endDate) && (
-          <TouchableOpacity
-            style={styles.clearDateButton}
-            onPress={clearDateFilter}
-          >
+          <TouchableOpacity style={styles.clearDateButton} onPress={clearDateFilter}>
             <Ionicons name="close" size={16} color="rgba(255, 255, 255, 0.5)" />
           </TouchableOpacity>
         )}
       </View>
-
 
       {/* Content */}
       {isLoading ? (
@@ -420,14 +485,9 @@ export default function MealHistory() {
           <Ionicons name="restaurant-outline" size={64} color="rgba(255, 255, 255, 0.3)" />
           <Text style={styles.emptyTitle}>No meals found</Text>
           <Text style={styles.emptyText}>
-            {searchQuery
-              ? 'Try adjusting your search'
-              : 'Start logging meals to see your history here!'}
+            {searchQuery ? "Try adjusting your search" : "Start logging meals to see your history here!"}
           </Text>
-          <TouchableOpacity
-            style={styles.addMealButton}
-            onPress={() => router.push('/')}
-          >
+          <TouchableOpacity style={styles.addMealButton} onPress={() => router.push("/")}>
             <Ionicons name="camera" size={20} color="white" />
             <Text style={styles.addMealButtonText}>Take Photo</Text>
           </TouchableOpacity>
@@ -435,7 +495,7 @@ export default function MealHistory() {
       ) : (
         <SectionList
           sections={sections}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item: Meal) => item.id}
           renderItem={renderMealItem}
           renderSectionHeader={renderSectionHeader}
           ListFooterComponent={renderFooter}
@@ -448,59 +508,98 @@ export default function MealHistory() {
         />
       )}
 
-      {/* Date Picker Modal */}
-      {Platform.OS === 'ios' ? (
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={showDatePicker}
-          onRequestClose={handleDatePickerCancel}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.datePickerModal}>
-              <View style={styles.datePickerHeader}>
-                <TouchableOpacity onPress={handleDatePickerCancel}>
-                  <Text style={styles.datePickerButton}>Cancel</Text>
+      {/* Date Range Selection Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showDateRangeModal}
+        onRequestClose={() => setShowDateRangeModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.dateRangeModal}>
+            <View style={styles.dateRangeHeader}>
+              <Text style={styles.dateRangeModalTitle}>Select Date Range</Text>
+              <TouchableOpacity onPress={() => setShowDateRangeModal(false)}>
+                <Ionicons name="close" size={24} color="rgba(255, 255, 255, 0.7)" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Quick Presets */}
+            <View style={styles.presetsContainer}>
+              <Text style={styles.presetsTitle}>Quick Select</Text>
+              <View style={styles.presetsGrid}>
+                <TouchableOpacity
+                  style={[styles.presetButton, !startDate && !endDate && styles.presetButtonActive]}
+                  onPress={() => setDateRangePreset(null)}
+                >
+                  <Text style={[styles.presetButtonText, !startDate && !endDate && styles.presetButtonTextActive]}>
+                    All Time
+                  </Text>
                 </TouchableOpacity>
-                <Text style={styles.datePickerTitle}>
-                  Select {datePickerMode === 'start' ? 'Start' : 'End'} Date
-                </Text>
-                <TouchableOpacity onPress={handleDatePickerConfirm}>
-                  <Text style={[styles.datePickerButton, styles.datePickerConfirmButton]}>Done</Text>
+                <TouchableOpacity style={styles.presetButton} onPress={() => setDateRangePreset(1)}>
+                  <Text style={styles.presetButtonText}>Today</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.presetButton} onPress={() => setDateRangePreset(7)}>
+                  <Text style={styles.presetButtonText}>Last 7 Days</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.presetButton} onPress={() => setDateRangePreset(30)}>
+                  <Text style={styles.presetButtonText}>Last 30 Days</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.presetButton} onPress={() => setDateRangePreset(90)}>
+                  <Text style={styles.presetButtonText}>Last 3 Months</Text>
                 </TouchableOpacity>
               </View>
-              <DateTimePicker
-                value={tempDate}
-                mode="date"
-                display="spinner"
-                onChange={handleDatePickerChange}
-                textColor="white"
-                themeVariant="dark"
+            </View>
+
+            {/* Calendar */}
+            <View style={styles.calendarContainer}>
+              <Text style={styles.calendarTitle}>Select Date Range</Text>
+              <Text style={styles.calendarInstructions}>Tap to select start date, tap again to select end date</Text>
+
+              <Calendar
+                onDayPress={handleDayPress}
+                markingType={"period"}
+                markedDates={markedDates}
+                theme={{
+                  backgroundColor: "#1C1C1E",
+                  calendarBackground: "#1C1C1E",
+                  textSectionTitleColor: "white",
+                  selectedDayBackgroundColor: "#FF6B35",
+                  selectedDayTextColor: "white",
+                  todayTextColor: "#FF6B35",
+                  dayTextColor: "white",
+                  textDisabledColor: "rgba(255, 255, 255, 0.3)",
+                  dotColor: "#FF6B35",
+                  selectedDotColor: "white",
+                  arrowColor: "#FF6B35",
+                  disabledArrowColor: "rgba(255, 255, 255, 0.3)",
+                  monthTextColor: "white",
+                  indicatorColor: "#FF6B35",
+                  textDayFontWeight: "400",
+                  textMonthFontWeight: "600",
+                  textDayHeaderFontWeight: "500",
+                  textDayFontSize: 16,
+                  textMonthFontSize: 18,
+                  textDayHeaderFontSize: 14,
+                }}
               />
-              {datePickerMode === 'start' && (
+
+              {(startDate || endDate) && (
                 <TouchableOpacity
-                  style={styles.switchDateButton}
+                  style={styles.clearCustomButton}
                   onPress={() => {
-                    setDatePickerMode('end');
-                    setTempDate(endDate || new Date());
+                    setStartDate(null);
+                    setEndDate(null);
                   }}
                 >
-                  <Text style={styles.switchDateButtonText}>Set End Date</Text>
+                  <Ionicons name="trash-outline" size={16} color="rgba(255, 255, 255, 0.7)" />
+                  <Text style={styles.clearCustomButtonText}>Clear Selection</Text>
                 </TouchableOpacity>
               )}
             </View>
           </View>
-        </Modal>
-      ) : (
-        showDatePicker && (
-          <DateTimePicker
-            value={tempDate}
-            mode="date"
-            display="default"
-            onChange={handleDatePickerChange}
-          />
-        )
-      )}
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -508,12 +607,12 @@ export default function MealHistory() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 16,
@@ -522,11 +621,11 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    color: 'white',
+    color: "white",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
   },
   dateButton: {
     padding: 4,
@@ -536,9 +635,9 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -546,41 +645,41 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: 'white',
+    color: "white",
     fontSize: 16,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     gap: 16,
   },
   loadingText: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 16,
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 40,
     gap: 16,
   },
   emptyTitle: {
-    color: 'white',
+    color: "white",
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   emptyText: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 24,
   },
   addMealButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FF6B35',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FF6B35",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
@@ -588,9 +687,9 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   addMealButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   mealsList: {
     flex: 1,
@@ -600,31 +699,31 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 16,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   sectionTitle: {
-    color: 'white',
+    color: "white",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   sectionCount: {
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: "rgba(255, 255, 255, 0.5)",
     fontSize: 14,
   },
   mealItem: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    flexDirection: "row",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   mealPhotoContainer: {
-    position: 'relative',
+    position: "relative",
     marginRight: 16,
   },
   mealPhoto: {
@@ -636,15 +735,15 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   verifiedBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: -4,
     right: -4,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
     borderRadius: 8,
     padding: 2,
   },
@@ -656,107 +755,107 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   mealTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   mealEmoji: {
     fontSize: 16,
   },
   mealName: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
   },
   mealTime: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
   },
   insightsPreview: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   healthScore: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   healthScoreText: {
-    color: '#4ECDC4',
+    color: "#4ECDC4",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   nutritionBalance: {
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: "rgba(255, 255, 255, 0.6)",
     fontSize: 12,
     flex: 1,
   },
   nutritionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingVertical: 4,
   },
   nutritionItem: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
   nutritionValue: {
-    color: '#FF6B35',
+    color: "#FF6B35",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   nutritionLabel: {
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: "rgba(255, 255, 255, 0.5)",
     fontSize: 10,
   },
   ingredientsPreview: {
     paddingTop: 4,
   },
   ingredientsText: {
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: "rgba(255, 255, 255, 0.6)",
     fontSize: 12,
     lineHeight: 16,
   },
   recommendationPreview: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     paddingTop: 4,
   },
   recommendationText: {
-    color: '#FFD700',
+    color: "#FFD700",
     fontSize: 12,
-    fontStyle: 'italic',
+    fontStyle: "italic",
     flex: 1,
   },
   editArrow: {
-    justifyContent: 'center',
+    justifyContent: "center",
     marginLeft: 8,
   },
   loadingMoreContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 20,
     gap: 8,
   },
   loadingMoreText: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
   },
   dateFilterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingBottom: 20,
     gap: 12,
   },
   dateRangeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
@@ -764,59 +863,102 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dateRangeText: {
-    color: 'white',
+    color: "white",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   clearDateButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     padding: 8,
     borderRadius: 8,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "flex-end",
   },
-  datePickerModal: {
-    backgroundColor: '#1C1C1E',
+  // Date Range Modal Styles
+  dateRangeModal: {
+    backgroundColor: "#1C1C1E",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingBottom: 40,
+    maxHeight: "80%",
   },
-  datePickerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  dateRangeHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: "rgba(255, 255, 255, 0.1)",
   },
-  datePickerTitle: {
-    color: 'white',
+  dateRangeModalTitle: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  presetsContainer: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255, 255, 255, 0.1)",
+  },
+  presetsTitle: {
+    color: "white",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
+    marginBottom: 16,
   },
-  datePickerButton: {
-    color: '#FF6B35',
-    fontSize: 16,
+  presetsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
   },
-  datePickerConfirmButton: {
-    fontWeight: '600',
-  },
-  switchDateButton: {
-    marginHorizontal: 20,
-    marginTop: 16,
-    backgroundColor: 'rgba(255, 107, 53, 0.2)',
-    paddingVertical: 12,
+  presetButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 8,
-    alignItems: 'center',
+    minWidth: 80,
   },
-  switchDateButtonText: {
-    color: '#FF6B35',
+  presetButtonActive: {
+    backgroundColor: "#FF6B35",
+  },
+  presetButtonText: {
+    color: "rgba(255, 255, 255, 0.8)",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  presetButtonTextActive: {
+    color: "white",
+    fontWeight: "600",
+  },
+  calendarContainer: {
+    padding: 20,
+  },
+  calendarTitle: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  calendarInstructions: {
+    color: "rgba(255, 255, 255, 0.7)",
+    fontSize: 14,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  clearCustomButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  clearCustomButtonText: {
+    color: "rgba(255, 255, 255, 0.7)",
+    fontSize: 14,
   },
 });

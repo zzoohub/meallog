@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "description": "AI-powered food diary application",
   "private": true,
-  "workspaces": [
-    "mobile",
-    "server"
-  ],
   "scripts": {
     "dev": "concurrently \"npm run dev:mobile\" \"npm run dev:server\"",
     "dev:mobile": "cd mobile && npm run start",
