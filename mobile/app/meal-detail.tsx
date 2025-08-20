@@ -273,47 +273,52 @@ export default function MealDetail() {
   }
 
   return (
-    <TouchableWithoutFeedback onPress={dismissKeyboard}>
-      <SafeAreaView style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-          {isNew === 'true' ? mealDetail.title : mealDetail.editTitle}
-        </Text>
-          <TouchableOpacity onPress={handleSave} style={styles.saveBtn}>
-            <Text style={styles.saveText}>{mealDetail.save}</Text>
-          </TouchableOpacity>
-        </View>
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>
+        {isNew === 'true' ? mealDetail.title : mealDetail.editTitle}
+      </Text>
+        <TouchableOpacity onPress={handleSave} style={styles.saveBtn}>
+          <Text style={styles.saveText}>{mealDetail.save}</Text>
+        </TouchableOpacity>
+      </View>
 
-        {/* Save Animation Indicator */}
-        <Animated.View 
-          style={[
-            styles.saveIndicator,
-            {
-              opacity: savedAnimation,
-              transform: [
-                {
-                  scale: savedAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.8, 1],
-                  }),
-                },
-              ],
-            },
-          ]}
-        >
-          <Ionicons name="checkmark-circle" size={20} color="#4ECDC4" />
-          <Text style={styles.saveIndicatorText}>{mealDetail.saved}</Text>
-        </Animated.View>
+      {/* Save Animation Indicator */}
+      <Animated.View 
+        style={[
+          styles.saveIndicator,
+          {
+            opacity: savedAnimation,
+            transform: [
+              {
+                scale: savedAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.8, 1],
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <Ionicons name="checkmark-circle" size={20} color="#4ECDC4" />
+        <Text style={styles.saveIndicatorText}>{mealDetail.saved}</Text>
+      </Animated.View>
 
-        <ScrollView 
-          style={styles.content}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
-        >
+      <ScrollView 
+        style={styles.content}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        bounces={true}
+        scrollEventThrottle={16}
+        nestedScrollEnabled={true}
+        onScrollBeginDrag={dismissKeyboard}
+      >
           {/* Photo */}
           {(photoUri || existingMeal?.photoUri) && (
             <View style={styles.photoContainer}>
@@ -549,8 +554,7 @@ export default function MealDetail() {
             </>
           ) : null}
         </ScrollView>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+    </SafeAreaView>
   );
 }
 
@@ -586,7 +590,7 @@ const styles = StyleSheet.create({
   },
   saveIndicator: {
     position: 'absolute',
-    top: 80,
+    top: 90,
     alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
@@ -605,8 +609,14 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  scrollContent: {
+    flexGrow: 1,
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
   photoContainer: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 0,
     alignItems: 'center',
   },
   photo: {
