@@ -6,15 +6,19 @@ import {
 // Removed gesture handlers to prevent conflicts with scrolling
 import * as Haptics from 'expo-haptics';
 
-// Import orbital sections
-import CameraCenter from '@/domains/camera/components/OrbitalCamera';
-// MVP Phase 2: Social features (currently disabled)
-// import SocialFeed from '@/domains/social/components/SocialFeed';
-// import DiscoverSection from '@/domains/discover/components/DiscoverSection';
-import ProgressDashboard from '@/domains/progress/components/ProgressDashboard';
-import AICoach from '@/domains/ai-coach/components/AICoach';
-import SettingsOrbital from '@/domains/settings/components/SettingsOrbital';
+// Import orbital sections with lazy loading
+import { createLazyComponent } from '@/lib/lazy';
 import { FloatingNotifications } from '@/components/FloatingNotifications';
+
+// Lazy load heavy components for better performance
+const CameraCenter = createLazyComponent(() => import('@/domains/camera/components/OrbitalCamera'));
+const ProgressDashboard = createLazyComponent(() => import('@/domains/progress/components/ProgressDashboard'));
+const AICoach = createLazyComponent(() => import('@/domains/ai-coach/components/AICoach'));
+const SettingsOrbital = createLazyComponent(() => import('@/domains/settings/components/SettingsOrbital'));
+
+// MVP Phase 2: Social features (lazy loaded but currently disabled)
+// const SocialFeed = createLazyComponent(() => import('@/domains/social/components/SocialFeed'));
+// const DiscoverSection = createLazyComponent(() => import('@/domains/discover/components/DiscoverSection'));
 
 
 enum OrbitalSection {

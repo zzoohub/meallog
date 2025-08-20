@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -12,11 +12,13 @@ import {
   Modal,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
+``;
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Meal, MealHistoryFilter } from "@/domains/meals/types";
 import { MealStorageService, generateMockMeals } from "@/domains/meals/services/mealStorage";
 import { useTimelineI18n } from "@/lib/i18n";
+import { useDebouncedCallback, useMemoWithEquals } from "@/lib/performance/hooks";
 
 interface MealSection {
   title: string;
@@ -39,13 +41,12 @@ export default function MealHistory() {
   const [markedDates, setMarkedDates] = useState<{ [key: string]: any }>({});
   const ITEMS_PER_PAGE = 20;
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      loadMeals(true);
-    }, 300);
+  // Debounced search to avoid excessive API calls
+  const debouncedLoadMeals = useDebouncedCallback(() => loadMeals(true), 300, [searchQuery, startDate, endDate]);
 
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery, startDate, endDate]);
+  useEffect(() => {
+    debouncedLoadMeals();
+  }, [debouncedLoadMeals]);
 
   useEffect(() => {
     updateMarkedDates();
@@ -120,7 +121,8 @@ export default function MealHistory() {
     }
   };
 
-  const groupMealsByDate = (meals: Meal[]): MealSection[] => {
+  // Memoized grouping function to avoid recalculation
+  const groupMealsByDate = useCallback((meals: Meal[]): MealSection[] => {
     const grouped = meals.reduce((acc, meal) => {
       const date = meal.timestamp.toDateString();
       if (!acc[date]) {
@@ -136,7 +138,7 @@ export default function MealHistory() {
         data: meals.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()),
       }))
       .sort((a, b) => (b.data[0]?.timestamp?.getTime() ?? 0) - (a.data[0]?.timestamp?.getTime() ?? 0));
-  };
+  }, []);
 
   const formatSectionDate = (date: Date): string => {
     const today = new Date();
@@ -190,7 +192,8 @@ export default function MealHistory() {
     }
   };
 
-  const renderMealItem = ({ item: meal }: { item: Meal }) => (
+  // Memoized meal item component for better performance
+  const MealItem = React.memo(({ meal }: { meal: Meal }) => (
     <TouchableOpacity style={styles.mealItem} onPress={() => handleMealPress(meal)} activeOpacity={0.7}>
       {/* Photo */}
       <View style={styles.mealPhotoContainer}>
@@ -278,12 +281,16 @@ export default function MealHistory() {
         <Ionicons name="chevron-forward" size={20} color="rgba(255, 255, 255, 0.3)" />
       </View>
     </TouchableOpacity>
-  );
+  ));
+
+  const renderMealItem = useCallback(({ item: meal }: { item: Meal }) => <MealItem meal={meal} />, []);
 
   const renderSectionHeader = ({ section }: { section: MealSection }) => (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{section.title}</Text>
-      <Text style={styles.sectionCount}>{section.data.length} {timeline.stat('meals')}</Text>
+      <Text style={styles.sectionCount}>
+        {section.data.length} {timeline.stat("meals")}
+      </Text>
     </View>
   );
 

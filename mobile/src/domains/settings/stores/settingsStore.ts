@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '@/constants';
+import { debouncedStorage, createDebouncedSetter } from '@/lib/storage/debouncedStorage';
 
 export interface NotificationSettings {
   mealReminders: boolean;
@@ -331,36 +332,47 @@ export const useSettingsStore = create<SettingsState>()(
   }))
 );
 
-// Auto-save settings changes to AsyncStorage (notifications handled in updateNotifications)
+// Auto-save settings changes using debounced storage for better performance
+const debouncedPrivacySave = createDebouncedSetter<PrivacySettings>(STORAGE_KEYS.PRIVACY_SETTINGS);
+const debouncedDisplaySave = createDebouncedSetter<DisplaySettings>(STORAGE_KEYS.DISPLAY_SETTINGS);
+const debouncedGoalsSave = createDebouncedSetter<GoalSettings>(STORAGE_KEYS.GOAL_SETTINGS);
+const debouncedCameraSave = createDebouncedSetter<CameraSettings>(STORAGE_KEYS.CAMERA_SETTINGS);
 
 useSettingsStore.subscribe(
   (state) => state.privacy,
   (privacy) => {
-    AsyncStorage.setItem(STORAGE_KEYS.PRIVACY_SETTINGS, JSON.stringify(privacy))
-      .catch(error => console.error('Failed to auto-save privacy settings:', error));
+    debouncedPrivacySave(privacy).catch((error: any) => 
+      console.error('Failed to auto-save privacy settings:', error)
+    );
   }
 );
 
 useSettingsStore.subscribe(
   (state) => state.display,
   (display) => {
-    AsyncStorage.setItem(STORAGE_KEYS.DISPLAY_SETTINGS, JSON.stringify(display))
-      .catch(error => console.error('Failed to auto-save display settings:', error));
+    debouncedDisplaySave(display).catch((error: any) => 
+      console.error('Failed to auto-save display settings:', error)
+    );
   }
 );
 
 useSettingsStore.subscribe(
   (state) => state.goals,
   (goals) => {
-    AsyncStorage.setItem(STORAGE_KEYS.GOAL_SETTINGS, JSON.stringify(goals))
-      .catch(error => console.error('Failed to auto-save goal settings:', error));
+    debouncedGoalsSave(goals).catch((error: any) => 
+      console.error('Failed to auto-save goal settings:', error)
+    );
   }
 );
 
 useSettingsStore.subscribe(
   (state) => state.camera,
   (camera) => {
-    AsyncStorage.setItem(STORAGE_KEYS.CAMERA_SETTINGS, JSON.stringify(camera))
-      .catch(error => console.error('Failed to auto-save camera settings:', error));
+    debouncedCameraSave(camera).catch((error: any) => 
+      console.error('Failed to auto-save camera settings:', error)
+    );
   }
 );
+
+// Cleanup function to flush any pending saves when app is backgrounded
+export const flushSettingsStorage = () => debouncedStorage.flush();
