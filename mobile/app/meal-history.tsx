@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
   TouchableOpacity,
   Image,
   TextInput,
   ActivityIndicator,
   SectionList,
+  Modal,
+  Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Meal, MealHistoryFilter } from '@/domains/meals/types';
@@ -27,26 +29,40 @@ export default function MealHistory() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [sections, setSections] = useState<MealSection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState<MealType | 'all'>('all');
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [datePickerMode, setDatePickerMode] = useState<'start' | 'end'>('start');
+  const [tempDate, setTempDate] = useState(new Date());
+  const ITEMS_PER_PAGE = 20;
 
   useEffect(() => {
-    loadMeals();
-  }, [searchQuery, selectedFilter]);
+    loadMeals(true);
+  }, [searchQuery, startDate, endDate]);
 
-  const loadMeals = async () => {
+  const loadMeals = async (isRefresh = false) => {
     try {
-      setIsLoading(true);
+      if (isRefresh) {
+        setIsLoading(true);
+        setPage(1);
+        setHasMore(true);
+      } else {
+        setIsLoadingMore(true);
+      }
       
       const filter: MealHistoryFilter = {};
       if (searchQuery) filter.searchQuery = searchQuery;
-      if (selectedFilter !== 'all') filter.mealType = selectedFilter as MealType;
+      if (startDate) filter.startDate = startDate;
+      if (endDate) filter.endDate = endDate;
       
       let loadedMeals = await MealStorageService.getMealsFiltered(filter);
       
       // For development: add mock data if no meals exist
-      if (loadedMeals.length === 0 && !searchQuery && selectedFilter === 'all') {
+      if (loadedMeals.length === 0 && !searchQuery && isRefresh) {
         const mockMeals = generateMockMeals();
         // Save mock meals to storage for persistence
         for (const mockMeal of mockMeals) {
@@ -69,12 +85,29 @@ export default function MealHistory() {
         loadedMeals = await MealStorageService.getMealsFiltered(filter);
       }
       
-      setMeals(loadedMeals);
-      setSections(groupMealsByDate(loadedMeals));
+      // Simulate pagination for infinite scroll
+      const currentPage = isRefresh ? 1 : page;
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
+      const paginatedMeals = loadedMeals.slice(0, endIndex);
+      
+      if (isRefresh) {
+        setMeals(paginatedMeals);
+      } else {
+        setMeals(prev => [...prev, ...loadedMeals.slice(startIndex, endIndex)]);
+      }
+      
+      setSections(groupMealsByDate(paginatedMeals));
+      setHasMore(endIndex < loadedMeals.length);
+      
+      if (!isRefresh) {
+        setPage(prev => prev + 1);
+      }
     } catch (error) {
       console.error('Error loading meals:', error);
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
@@ -249,13 +282,77 @@ export default function MealHistory() {
     </View>
   );
 
-  const filterButtons = [
-    { key: 'all', label: 'All', icon: 'grid' },
-    { key: MealType.BREAKFAST, label: 'Breakfast', icon: 'sunny' },
-    { key: MealType.LUNCH, label: 'Lunch', icon: 'partly-sunny' },
-    { key: MealType.DINNER, label: 'Dinner', icon: 'moon' },
-    { key: MealType.SNACK, label: 'Snacks', icon: 'nutrition' },
-  ];
+  const handleLoadMore = useCallback(() => {
+    if (!isLoadingMore && hasMore) {
+      loadMeals(false);
+    }
+  }, [isLoadingMore, hasMore]);
+
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+    return (
+      <View style={styles.loadingMoreContainer}>
+        <ActivityIndicator size="small" color="#FF6B35" />
+        <Text style={styles.loadingMoreText}>Loading more meals...</Text>
+      </View>
+    );
+  };
+
+  const handleDatePickerOpen = (mode: 'start' | 'end') => {
+    setDatePickerMode(mode);
+    setTempDate(mode === 'start' ? (startDate || new Date()) : (endDate || new Date()));
+    setShowDatePicker(true);
+  };
+
+  const handleDatePickerChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    
+    if (selectedDate) {
+      setTempDate(selectedDate);
+      if (Platform.OS === 'android') {
+        if (datePickerMode === 'start') {
+          setStartDate(selectedDate);
+        } else {
+          setEndDate(selectedDate);
+        }
+      }
+    }
+  };
+
+  const handleDatePickerConfirm = () => {
+    if (datePickerMode === 'start') {
+      setStartDate(tempDate);
+    } else {
+      setEndDate(tempDate);
+    }
+    setShowDatePicker(false);
+  };
+
+  const handleDatePickerCancel = () => {
+    setShowDatePicker(false);
+  };
+
+  const clearDateFilter = () => {
+    setStartDate(null);
+    setEndDate(null);
+  };
+
+  const formatDateRange = () => {
+    if (!startDate && !endDate) return 'All time';
+    if (startDate && endDate) {
+      return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    }
+    if (startDate) {
+      return `From ${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    }
+    if (endDate) {
+      return `Until ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    }
+    return 'All time';
+  };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -265,15 +362,11 @@ export default function MealHistory() {
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Meal History</Text>
-        <TouchableOpacity 
-          onPress={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
-          style={styles.viewToggle}
+        <TouchableOpacity
+          onPress={() => handleDatePickerOpen('start')}
+          style={styles.dateButton}
         >
-          <Ionicons 
-            name={viewMode === 'list' ? 'calendar' : 'list'} 
-            size={24} 
-            color="white" 
-          />
+          <Ionicons name="calendar" size={24} color="white" />
         </TouchableOpacity>
       </View>
 
@@ -296,38 +389,25 @@ export default function MealHistory() {
         </View>
       </View>
 
-      {/* Filter Buttons */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterContainer}
-        style={styles.filterScrollView}
-      >
-        {filterButtons.map((filter) => (
+      {/* Date Range Filter */}
+      <View style={styles.dateFilterContainer}>
+        <TouchableOpacity
+          style={styles.dateRangeButton}
+          onPress={() => handleDatePickerOpen('start')}
+        >
+          <Ionicons name="calendar-outline" size={16} color="#FF6B35" />
+          <Text style={styles.dateRangeText}>{formatDateRange()}</Text>
+        </TouchableOpacity>
+        {(startDate || endDate) && (
           <TouchableOpacity
-            key={filter.key}
-            style={[
-              styles.filterButton,
-              selectedFilter === filter.key && styles.filterButtonActive,
-            ]}
-            onPress={() => setSelectedFilter(filter.key as MealType | 'all')}
+            style={styles.clearDateButton}
+            onPress={clearDateFilter}
           >
-            <Ionicons
-              name={filter.icon as any}
-              size={16}
-              color={selectedFilter === filter.key ? 'white' : 'rgba(255, 255, 255, 0.7)'}
-            />
-            <Text
-              style={[
-                styles.filterButtonText,
-                selectedFilter === filter.key && styles.filterButtonTextActive,
-              ]}
-            >
-              {filter.label}
-            </Text>
+            <Ionicons name="close" size={16} color="rgba(255, 255, 255, 0.5)" />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+        )}
+      </View>
+
 
       {/* Content */}
       {isLoading ? (
@@ -340,8 +420,8 @@ export default function MealHistory() {
           <Ionicons name="restaurant-outline" size={64} color="rgba(255, 255, 255, 0.3)" />
           <Text style={styles.emptyTitle}>No meals found</Text>
           <Text style={styles.emptyText}>
-            {searchQuery || selectedFilter !== 'all'
-              ? 'Try adjusting your search or filters'
+            {searchQuery
+              ? 'Try adjusting your search'
               : 'Start logging meals to see your history here!'}
           </Text>
           <TouchableOpacity
@@ -358,11 +438,68 @@ export default function MealHistory() {
           keyExtractor={(item) => item.id}
           renderItem={renderMealItem}
           renderSectionHeader={renderSectionHeader}
+          ListFooterComponent={renderFooter}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.3}
           style={styles.mealsList}
           contentContainerStyle={styles.mealsListContent}
           showsVerticalScrollIndicator={false}
           stickySectionHeadersEnabled={false}
         />
+      )}
+
+      {/* Date Picker Modal */}
+      {Platform.OS === 'ios' ? (
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={showDatePicker}
+          onRequestClose={handleDatePickerCancel}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.datePickerModal}>
+              <View style={styles.datePickerHeader}>
+                <TouchableOpacity onPress={handleDatePickerCancel}>
+                  <Text style={styles.datePickerButton}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.datePickerTitle}>
+                  Select {datePickerMode === 'start' ? 'Start' : 'End'} Date
+                </Text>
+                <TouchableOpacity onPress={handleDatePickerConfirm}>
+                  <Text style={[styles.datePickerButton, styles.datePickerConfirmButton]}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={tempDate}
+                mode="date"
+                display="spinner"
+                onChange={handleDatePickerChange}
+                textColor="white"
+                themeVariant="dark"
+              />
+              {datePickerMode === 'start' && (
+                <TouchableOpacity
+                  style={styles.switchDateButton}
+                  onPress={() => {
+                    setDatePickerMode('end');
+                    setTempDate(endDate || new Date());
+                  }}
+                >
+                  <Text style={styles.switchDateButtonText}>Set End Date</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </Modal>
+      ) : (
+        showDatePicker && (
+          <DateTimePicker
+            value={tempDate}
+            mode="date"
+            display="default"
+            onChange={handleDatePickerChange}
+          />
+        )
       )}
     </SafeAreaView>
   );
@@ -391,12 +528,12 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
   },
-  viewToggle: {
+  dateButton: {
     padding: 4,
   },
   searchContainer: {
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 20,
   },
   searchBar: {
     flexDirection: 'row',
@@ -411,33 +548,6 @@ const styles = StyleSheet.create({
     flex: 1,
     color: 'white',
     fontSize: 16,
-  },
-  filterScrollView: {
-    marginBottom: 16,
-  },
-  filterContainer: {
-    paddingHorizontal: 20,
-    gap: 8,
-  },
-  filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
-  },
-  filterButtonActive: {
-    backgroundColor: '#FF6B35',
-  },
-  filterButtonText: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  filterButtonTextActive: {
-    color: 'white',
   },
   loadingContainer: {
     flex: 1,
@@ -624,5 +734,89 @@ const styles = StyleSheet.create({
   editArrow: {
     justifyContent: 'center',
     marginLeft: 8,
+  },
+  loadingMoreContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+    gap: 8,
+  },
+  loadingMoreText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 14,
+  },
+  dateFilterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    gap: 12,
+  },
+  dateRangeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 8,
+    flex: 1,
+  },
+  dateRangeText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  clearDateButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 8,
+    borderRadius: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'flex-end',
+  },
+  datePickerModal: {
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 40,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  datePickerTitle: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  datePickerButton: {
+    color: '#FF6B35',
+    fontSize: 16,
+  },
+  datePickerConfirmButton: {
+    fontWeight: '600',
+  },
+  switchDateButton: {
+    marginHorizontal: 20,
+    marginTop: 16,
+    backgroundColor: 'rgba(255, 107, 53, 0.2)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  switchDateButtonText: {
+    color: '#FF6B35',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
