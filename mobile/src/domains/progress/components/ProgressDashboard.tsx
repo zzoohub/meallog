@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-nati
 import { Ionicons } from "@expo/vector-icons";
 import { CircularProgress } from "@/components/CircularProgress";
 import { NutritionChart } from "@/components/NutritionChart";
+import RecentMeals from "@/domains/meals/components/RecentMeals";
+import { useRouter } from "expo-router";
 
 interface ProgressDashboardProps {
   onNavigate: (section: string) => void;
@@ -69,6 +71,11 @@ const mockAchievements: Achievement[] = [
 
 export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<"day" | "week" | "month">("day");
+  const router = useRouter();
+
+  const handleSeeAllHistory = () => {
+    router.push('/meal-history');
+  };
 
   const renderProgressRing = (label: string, current: number, target: number, color: string, unit: string) => {
     const percentage = Math.min((current / target) * 100, 100);
@@ -179,6 +186,9 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
             />
           </View>
         </View>
+
+        {/* Recent Meals */}
+        <RecentMeals onSeeAll={handleSeeAllHistory} />
 
         {/* Nutrition Rings */}
         <View style={styles.nutritionSection}>

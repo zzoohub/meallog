@@ -15,6 +15,9 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Meal } from '@/domains/meals/types';
+import { MealStorageService } from '@/domains/meals/services/mealStorage';
+import { MealType } from '@/types';
 
 interface NutritionInfo {
   calories: number;
@@ -32,20 +35,62 @@ interface MealData {
 }
 
 export default function MealDetail() {
-  const { photoUri, isNew } = useLocalSearchParams<{ photoUri: string; isNew: string }>();
+  const { photoUri, isNew, mealId } = useLocalSearchParams<{ 
+    photoUri: string; 
+    isNew: string;
+    mealId?: string;
+  }>();
   const router = useRouter();
   const [mealData, setMealData] = useState<MealData | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(true);
+  const [existingMeal, setExistingMeal] = useState<Meal | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editedValue, setEditedValue] = useState<string>('');
   const [savedAnimation] = useState(new Animated.Value(0));
 
   useEffect(() => {
-    if (photoUri && isNew === 'true') {
+    if (isNew === 'true' && photoUri) {
+      // New meal - analyze the photo
       analyzeMeal();
+    } else if (isNew === 'false' && mealId) {
+      // Existing meal - load from storage
+      loadExistingMeal();
     }
-  }, [photoUri, isNew]);
+  }, [photoUri, isNew, mealId]);
+
+  const loadExistingMeal = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      if (!mealId) {
+        throw new Error('No meal ID provided');
+      }
+
+      const meals = await MealStorageService.getAllMeals();
+      const meal = meals.find(m => m.id === mealId);
+      
+      if (!meal) {
+        throw new Error('Meal not found');
+      }
+
+      setExistingMeal(meal);
+      // Convert to MealData format for editing
+      setMealData({
+        name: meal.name,
+        confidence: meal.aiAnalysis?.confidence || 0,
+        nutrition: meal.nutrition,
+        ingredients: meal.ingredients,
+      });
+    } catch (err) {
+      setError('Failed to load meal. Please try again.');
+      console.error('Meal loading error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const analyzeMeal = async () => {
     try {
@@ -143,10 +188,57 @@ export default function MealDetail() {
     showSaveAnimation();
   };
 
-  const handleSave = () => {
-    // TODO: Save meal data to storage/database
-    console.log('Saving meal:', mealData);
-    router.back();
+  const handleSave = async () => {
+    if (!mealData) return;
+
+    try {
+      if (isNew === 'true') {
+        // Save new meal
+        await MealStorageService.saveMeal({
+          userId: 'user_1', // TODO: Get actual user ID
+          name: mealData.name,
+          photoUri,
+          timestamp: new Date(),
+          mealType: determineMealType(), // Auto-detect based on time
+          nutrition: mealData.nutrition,
+          ingredients: mealData.ingredients,
+          aiAnalysis: {
+            detectedFoods: mealData.ingredients,
+            confidence: mealData.confidence,
+            estimatedCalories: mealData.nutrition.calories,
+            mealCategory: determineMealType(),
+            ingredients: mealData.ingredients,
+          },
+          isVerified: true, // User has reviewed/edited
+        });
+      } else if (existingMeal) {
+        // Update existing meal
+        await MealStorageService.updateMeal(existingMeal.id, {
+          name: mealData.name,
+          nutrition: mealData.nutrition,
+          ingredients: mealData.ingredients,
+          isVerified: true,
+          aiAnalysis: {
+            ...existingMeal.aiAnalysis,
+            confidence: mealData.confidence,
+          },
+        });
+      }
+
+      showSaveAnimation();
+      setTimeout(() => router.back(), 1000);
+    } catch (error) {
+      console.error('Error saving meal:', error);
+      setError('Failed to save meal. Please try again.');
+    }
+  };
+
+  const determineMealType = (): MealType => {
+    const hour = new Date().getHours();
+    if (hour < 11) return MealType.BREAKFAST;
+    if (hour < 16) return MealType.LUNCH;
+    if (hour < 22) return MealType.DINNER;
+    return MealType.SNACK;
   };
 
   const handleRetake = () => {
@@ -186,7 +278,9 @@ export default function MealDetail() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Meal Analysis</Text>
+          <Text style={styles.headerTitle}>
+          {isNew === 'true' ? 'Meal Analysis' : 'Edit Meal'}
+        </Text>
           <TouchableOpacity onPress={handleSave} style={styles.saveBtn}>
             <Text style={styles.saveText}>Save</Text>
           </TouchableOpacity>
@@ -219,18 +313,26 @@ export default function MealDetail() {
           keyboardDismissMode="interactive"
         >
           {/* Photo */}
-          {photoUri && (
+          {(photoUri || existingMeal?.photoUri) && (
             <View style={styles.photoContainer}>
-              <Image source={{ uri: photoUri }} style={styles.photo} />
+              <Image 
+                source={{ uri: photoUri || existingMeal?.photoUri || '' }} 
+                style={styles.photo} 
+              />
             </View>
           )}
 
-          {isAnalyzing ? (
+          {(isAnalyzing || isLoading) ? (
             <View style={styles.analyzingContainer}>
               <ActivityIndicator size="large" color="#FF6B35" />
-              <Text style={styles.analyzingText}>Analyzing your meal...</Text>
+              <Text style={styles.analyzingText}>
+                {isAnalyzing ? 'Analyzing your meal...' : 'Loading meal data...'}
+              </Text>
               <Text style={styles.analyzingSubtext}>
-                Our AI is identifying ingredients and calculating nutrition
+                {isAnalyzing 
+                  ? 'Our AI is identifying ingredients and calculating nutrition'
+                  : 'Retrieving your saved meal details'
+                }
               </Text>
             </View>
           ) : mealData ? (
