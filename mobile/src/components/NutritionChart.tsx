@@ -12,7 +12,24 @@ export function NutritionChart({ type }: NutritionChartProps) {
     return (
       <View style={styles.heatmapContainer}>
         <View style={styles.heatmapHeader}>
-          <Text style={styles.heatmapTitle}>Meal Timing Pattern</Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.heatmapTitle}>Meal Timing Pattern</Text>
+            <View style={styles.heatmapLegend}>
+              <Text style={styles.legendLabel}>Less</Text>
+              <View style={styles.legendGradient}>
+                {[0, 0.25, 0.5, 0.75, 1].map((intensity, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.legendCell,
+                      { backgroundColor: getHeatmapColor(intensity) }
+                    ]}
+                  />
+                ))}
+              </View>
+              <Text style={styles.legendLabel}>More</Text>
+            </View>
+          </View>
           <View style={styles.timeLabels}>
             {['6AM', '12PM', '6PM', '12AM'].map((time, index) => (
               <Text key={index} style={styles.timeLabel}>{time}</Text>
@@ -41,22 +58,6 @@ export function NutritionChart({ type }: NutritionChartProps) {
               </View>
             </View>
           ))}
-        </View>
-        
-        <View style={styles.heatmapLegend}>
-          <Text style={styles.legendLabel}>Less</Text>
-          <View style={styles.legendGradient}>
-            {[0, 0.25, 0.5, 0.75, 1].map((intensity, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.legendCell,
-                  { backgroundColor: getHeatmapColor(intensity) }
-                ]}
-              />
-            ))}
-          </View>
-          <Text style={styles.legendLabel}>More</Text>
         </View>
       </View>
     );
@@ -106,11 +107,16 @@ const styles = StyleSheet.create({
   heatmapHeader: {
     marginBottom: 12,
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   heatmapTitle: {
     color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 12,
     fontWeight: '500',
-    marginBottom: 8,
   },
   timeLabels: {
     flexDirection: 'row',
@@ -149,21 +155,19 @@ const styles = StyleSheet.create({
   heatmapLegend: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 12,
-    gap: 4,
   },
   legendLabel: {
     color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 10,
+    fontSize: 9,
+    marginHorizontal: 4,
   },
   legendGradient: {
     flexDirection: 'row',
     gap: 1,
   },
   legendCell: {
-    width: 8,
-    height: 8,
+    width: 6,
+    height: 6,
     borderRadius: 1,
   },
   placeholder: {
