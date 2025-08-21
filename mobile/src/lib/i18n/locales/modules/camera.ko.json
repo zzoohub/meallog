@@ -1,6 +1,6 @@
 {
-  "title": "푸드로그",
-  "subtitle": "음식을 즉시 기록하세요",
+  "title": "식사일기",
+  "subtitle": "식사를 즉시 기록하세요",
   "quickHint": "탭하여 식사 기록하기",
   "hintText": "음식에 카메라를 향하면 즉시 분석됩니다",
   "capturingText": "분석 중...",
@@ -13,7 +13,7 @@
   "aiAnalysis": "AI 분석 진행 중",
   "aiAnalysisDesc": "음식 항목을 식별하고 영양 정보를 계산하는 중...",
   "welcome": {
-    "title": "푸드로그에 오신 것을 환영합니다",
+    "title": "식사일기에 오신 것을 환영합니다",
     "message": "원터치로 식사를 즉시 기록하세요. 시작하려면 카메라 접근을 허용해 주세요.",
     "enableCamera": "카메라 활성화"
   },
