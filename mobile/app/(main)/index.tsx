@@ -3,6 +3,7 @@ import {
   StyleSheet,
   SafeAreaView,
 } from 'react-native';
+import { useTheme } from '@/lib/theme';
 // Removed gesture handlers to prevent conflicts with scrolling
 import * as Haptics from 'expo-haptics';
 
@@ -31,6 +32,7 @@ enum OrbitalSection {
 }
 
 export default function OrbitalNavigation() {
+  const { theme } = useTheme();
   const [activeSection, setActiveSection] = useState<OrbitalSection>(OrbitalSection.Camera);
 
   const navigateToSection = (section: OrbitalSection) => {
@@ -79,7 +81,7 @@ export default function OrbitalNavigation() {
 
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
         {renderActiveSection()}
         
         {/* Floating Notifications */}
@@ -91,6 +93,5 @@ export default function OrbitalNavigation() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
   },
 });

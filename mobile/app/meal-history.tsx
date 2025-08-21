@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,13 +12,11 @@ import {
   Modal,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
-``;
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Meal, MealHistoryFilter } from "@/domains/meals/types";
 import { MealStorageService, generateMockMeals } from "@/domains/meals/services/mealStorage";
 import { useTimelineI18n } from "@/lib/i18n";
-import { useDebouncedCallback, useMemoWithEquals } from "@/lib/performance/hooks";
 
 interface MealSection {
   title: string;
@@ -39,125 +37,174 @@ export default function MealHistory() {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [showDateRangeModal, setShowDateRangeModal] = useState(false);
   const [markedDates, setMarkedDates] = useState<{ [key: string]: any }>({});
+  const [mockDataGenerated, setMockDataGenerated] = useState(false);
   const ITEMS_PER_PAGE = 20;
 
-  // Debounced search to avoid excessive API calls
-  const debouncedLoadMeals = useDebouncedCallback(() => loadMeals(true), 300, [searchQuery, startDate, endDate]);
+  // Date range calendar functions
+  const updateMarkedDates = useCallback(() => {
+    const marked: { [key: string]: any } = {};
 
-  useEffect(() => {
-    debouncedLoadMeals();
-  }, [debouncedLoadMeals]);
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
 
-  useEffect(() => {
-    updateMarkedDates();
+      // Mark the start date
+      const startDateString = start.toISOString().split("T")[0];
+      if (startDateString) {
+        marked[startDateString] = {
+          startingDay: true,
+          color: "#FF6B35",
+          textColor: "white",
+        };
+      }
+
+      // Mark the end date
+      const endDateString = end.toISOString().split("T")[0];
+      if (endDateString) {
+        marked[endDateString] = {
+          endingDay: true,
+          color: "#FF6B35",
+          textColor: "white",
+        };
+      }
+
+      // Mark dates in between
+      const currentDate = new Date(start);
+      currentDate.setDate(currentDate.getDate() + 1);
+
+      while (currentDate < end) {
+        const dateString = currentDate.toISOString().split("T")[0];
+        if (dateString) {
+          marked[dateString] = {
+            color: "#FF6B35",
+            textColor: "white",
+          };
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    } else if (startDate) {
+      const startDateString = startDate.toISOString().split("T")[0];
+      if (startDateString) {
+        marked[startDateString] = {
+          selected: true,
+          selectedColor: "#FF6B35",
+        };
+      }
+    } else if (endDate) {
+      const endDateString = endDate.toISOString().split("T")[0];
+      if (endDateString) {
+        marked[endDateString] = {
+          selected: true,
+          selectedColor: "#FF6B35",
+        };
+      }
+    }
+
+    setMarkedDates(marked);
   }, [startDate, endDate]);
 
-  const loadMeals = async (isRefresh = false) => {
-    try {
-      if (isRefresh) {
+  useEffect(() => {
+    const loadData = async () => {
+      try {
         setIsLoading(true);
         setPage(1);
         setHasMore(true);
-      } else {
-        setIsLoadingMore(true);
-      }
 
-      const filter: MealHistoryFilter = {};
-      if (searchQuery) filter.searchQuery = searchQuery;
-      if (startDate) filter.startDate = startDate;
-      if (endDate) filter.endDate = endDate;
+        const filter: MealHistoryFilter = {};
+        if (searchQuery) filter.searchQuery = searchQuery;
+        if (startDate) filter.startDate = startDate;
+        if (endDate) filter.endDate = endDate;
 
-      let loadedMeals = await MealStorageService.getMealsFiltered(filter);
+        let loadedMeals = await MealStorageService.getMealsFiltered(filter);
 
-      // For development: add mock data if no meals exist
-      if (loadedMeals.length === 0 && !searchQuery && isRefresh) {
-        const mockMeals = generateMockMeals();
-        // Save mock meals to storage for persistence
-        for (const mockMeal of mockMeals) {
-          try {
-            await MealStorageService.saveMeal({
-              userId: mockMeal.userId,
-              name: mockMeal.name,
-              photoUri: mockMeal.photoUri,
-              timestamp: mockMeal.timestamp,
-              mealType: mockMeal.mealType,
-              nutrition: mockMeal.nutrition,
-              ingredients: mockMeal.ingredients,
-              aiAnalysis: mockMeal.aiAnalysis,
-              location: mockMeal.location,
-              notes: mockMeal.notes,
-              isVerified: mockMeal.isVerified,
-            });
-          } catch (error) {
-            console.error("Error saving mock meal:", error);
+        // For development: add mock data if no meals exist (only once)
+        if (loadedMeals.length === 0 && !searchQuery && !mockDataGenerated) {
+          const mockMeals = generateMockMeals();
+          // Save mock meals to storage for persistence
+          for (const mockMeal of mockMeals) {
+            try {
+              await MealStorageService.saveMeal({
+                userId: mockMeal.userId,
+                name: mockMeal.name,
+                photoUri: mockMeal.photoUri,
+                timestamp: mockMeal.timestamp,
+                mealType: mockMeal.mealType,
+                nutrition: mockMeal.nutrition,
+                ingredients: mockMeal.ingredients,
+                aiAnalysis: mockMeal.aiAnalysis,
+                location: mockMeal.location,
+                notes: mockMeal.notes,
+                isVerified: mockMeal.isVerified,
+              });
+            } catch (error) {
+              console.error("Error saving mock meal:", error);
+            }
           }
+          setMockDataGenerated(true);
+          loadedMeals = await MealStorageService.getMealsFiltered(filter);
         }
-        loadedMeals = await MealStorageService.getMealsFiltered(filter);
-      }
 
-      // Simulate pagination for infinite scroll
-      const currentPage = isRefresh ? 1 : page;
-      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-      const endIndex = startIndex + ITEMS_PER_PAGE;
-      const paginatedMeals = loadedMeals.slice(0, endIndex);
+        const startIndex = 0;
+        const endIndex = ITEMS_PER_PAGE;
+        const paginatedMeals = loadedMeals.slice(0, endIndex);
 
-      if (isRefresh) {
         setMeals(paginatedMeals);
-      } else {
-        setMeals(prev => [...prev, ...loadedMeals.slice(startIndex, endIndex)]);
+        
+        // Group meals by date inline
+        const grouped = paginatedMeals.reduce((acc, meal) => {
+          const date = meal.timestamp.toDateString();
+          if (!acc[date]) {
+            acc[date] = [];
+          }
+          acc[date].push(meal);
+          return acc;
+        }, {} as Record<string, Meal[]>);
+
+        const sections = Object.entries(grouped)
+          .map(([date, meals]) => {
+            // Format section date inline
+            const sectionDate = new Date(date);
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            let title: string;
+            if (sectionDate.toDateString() === today.toDateString()) {
+              title = "Today";
+            } else if (sectionDate.toDateString() === yesterday.toDateString()) {
+              title = "Yesterday";
+            } else {
+              title = sectionDate.toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "short",
+                day: "numeric",
+              });
+            }
+
+            return {
+              title,
+              data: meals.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()),
+            };
+          })
+          .sort((a, b) => (b.data[0]?.timestamp?.getTime() ?? 0) - (a.data[0]?.timestamp?.getTime() ?? 0));
+        
+        setSections(sections);
+        setHasMore(endIndex < loadedMeals.length);
+      } catch (error) {
+        console.error("Error loading meals:", error);
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      setSections(groupMealsByDate(paginatedMeals));
-      setHasMore(endIndex < loadedMeals.length);
+    loadData();
+  }, [searchQuery, startDate, endDate, mockDataGenerated]);
 
-      if (!isRefresh) {
-        setPage(prev => prev + 1);
-      }
-    } catch (error) {
-      console.error("Error loading meals:", error);
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  };
+  useEffect(() => {
+    updateMarkedDates();
+  }, [updateMarkedDates]);
 
-  // Memoized grouping function to avoid recalculation
-  const groupMealsByDate = useCallback((meals: Meal[]): MealSection[] => {
-    const grouped = meals.reduce((acc, meal) => {
-      const date = meal.timestamp.toDateString();
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push(meal);
-      return acc;
-    }, {} as Record<string, Meal[]>);
-
-    return Object.entries(grouped)
-      .map(([date, meals]) => ({
-        title: formatSectionDate(new Date(date)),
-        data: meals.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()),
-      }))
-      .sort((a, b) => (b.data[0]?.timestamp?.getTime() ?? 0) - (a.data[0]?.timestamp?.getTime() ?? 0));
-  }, []);
-
-  const formatSectionDate = (date: Date): string => {
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return timeline.today;
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return timeline.yesterday;
-    } else {
-      return date.toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "short",
-        day: "numeric",
-      });
-    }
-  };
-
+  // Meal list functions
   const handleMealPress = (meal: Meal) => {
     router.push({
       pathname: "/meal-detail",
@@ -283,7 +330,7 @@ export default function MealHistory() {
     </TouchableOpacity>
   ));
 
-  const renderMealItem = useCallback(({ item: meal }: { item: Meal }) => <MealItem meal={meal} />, []);
+  const renderMealItem = ({ item: meal }: { item: Meal }) => <MealItem meal={meal} />;
 
   const renderSectionHeader = ({ section }: { section: MealSection }) => (
     <View style={styles.sectionHeader}>
@@ -294,11 +341,75 @@ export default function MealHistory() {
     </View>
   );
 
-  const handleLoadMore = useCallback(() => {
-    if (!isLoadingMore && hasMore) {
-      loadMeals(false);
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore) return;
+    
+    try {
+      setIsLoadingMore(true);
+
+      const filter: MealHistoryFilter = {};
+      if (searchQuery) filter.searchQuery = searchQuery;
+      if (startDate) filter.startDate = startDate;
+      if (endDate) filter.endDate = endDate;
+
+      const loadedMeals = await MealStorageService.getMealsFiltered(filter);
+      
+      const startIndex = page * ITEMS_PER_PAGE;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
+      const newMeals = loadedMeals.slice(startIndex, endIndex);
+
+      if (newMeals.length > 0) {
+        setMeals(prev => [...prev, ...newMeals]);
+        setPage(prev => prev + 1);
+        
+        // Update sections with all meals
+        const allMeals = [...meals, ...newMeals];
+        const grouped = allMeals.reduce((acc, meal) => {
+          const date = meal.timestamp.toDateString();
+          if (!acc[date]) {
+            acc[date] = [];
+          }
+          acc[date].push(meal);
+          return acc;
+        }, {} as Record<string, Meal[]>);
+
+        const sections = Object.entries(grouped)
+          .map(([date, meals]) => {
+            const sectionDate = new Date(date);
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            let title: string;
+            if (sectionDate.toDateString() === today.toDateString()) {
+              title = "Today";
+            } else if (sectionDate.toDateString() === yesterday.toDateString()) {
+              title = "Yesterday";
+            } else {
+              title = sectionDate.toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "short",
+                day: "numeric",
+              });
+            }
+
+            return {
+              title,
+              data: meals.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()),
+            };
+          })
+          .sort((a, b) => (b.data[0]?.timestamp?.getTime() ?? 0) - (a.data[0]?.timestamp?.getTime() ?? 0));
+        
+        setSections(sections);
+      }
+      
+      setHasMore(endIndex < loadedMeals.length);
+    } catch (error) {
+      console.error("Error loading more meals:", error);
+    } finally {
+      setIsLoadingMore(false);
     }
-  }, [isLoadingMore, hasMore]);
+  }, [isLoadingMore, hasMore, searchQuery, startDate, endDate, page, meals]);
 
   const renderFooter = () => {
     if (!isLoadingMore) return null;
@@ -310,68 +421,7 @@ export default function MealHistory() {
     );
   };
 
-  const updateMarkedDates = () => {
-    const marked: { [key: string]: any } = {};
-
-    if (startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-
-      // Mark the start date
-      const startDateString = start.toISOString().split("T")[0];
-      if (startDateString) {
-        marked[startDateString] = {
-          startingDay: true,
-          color: "#FF6B35",
-          textColor: "white",
-        };
-      }
-
-      // Mark the end date
-      const endDateString = end.toISOString().split("T")[0];
-      if (endDateString) {
-        marked[endDateString] = {
-          endingDay: true,
-          color: "#FF6B35",
-          textColor: "white",
-        };
-      }
-
-      // Mark dates in between
-      const currentDate = new Date(start);
-      currentDate.setDate(currentDate.getDate() + 1);
-
-      while (currentDate < end) {
-        const dateString = currentDate.toISOString().split("T")[0];
-        if (dateString) {
-          marked[dateString] = {
-            color: "#FF6B35",
-            textColor: "white",
-          };
-        }
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-    } else if (startDate) {
-      const startDateString = startDate.toISOString().split("T")[0];
-      if (startDateString) {
-        marked[startDateString] = {
-          selected: true,
-          selectedColor: "#FF6B35",
-        };
-      }
-    } else if (endDate) {
-      const endDateString = endDate.toISOString().split("T")[0];
-      if (endDateString) {
-        marked[endDateString] = {
-          selected: true,
-          selectedColor: "#FF6B35",
-        };
-      }
-    }
-
-    setMarkedDates(marked);
-  };
-
+  // Date selection functions
   const handleDayPress = (day: any) => {
     const selectedDate = new Date(day.dateString);
 

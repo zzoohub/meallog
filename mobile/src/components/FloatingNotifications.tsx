@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/lib/theme';
 import * as Haptics from 'expo-haptics';
 
 
@@ -20,6 +21,7 @@ interface Notification {
 }
 
 export function FloatingNotifications() {
+  const { theme } = useTheme();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const animatedValues = useRef<Map<string, Animated.Value>>(new Map()).current;
 
@@ -79,11 +81,11 @@ export function FloatingNotifications() {
 
   const getNotificationColor = (type: Notification['type']) => {
     switch (type) {
-      case 'achievement': return '#FFD93D';
-      case 'reminder': return '#4ECDC4';
-      case 'social': return '#FF6B35';
-      case 'challenge': return '#96CEB4';
-      default: return '#FF6B35';
+      case 'achievement': return theme.colors.warning;
+      case 'reminder': return theme.colors.secondary;
+      case 'social': return theme.colors.primary;
+      case 'challenge': return theme.colors.success;
+      default: return theme.colors.primary;
     }
   };
 
@@ -103,22 +105,22 @@ export function FloatingNotifications() {
         ]}
       >
         <TouchableOpacity
-          style={styles.notification}
+          style={[styles.notification, { backgroundColor: theme.colors.surface }]}
           onPress={() => dismissNotification(notification.id)}
           activeOpacity={0.9}
         >
           <View style={styles.notificationContent}>
             <Text style={styles.notificationIcon}>{notification.icon}</Text>
             <View style={styles.notificationText}>
-              <Text style={styles.notificationTitle}>{notification.title}</Text>
-              <Text style={styles.notificationMessage}>{notification.message}</Text>
+              <Text style={[styles.notificationTitle, { color: theme.colors.text }]}>{notification.title}</Text>
+              <Text style={[styles.notificationMessage, { color: theme.colors.textSecondary }]}>{notification.message}</Text>
             </View>
           </View>
           <TouchableOpacity
             style={styles.dismissButton}
             onPress={() => dismissNotification(notification.id)}
           >
-            <Ionicons name="close" size={16} color="rgba(255, 255, 255, 0.7)" />
+            <Ionicons name="close" size={16} color={theme.colors.textSecondary} />
           </TouchableOpacity>
         </TouchableOpacity>
       </Animated.View>
@@ -147,7 +149,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   notification: {
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
@@ -166,13 +167,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   notificationTitle: {
-    color: 'white',
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 2,
   },
   notificationMessage: {
-    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 12,
     lineHeight: 16,
   },

@@ -4,9 +4,9 @@ import {
   Text,
   ActivityIndicator,
   StyleSheet,
-  useColorScheme,
 } from 'react-native';
-import { lightTheme, darkTheme, textStyles } from '@/styles/tokens';
+import { useTheme } from '@/lib/theme';
+import { textStyles } from '@/styles/tokens';
 import { SPACING } from '@/constants';
 import type { BaseComponentProps } from '@/types';
 
@@ -25,8 +25,7 @@ export function LoadingState({
   testID,
   style,
 }: LoadingStateProps) {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
+  const { theme } = useTheme();
 
   const indicatorColor = color || theme.colors.primary;
   const containerStyle = fullScreen ? styles.fullScreen : styles.inline;

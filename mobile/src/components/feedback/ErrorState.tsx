@@ -3,10 +3,10 @@ import {
   View,
   Text,
   StyleSheet,
-  useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { lightTheme, darkTheme, textStyles } from '@/styles/tokens';
+import { useTheme } from '@/lib/theme';
+import { textStyles } from '@/styles/tokens';
 import { SPACING } from '@/constants';
 import { Button } from '../ui/Button';
 import type { BaseComponentProps } from '@/types';
@@ -30,8 +30,7 @@ export function ErrorState({
   testID,
   style,
 }: ErrorStateProps) {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
+  const { theme } = useTheme();
 
   const containerStyle = fullScreen ? styles.fullScreen : styles.inline;
 

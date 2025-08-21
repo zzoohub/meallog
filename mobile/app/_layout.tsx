@@ -1,15 +1,18 @@
 import { StatusBar } from "expo-status-bar";
 import { Stack } from "expo-router";
 import { AppProvider } from "@/containers";
+import { useTheme } from "@/lib/theme";
 import "react-native-reanimated";
 import "@/lib/i18n";
 
-export default function RootLayout() {
+function RootLayoutContent() {
+  const { theme } = useTheme();
+  
   return (
-    <AppProvider>
+    <>
       <Stack screenOptions={{ 
         headerShown: false,
-        contentStyle: { backgroundColor: '#000000' },
+        contentStyle: { backgroundColor: theme.colors.background },
         animation: 'slide_from_right', // Enable smooth iOS-style transitions
         gestureEnabled: true,
         animationDuration: 300, // Smooth but not slow
@@ -119,7 +122,15 @@ export default function RootLayout() {
           }}
         />
       </Stack>
-      <StatusBar style="light" />
+      <StatusBar style={theme.statusBar} />
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AppProvider>
+      <RootLayoutContent />
     </AppProvider>
   );
 }

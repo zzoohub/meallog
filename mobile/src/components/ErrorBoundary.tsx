@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { DARK_THEME_COLORS, BRAND_COLORS } from '@/constants';
 
 interface Props {
   children: ReactNode;
@@ -78,7 +79,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <Ionicons 
               name="alert-circle-outline" 
               size={64} 
-              color="#FF6B35" 
+              color={BRAND_COLORS.PRIMARY} 
               style={styles.icon} 
             />
             
@@ -102,7 +103,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 onPress={this.handleReload}
                 activeOpacity={0.7}
               >
-                <Ionicons name="reload" size={20} color="#FF6B35" />
+                <Ionicons name="reload" size={20} color={BRAND_COLORS.PRIMARY} />
                 <Text style={styles.reloadButtonText}>Reload App</Text>
               </TouchableOpacity>
             </View>
@@ -132,7 +133,7 @@ export class ErrorBoundary extends Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: DARK_THEME_COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -145,14 +146,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    color: 'white',
+    color: DARK_THEME_COLORS.text,
     fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
     marginBottom: 12,
   },
   subtitle: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: DARK_THEME_COLORS.textSecondary,
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 24,
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FF6B35',
+    backgroundColor: BRAND_COLORS.PRIMARY,
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderRadius: 12,
@@ -183,14 +184,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#FF6B35',
+    borderColor: BRAND_COLORS.PRIMARY,
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderRadius: 12,
     gap: 8,
   },
   reloadButtonText: {
-    color: '#FF6B35',
+    color: BRAND_COLORS.PRIMARY,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -203,13 +204,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   debugTitle: {
-    color: '#FF6B35',
+    color: BRAND_COLORS.PRIMARY,
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
   },
   debugText: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: DARK_THEME_COLORS.textSecondary,
     fontSize: 12,
     fontFamily: 'monospace',
     lineHeight: 18,

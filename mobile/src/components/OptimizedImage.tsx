@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, ActivityIndicator, ViewStyle } from 'react-native';
 import { Image, ImageProps } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/lib/theme';
 
 interface OptimizedImageProps extends Omit<ImageProps, 'source' | 'style' | 'placeholder'> {
   source: { uri?: string } | string | number;
@@ -19,15 +20,21 @@ export const OptimizedImage = React.memo<OptimizedImageProps>(({
   style,
   showPlaceholder = true,
   placeholderIcon = 'camera',
-  placeholderColor = 'rgba(255, 255, 255, 0.3)',
+  placeholderColor,
   fadeDuration = 300,
   priority = 'normal',
   cachePolicy = 'memory-disk',
   contentFit = 'cover',
   ...props
 }) => {
+  const { theme, isDark } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  
+  const defaultPlaceholderColor = placeholderColor || (isDark 
+    ? 'rgba(255, 255, 255, 0.3)' 
+    : 'rgba(0, 0, 0, 0.3)'
+  );
 
   const handleLoadStart = useCallback(() => {
     setIsLoading(true);
@@ -68,17 +75,17 @@ export const OptimizedImage = React.memo<OptimizedImageProps>(({
       )}
       
       {shouldShowPlaceholder && (
-        <View style={[styles.placeholder, style]}>
+        <View style={[styles.placeholder, { backgroundColor: theme.colors.surface }, style]}>
           {isLoading && imageSource ? (
             <ActivityIndicator 
               size="small" 
-              color={placeholderColor} 
+              color={defaultPlaceholderColor} 
             />
           ) : (
             <Ionicons 
               name={placeholderIcon} 
               size={20} 
-              color={placeholderColor} 
+              color={defaultPlaceholderColor} 
             />
           )}
         </View>
@@ -103,7 +110,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -107,7 +107,7 @@ const defaultPrivacy: PrivacySettings = {
 };
 
 const defaultDisplay: DisplaySettings = {
-  theme: 'system',
+  theme: 'dark',
   language: 'en',
   measurementUnits: 'metric',
   nutritionDisplay: 'detailed',

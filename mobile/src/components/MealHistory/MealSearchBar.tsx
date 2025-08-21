@@ -1,12 +1,12 @@
 import React from "react";
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/lib/theme";
 import { useTimelineI18n } from "@/lib/i18n";
 
 interface MealSearchBarProps {
@@ -14,23 +14,24 @@ interface MealSearchBarProps {
   onSearchChange: (query: string) => void;
 }
 
-export const MealSearchBar = React.memo(({ searchQuery, onSearchChange }: MealSearchBarProps) => {
+export const MealSearchBar = React.memo(function MealSearchBar({ searchQuery, onSearchChange }: MealSearchBarProps) {
+  const { theme } = useTheme();
   const timeline = useTimelineI18n();
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchBar}>
-        <Ionicons name="search" size={20} color="rgba(255, 255, 255, 0.5)" />
+      <View style={[styles.searchBar, { backgroundColor: theme.colors.surface }]}>
+        <Ionicons name="search" size={20} color={theme.colors.textSecondary} />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: theme.colors.text }]}
           placeholder={timeline.searchPlaceholder}
-          placeholderTextColor="rgba(255, 255, 255, 0.5)"
+          placeholderTextColor={theme.colors.textSecondary}
           value={searchQuery}
           onChangeText={onSearchChange}
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => onSearchChange("")}>
-            <Ionicons name="close-circle" size={20} color="rgba(255, 255, 255, 0.5)" />
+            <Ionicons name="close-circle" size={20} color={theme.colors.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
@@ -46,7 +47,6 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -54,7 +54,6 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: "white",
     fontSize: 16,
   },
 });

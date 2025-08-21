@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/lib/theme";
 import { Meal } from "@/domains/meals/types";
 import { OptimizedImage } from "../OptimizedImage";
 
@@ -14,7 +15,9 @@ interface MealItemProps {
   onPress: (meal: Meal) => void;
 }
 
-export const MealItem = React.memo(({ meal, onPress }: MealItemProps) => {
+export const MealItem = React.memo(function MealItem({ meal, onPress }: MealItemProps) {
+  const { theme } = useTheme();
+  
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
@@ -40,7 +43,7 @@ export const MealItem = React.memo(({ meal, onPress }: MealItemProps) => {
 
   return (
     <TouchableOpacity 
-      style={styles.container} 
+      style={[styles.container, { backgroundColor: theme.colors.surface }]} 
       onPress={() => onPress(meal)} 
       activeOpacity={0.7}
     >
@@ -57,7 +60,7 @@ export const MealItem = React.memo(({ meal, onPress }: MealItemProps) => {
 
         {meal.isVerified && (
           <View style={styles.verifiedBadge}>
-            <Ionicons name="checkmark-circle" size={12} color="#4ECDC4" />
+            <Ionicons name="checkmark-circle" size={12} color={theme.colors.success} />
           </View>
         )}
       </View>
@@ -66,19 +69,19 @@ export const MealItem = React.memo(({ meal, onPress }: MealItemProps) => {
         <View style={styles.header}>
           <View style={styles.titleRow}>
             <Text style={styles.emoji}>{getMealTypeIcon(meal.mealType)}</Text>
-            <Text style={styles.name} numberOfLines={1}>
+            <Text style={[styles.name, { color: theme.colors.text }]} numberOfLines={1}>
               {meal.name}
             </Text>
-            <Text style={styles.time}>{formatTime(meal.timestamp)}</Text>
+            <Text style={[styles.time, { color: theme.colors.textSecondary }]}>{formatTime(meal.timestamp)}</Text>
           </View>
 
           {meal.aiAnalysis?.insights && (
             <View style={styles.insightsPreview}>
               <View style={styles.healthScore}>
-                <Ionicons name="fitness" size={12} color="#4ECDC4" />
-                <Text style={styles.healthScoreText}>{meal.aiAnalysis.insights.healthScore}/100</Text>
+                <Ionicons name="fitness" size={12} color={theme.colors.success} />
+                <Text style={[styles.healthScoreText, { color: theme.colors.success }]}>{meal.aiAnalysis.insights.healthScore}/100</Text>
               </View>
-              <Text style={styles.nutritionBalance} numberOfLines={1}>
+              <Text style={[styles.nutritionBalance, { color: theme.colors.textSecondary }]} numberOfLines={1}>
                 {meal.aiAnalysis.insights.nutritionBalance}
               </Text>
             </View>
@@ -87,33 +90,33 @@ export const MealItem = React.memo(({ meal, onPress }: MealItemProps) => {
 
         <View style={styles.nutritionRow}>
           <View style={styles.nutritionItem}>
-            <Text style={styles.nutritionValue}>{meal.nutrition.calories}</Text>
-            <Text style={styles.nutritionLabel}>cal</Text>
+            <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.calories}</Text>
+            <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>cal</Text>
           </View>
           <View style={styles.nutritionItem}>
-            <Text style={styles.nutritionValue}>{meal.nutrition.protein}g</Text>
-            <Text style={styles.nutritionLabel}>protein</Text>
+            <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.protein}g</Text>
+            <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>protein</Text>
           </View>
           <View style={styles.nutritionItem}>
-            <Text style={styles.nutritionValue}>{meal.nutrition.carbs}g</Text>
-            <Text style={styles.nutritionLabel}>carbs</Text>
+            <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.carbs}g</Text>
+            <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>carbs</Text>
           </View>
           <View style={styles.nutritionItem}>
-            <Text style={styles.nutritionValue}>{meal.nutrition.fat}g</Text>
-            <Text style={styles.nutritionLabel}>fat</Text>
+            <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.fat}g</Text>
+            <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>fat</Text>
           </View>
         </View>
 
         <View style={styles.ingredientsPreview}>
-          <Text style={styles.ingredientsText} numberOfLines={2}>
+          <Text style={[styles.ingredientsText, { color: theme.colors.textSecondary }]} numberOfLines={2}>
             {meal.ingredients.join(", ")}
           </Text>
         </View>
 
         {meal.aiAnalysis?.insights?.recommendations && meal.aiAnalysis.insights.recommendations.length > 0 && (
           <View style={styles.recommendationPreview}>
-            <Ionicons name="bulb" size={12} color="#FFD700" />
-            <Text style={styles.recommendationText} numberOfLines={1}>
+            <Ionicons name="bulb" size={12} color={theme.colors.warning} />
+            <Text style={[styles.recommendationText, { color: theme.colors.warning }]} numberOfLines={1}>
               {meal.aiAnalysis.insights.recommendations[0]}
             </Text>
           </View>
@@ -121,7 +124,7 @@ export const MealItem = React.memo(({ meal, onPress }: MealItemProps) => {
       </View>
 
       <View style={styles.editArrow}>
-        <Ionicons name="chevron-forward" size={20} color="rgba(255, 255, 255, 0.3)" />
+        <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
       </View>
     </TouchableOpacity>
   );
@@ -130,7 +133,6 @@ export const MealItem = React.memo(({ meal, onPress }: MealItemProps) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -169,13 +171,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   name: {
-    color: "white",
     fontSize: 16,
     fontWeight: "600",
     flex: 1,
   },
   time: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
   },
   insightsPreview: {
@@ -189,12 +189,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   healthScoreText: {
-    color: "#4ECDC4",
     fontSize: 12,
     fontWeight: "600",
   },
   nutritionBalance: {
-    color: "rgba(255, 255, 255, 0.6)",
     fontSize: 12,
     flex: 1,
   },
@@ -208,19 +206,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   nutritionValue: {
-    color: "#FF6B35",
     fontSize: 14,
     fontWeight: "600",
   },
   nutritionLabel: {
-    color: "rgba(255, 255, 255, 0.5)",
     fontSize: 10,
   },
   ingredientsPreview: {
     paddingTop: 4,
   },
   ingredientsText: {
-    color: "rgba(255, 255, 255, 0.6)",
     fontSize: 12,
     lineHeight: 16,
   },
@@ -231,7 +226,6 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   recommendationText: {
-    color: "#FFD700",
     fontSize: 12,
     fontStyle: "italic",
     flex: 1,

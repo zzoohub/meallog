@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, ViewStyle } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import { useTheme } from '@/lib/theme';
 
 interface CircularProgressProps {
   size: number;
@@ -17,10 +18,17 @@ export function CircularProgress({
   strokeWidth,
   progress,
   color,
-  backgroundColor = 'rgba(255, 255, 255, 0.1)',
+  backgroundColor,
   children,
   style,
 }: CircularProgressProps) {
+  const { isDark } = useTheme();
+  
+  const defaultBackgroundColor = backgroundColor || (isDark 
+    ? 'rgba(255, 255, 255, 0.1)' 
+    : 'rgba(0, 0, 0, 0.1)'
+  );
+  
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const strokeDasharray = circumference;
@@ -34,7 +42,7 @@ export function CircularProgress({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={backgroundColor}
+          stroke={defaultBackgroundColor}
           strokeWidth={strokeWidth}
           fill="transparent"
         />
