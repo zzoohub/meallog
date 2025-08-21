@@ -36,7 +36,12 @@ export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
       id: "theme",
       title: settings.display.theme.title,
       icon: "color-palette-outline",
-      value: display.theme === "system" ? settings.display.theme.system : display.theme === "dark" ? settings.display.theme.dark : settings.display.theme.light,
+      value:
+        display.theme === "system"
+          ? settings.display.theme.system
+          : display.theme === "dark"
+          ? settings.display.theme.dark
+          : settings.display.theme.light,
       onPress: () => router.push("/settings/display"),
     },
     {
@@ -98,7 +103,9 @@ export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
             </View>
             <View style={styles.profileInfo}>
               <Text style={[styles.profileName, { color: theme.colors.text }]}>{user?.username || "Guest User"}</Text>
-              <Text style={[styles.profileEmail, { color: theme.colors.textSecondary }]}>{user?.email || "Not logged in"}</Text>
+              <Text style={[styles.profileEmail, { color: theme.colors.textSecondary }]}>
+                {user?.email || "Not logged in"}
+              </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
           </TouchableOpacity>
@@ -121,7 +128,9 @@ export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
                 </View>
                 <View>
                   <Text style={[styles.allSettingsTitle, { color: theme.colors.text }]}>All Settings</Text>
-                  <Text style={[styles.allSettingsDescription, { color: theme.colors.textSecondary }]}>Manage all app preferences</Text>
+                  <Text style={[styles.allSettingsDescription, { color: theme.colors.textSecondary }]}>
+                    Manage all app preferences
+                  </Text>
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
@@ -131,7 +140,7 @@ export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
 
         {/* App Info */}
         <View style={styles.appInfo}>
-          <Text style={[styles.appName, { color: theme.colors.text }]}>Food Log</Text>
+          <Text style={[styles.appName, { color: theme.colors.text }]}>Meal Log</Text>
           <Text style={[styles.appVersion, { color: theme.colors.textSecondary }]}>Version 1.0.0</Text>
           <Text style={[styles.buildInfo, { color: theme.colors.textSecondary }]}>Build 1</Text>
         </View>

@@ -1,7 +1,7 @@
 {
-  "name": "food-log",
+  "name": "meal-log",
   "version": "1.0.0",
-  "description": "AI-powered food diary application",
+  "description": "AI-powered meal diary application",
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev:mobile\" \"npm run dev:server\"",

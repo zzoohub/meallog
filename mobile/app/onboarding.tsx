@@ -25,7 +25,7 @@ const steps: OnboardingStep[] = [
     component: WelcomeStep,
   },
   {
-    id: "camera", 
+    id: "camera",
     title: "",
     subtitle: "",
     component: CameraStep,
@@ -146,15 +146,13 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
   return (
     <View style={styles.stepContent}>
       <Animated.View style={[styles.heroSection, { transform: [{ scale: scaleAnim }] }]}>
-        <View style={styles.foodMontage}>
-          {/* Animated food icons */}
+        <View style={styles.mealMontage}>
+          {/* Animated meal icons */}
           <Ionicons name="restaurant" size={60} color="white" />
           <Text style={styles.heroEmoji}>🍎📱🧠</Text>
         </View>
         <Text style={styles.stepTitle}>{common.onboarding.welcome.title}</Text>
-        <Text style={styles.stepSubtitle}>
-          {common.onboarding.welcome.subtitle}
-        </Text>
+        <Text style={styles.stepSubtitle}>{common.onboarding.welcome.subtitle}</Text>
       </Animated.View>
 
       <TouchableOpacity style={styles.primaryButton} onPress={onNext}>
@@ -186,7 +184,7 @@ function CameraStep({ onNext }: { onNext: () => void }) {
       </View>
       <Text style={styles.stepTitle}>Enable Quick Capture</Text>
       <Text style={styles.stepSubtitle}>
-        Take photos of your food for instant AI-powered nutrition analysis. Your privacy is protected - photos are only
+        Take photos of your meal for instant AI-powered nutrition analysis. Your privacy is protected - photos are only
         analyzed, never shared.
       </Text>
 
@@ -226,7 +224,7 @@ function DemoStep({ onNext }: { onNext: () => void }) {
       </View>
 
       <Text style={styles.stepTitle}>Try It Now!</Text>
-      <Text style={styles.stepSubtitle}>Watch our AI identify foods and analyze nutrition in real-time</Text>
+      <Text style={styles.stepSubtitle}>Watch our AI identify meals and analyze nutrition in real-time</Text>
 
       <TouchableOpacity
         style={[styles.primaryButton, showAnalysis && styles.primaryButtonDisabled]}
@@ -295,7 +293,7 @@ function ProfileStep({ onNext }: { onNext: () => void }) {
 
       <Text style={styles.stepTitle}>Almost done!</Text>
       <Text style={styles.stepSubtitle}>
-        Your food character has been created! You&apos;re ready to start your nutrition journey.
+        Your meal character has been created! You&apos;re ready to start your nutrition journey.
       </Text>
 
       <TouchableOpacity style={styles.primaryButton} onPress={onNext}>
@@ -363,7 +361,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 60,
   },
-  foodMontage: {
+  mealMontage: {
     alignItems: "center",
     marginBottom: 24,
   },

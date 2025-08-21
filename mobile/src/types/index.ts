@@ -25,7 +25,7 @@ export interface Post {
   updatedAt: Date;
 }
 
-// Food and nutrition related types
+// Meal and nutrition related types
 export interface NutritionInfo {
   calories: number;
   protein: number;
@@ -37,7 +37,7 @@ export interface NutritionInfo {
 }
 
 export interface AIAnalysis {
-  detectedFoods: string[];
+  detectedMeals: string[];
   confidence: number;
   estimatedCalories: number;
   mealCategory: MealType;
@@ -54,16 +54,16 @@ export interface Location {
 
 // Enums and constants
 export enum MealType {
-  BREAKFAST = 'breakfast',
-  LUNCH = 'lunch',
-  DINNER = 'dinner',
-  SNACK = 'snack',
+  BREAKFAST = "breakfast",
+  LUNCH = "lunch",
+  DINNER = "dinner",
+  SNACK = "snack",
 }
 
 export enum PostPrivacy {
-  PUBLIC = 'public',
-  FRIENDS = 'friends',
-  PRIVATE = 'private',
+  PUBLIC = "public",
+  FRIENDS = "friends",
+  PRIVATE = "private",
 }
 
 // Camera and media types
@@ -76,8 +76,8 @@ export interface CapturedPhoto {
 }
 
 export interface CameraSettings {
-  type: 'front' | 'back';
-  flash: 'on' | 'off' | 'auto';
+  type: "front" | "back";
+  flash: "on" | "off" | "auto";
   quality: number;
 }
 
@@ -139,8 +139,8 @@ export interface ApiResponse<T = any> {
 
 // Navigation types (for type-safe routing)
 export type RootStackParamList = {
-  '(tabs)': undefined;
-  'not-found': undefined;
+  "(tabs)": undefined;
+  "not-found": undefined;
   settings: undefined;
 };
 
@@ -148,7 +148,7 @@ export type TabParamList = {
   index: undefined;
   timeline: undefined;
   feeds: undefined;
-  'create-post': undefined;
+  "create-post": undefined;
 };
 
 // Theme and styling types
@@ -189,8 +189,8 @@ export interface AnalyticsEvent {
 }
 
 export interface UserPreferences {
-  language: 'en' | 'ko';
-  theme: 'light' | 'dark' | 'system';
+  language: "en" | "ko";
+  theme: "light" | "dark" | "system";
   notifications: {
     posts: boolean;
     likes: boolean;
@@ -209,6 +209,5 @@ export type DeepPartial<T> = {
 
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
-export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = 
-  Pick<T, Exclude<keyof T, Keys>> & 
+export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
   { [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>> }[Keys];

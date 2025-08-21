@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { getCurrentLanguage, getCurrentLanguageConfig, isRTL } from "./config";
 import type {
   FormattersType,
-  FoodHelpersType,
+  MealHelpersType,
   MealType,
   CategoryType,
   PeriodType,
@@ -23,10 +23,7 @@ import type {
 /**
  * Enhanced type-safe useTranslation hook
  */
-export const useI18n = <T extends string = string>(
-  ns?: string | string[],
-  options?: UseTranslationOptions<any>,
-) => {
+export const useI18n = <T extends string = string>(ns?: string | string[], options?: UseTranslationOptions<any>) => {
   const { t, i18n, ready } = useTranslation(ns, options);
   const { t: commonT } = useTranslation("common");
   const { t: discoverT } = useTranslation("discover");
@@ -98,9 +95,9 @@ export const useI18n = <T extends string = string>(
     [commonT, discoverT, currentLanguage, languageConfig.timeFormat],
   );
 
-  // Food-specific translation helpers with type safety
-  const foodHelpers = useMemo(
-    (): FoodHelpersType => ({
+  // Meal-specific translation helpers with type safety
+  const mealHelpers = useMemo(
+    (): MealHelpersType => ({
       mealType: (type: MealType): string => {
         return translate(`mealTypes.${type}` as T) || type;
       },
@@ -128,7 +125,7 @@ export const useI18n = <T extends string = string>(
     languageConfig,
     isRTL: isRightToLeft,
     format: formatters,
-    food: foodHelpers,
+    meal: mealHelpers,
   };
 };
 
@@ -194,7 +191,7 @@ export const useCameraI18n = () => {
 
 // Timeline hook with formatters
 export const useTimelineI18n = () => {
-  const { t, format, food } = useI18n<TimelineKeys>("timeline");
+  const { t, format, meal } = useI18n<TimelineKeys>("timeline");
 
   return useMemo(
     () => ({
@@ -213,20 +210,20 @@ export const useTimelineI18n = () => {
       apply: t("apply"),
       today: t("dates.today"),
       yesterday: t("dates.yesterday"),
-      mealType: food.mealType,
-      period: food.period,
-      stat: food.stat,
+      mealType: meal.mealType,
+      period: meal.period,
+      stat: meal.stat,
       formatCalories: format.calories,
       formatTime: format.time,
       formatDate: format.date,
     }),
-    [t, format.calories, format.time, format.date, food.mealType, food.period, food.stat],
+    [t, format.calories, format.time, format.date, meal.mealType, meal.period, meal.stat],
   );
 };
 
 // Discover hook
 export const useDiscoverI18n = () => {
-  const { t, format, food } = useI18n<DiscoverKeys>("discover");
+  const { t, format, meal } = useI18n<DiscoverKeys>("discover");
 
   return useMemo(
     () => ({
@@ -234,12 +231,12 @@ export const useDiscoverI18n = () => {
       subtitle: t("subtitle"),
       follow: t("social.follow"),
       following: t("social.following"),
-      category: food.category,
+      category: meal.category,
       formatCalories: format.calories,
       formatTimeAgo: format.timeAgo,
       formatLikes: format.likes,
     }),
-    [t, format.calories, format.timeAgo, format.likes, food.category],
+    [t, format.calories, format.timeAgo, format.likes, meal.category],
   );
 };
 
@@ -358,7 +355,7 @@ export const useProgressI18n = () => {
       viewAll: t("viewAll"),
       balancedExplorer: t("balancedExplorer"),
       balancedExplorerDesc: t("balancedExplorerDesc"),
-      foodDiversityScore: t("foodDiversityScore"),
+      mealDiversityScore: t("mealDiversityScore"),
       diversityTip: t("diversityTip"),
       formatCalories: format.calories,
       formatNumber: format.number,
@@ -396,7 +393,7 @@ export const useAICoachI18n = () => {
   );
 };
 
-// Settings hook  
+// Settings hook
 export const useSettingsI18n = () => {
   const { t } = useI18n<SettingsKeys>("settings");
 

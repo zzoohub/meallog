@@ -1,8 +1,8 @@
 {
-  "title": "FoodLog",
+  "title": "MealLog",
   "subtitle": "Capture your meals instantly",
   "quickHint": "Tap to log your meal",
-  "hintText": "Point camera at your food for instant analysis",
+  "hintText": "Point camera at your meal for instant analysis",
   "capturingText": "Analyzing...",
   "preparing": "Preparing camera...",
   "flip": "Flip",
@@ -11,9 +11,9 @@
   "aiCoach": "AI Coach",
   "recent": "Recent",
   "aiAnalysis": "AI Analysis in Progress",
-  "aiAnalysisDesc": "Identifying food items and calculating nutrition...",
+  "aiAnalysisDesc": "Identifying meal items and calculating nutrition...",
   "welcome": {
-    "title": "Welcome to FoodLog",
+    "title": "Welcome to MealLog",
     "message": "Capture your meals instantly with one tap. Enable camera access to get started.",
     "enableCamera": "Enable Camera"
   },
@@ -25,7 +25,7 @@
   },
   "capture": {
     "success": "Meal Logged!",
-    "successMessage": "Your food has been automatically saved and analyzed.",
+    "successMessage": "Your meal has been automatically saved and analyzed.",
     "viewTimeline": "View Timeline",
     "error": "Error",
     "errorMessage": "Failed to capture photo. Please try again."

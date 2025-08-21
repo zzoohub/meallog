@@ -112,7 +112,9 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
         <Text style={styles.achievementEmoji}>{achievement.emoji}</Text>
         <View style={styles.achievementInfo}>
           <Text style={[styles.achievementTitle, { color: theme.colors.text }]}>{achievement.title}</Text>
-          <Text style={[styles.achievementDescription, { color: theme.colors.textSecondary }]}>{achievement.description}</Text>
+          <Text style={[styles.achievementDescription, { color: theme.colors.textSecondary }]}>
+            {achievement.description}
+          </Text>
         </View>
         <View style={styles.achievementProgress}>
           <Text style={[styles.achievementProgressText, { color: theme.colors.primary }]}>
@@ -120,8 +122,13 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
           </Text>
         </View>
       </View>
-      <View style={[styles.achievementBar, { backgroundColor: theme.colors.border + '40' }]}>
-        <View style={[styles.achievementBarFill, { width: `${(achievement.progress / achievement.target) * 100}%`, backgroundColor: theme.colors.primary }]} />
+      <View style={[styles.achievementBar, { backgroundColor: theme.colors.border + "40" }]}>
+        <View
+          style={[
+            styles.achievementBarFill,
+            { width: `${(achievement.progress / achievement.target) * 100}%`, backgroundColor: theme.colors.primary },
+          ]}
+        />
       </View>
     </TouchableOpacity>
   );
@@ -150,7 +157,13 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
               style={[styles.periodButton, selectedPeriod === period && { backgroundColor: theme.colors.primary }]}
               onPress={() => setSelectedPeriod(period)}
             >
-              <Text style={[styles.periodButtonText, { color: theme.colors.textSecondary }, selectedPeriod === period && { color: 'white' }]}>
+              <Text
+                style={[
+                  styles.periodButtonText,
+                  { color: theme.colors.textSecondary },
+                  selectedPeriod === period && { color: "white" },
+                ]}
+              >
                 {progress[period]}
               </Text>
             </TouchableOpacity>
@@ -173,19 +186,26 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
           <View style={styles.calorieOverview}>
             <View style={styles.calorieMain}>
               <Text style={[styles.calorieValue, { color: theme.colors.text }]}>{mockStats.calories.current}</Text>
-              <Text style={[styles.calorieLabel, { color: theme.colors.textSecondary }]}>{progress.caloriesConsumed}</Text>
+              <Text style={[styles.calorieLabel, { color: theme.colors.textSecondary }]}>
+                {progress.caloriesConsumed}
+              </Text>
             </View>
             <View style={styles.calorieRemaining}>
-              <Text style={[styles.remainingValue, { color: theme.colors.primary }]}>{mockStats.calories.target - mockStats.calories.current}</Text>
+              <Text style={[styles.remainingValue, { color: theme.colors.primary }]}>
+                {mockStats.calories.target - mockStats.calories.current}
+              </Text>
               <Text style={[styles.remainingLabel, { color: theme.colors.textSecondary }]}>{progress.remaining}</Text>
             </View>
           </View>
 
-          <View style={[styles.calorieBar, { backgroundColor: theme.colors.border + '40' }]}>
+          <View style={[styles.calorieBar, { backgroundColor: theme.colors.border + "40" }]}>
             <View
               style={[
                 styles.calorieBarFill,
-                { width: `${(mockStats.calories.current / mockStats.calories.target) * 100}%`, backgroundColor: theme.colors.primary },
+                {
+                  width: `${(mockStats.calories.current / mockStats.calories.target) * 100}%`,
+                  backgroundColor: theme.colors.primary,
+                },
               ]}
             />
           </View>
@@ -207,7 +227,9 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
         {/* Eating Pattern */}
         <View style={styles.patternSection}>
           <View style={styles.sectionHeader}>
-            <Text style={{ ...styles.sectionTitle, marginBottom: 4, color: theme.colors.text }}>{progress.eatingPattern}</Text>
+            <Text style={{ ...styles.sectionTitle, marginBottom: 4, color: theme.colors.text }}>
+              {progress.eatingPattern}
+            </Text>
             {/* <TouchableOpacity>
               <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>{progress.seeAll}</Text>
             </TouchableOpacity> */}
@@ -218,13 +240,15 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
           </View>
         </View>
 
-        {/* Food Character */}
+        {/* Meal Character */}
         <View style={styles.characterSection}>
           <View style={[styles.characterCard, { backgroundColor: theme.colors.surface }]}>
             <Text style={styles.characterEmoji}>🌟</Text>
             <View style={styles.characterInfo}>
               <Text style={[styles.characterTitle, { color: theme.colors.text }]}>{progress.balancedExplorer}</Text>
-              <Text style={[styles.characterDescription, { color: theme.colors.textSecondary }]}>{progress.balancedExplorerDesc}</Text>
+              <Text style={[styles.characterDescription, { color: theme.colors.textSecondary }]}>
+                {progress.balancedExplorerDesc}
+              </Text>
             </View>
             <View style={[styles.characterLevel, { backgroundColor: theme.colors.primary }]}>
               <Text style={[styles.levelText, { color: theme.colors.text }]}>Lv.7</Text>
@@ -232,7 +256,9 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
           </View>
 
           <View style={[styles.diversityScore, { backgroundColor: theme.colors.surface }]}>
-            <Text style={[styles.diversityLabel, { color: theme.colors.textSecondary }]}>{progress.foodDiversityScore}</Text>
+            <Text style={[styles.diversityLabel, { color: theme.colors.textSecondary }]}>
+              {progress.mealDiversityScore}
+            </Text>
             <Text style={[styles.diversityValue, { color: theme.colors.text }]}>82/100</Text>
             <Text style={[styles.diversityTip, { color: theme.colors.secondary }]}>{progress.diversityTip}</Text>
           </View>
@@ -241,7 +267,9 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
         {/* Achievements */}
         <View style={styles.achievementsSection}>
           <View style={styles.sectionHeader}>
-            <Text style={{ ...styles.sectionTitle, marginBottom: 4, color: theme.colors.text }}>{progress.achievements}</Text>
+            <Text style={{ ...styles.sectionTitle, marginBottom: 4, color: theme.colors.text }}>
+              {progress.achievements}
+            </Text>
             {/* <TouchableOpacity>
               <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>{progress.viewAll}</Text>
             </TouchableOpacity> */}
@@ -258,7 +286,9 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
             <Ionicons name="trending-up" size={24} color={theme.colors.secondary} />
             <View style={styles.insightContent}>
               <Text style={[styles.insightTitle, { color: theme.colors.text }]}>Protein intake improved</Text>
-              <Text style={[styles.insightDescription, { color: theme.colors.textSecondary }]}>You hit your protein goal 5 out of 7 days this week!</Text>
+              <Text style={[styles.insightDescription, { color: theme.colors.textSecondary }]}>
+                You hit your protein goal 5 out of 7 days this week!
+              </Text>
             </View>
           </View>
 
@@ -266,7 +296,9 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
             <Ionicons name="restaurant" size={24} color={theme.colors.primary} />
             <View style={styles.insightContent}>
               <Text style={[styles.insightTitle, { color: theme.colors.text }]}>New favorite: Mediterranean</Text>
-              <Text style={[styles.insightDescription, { color: theme.colors.textSecondary }]}>You&apos;ve logged 4 Mediterranean meals this week.</Text>
+              <Text style={[styles.insightDescription, { color: theme.colors.textSecondary }]}>
+                You&apos;ve logged 4 Mediterranean meals this week.
+              </Text>
             </View>
           </View>
         </View>

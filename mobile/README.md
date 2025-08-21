@@ -1,6 +1,6 @@
-# Foodsy Mobile App
+# Mealsy Mobile App
 
-A mobile application for food sharing and social interaction.
+A mobile application for meal sharing and social interaction.
 
 ## Project Structure
 

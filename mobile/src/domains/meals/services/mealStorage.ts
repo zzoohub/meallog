@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Meal, MealHistoryFilter } from "../types";
 import { MealType, NutritionInfo } from "@/types";
 
-const MEALS_STORAGE_KEY = "@food_log_meals";
+const MEALS_STORAGE_KEY = "@meal_log_meals";
 
 export class MealStorageService {
   // Save a new meal
@@ -235,7 +235,7 @@ export function generateMockMeals(): Meal[] {
       nutrition: { calories: 380, protein: 32, carbs: 18, fat: 22, fiber: 8 },
       ingredients: ["Grilled chicken breast", "Mixed greens", "Cherry tomatoes", "Cucumber", "Olive oil dressing"],
       aiAnalysis: {
-        detectedFoods: ["chicken", "salad", "tomatoes"],
+        detectedMeals: ["chicken", "salad", "tomatoes"],
         confidence: 85,
         estimatedCalories: 380,
         mealCategory: MealType.LUNCH,
@@ -262,7 +262,7 @@ export function generateMockMeals(): Meal[] {
       nutrition: { calories: 320, protein: 12, carbs: 45, fat: 8, fiber: 6 },
       ingredients: ["Rolled oats", "Greek yogurt", "Blueberries", "Chia seeds", "Honey"],
       aiAnalysis: {
-        detectedFoods: ["oats", "yogurt", "berries"],
+        detectedMeals: ["oats", "yogurt", "berries"],
         confidence: 92,
         estimatedCalories: 320,
         mealCategory: MealType.BREAKFAST,
@@ -289,7 +289,7 @@ export function generateMockMeals(): Meal[] {
       nutrition: { calories: 520, protein: 35, carbs: 32, fat: 28, fiber: 4 },
       ingredients: ["Grilled salmon", "Roasted sweet potato", "Steamed broccoli", "Lemon"],
       aiAnalysis: {
-        detectedFoods: ["salmon", "sweet potato", "broccoli"],
+        detectedMeals: ["salmon", "sweet potato", "broccoli"],
         confidence: 88,
         estimatedCalories: 520,
         mealCategory: MealType.DINNER,

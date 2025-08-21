@@ -1,6 +1,6 @@
 /**
  * Enhanced i18n system with type safety and modular architecture
- * 
+ *
  * Features:
  * - Type-safe translation keys
  * - Modular translation files
@@ -10,18 +10,18 @@
  */
 
 // Initialize i18n configuration
-import './config';
+import "./config";
 
 // Export configuration utilities
-export { 
-  SUPPORTED_LANGUAGES, 
-  changeLanguage, 
-  getCurrentLanguage, 
+export {
+  SUPPORTED_LANGUAGES,
+  changeLanguage,
+  getCurrentLanguage,
   getCurrentLanguageConfig,
   isRTL,
   i18nInstance,
-  type SupportedLanguage 
-} from './config';
+  type SupportedLanguage,
+} from "./config";
 
 // Export type-safe hooks
 export {
@@ -37,7 +37,7 @@ export {
   useAICoachI18n,
   useSettingsI18n,
   useTranslation,
-} from './hooks';
+} from "./hooks";
 
 // Export TypeScript types
 export type {
@@ -54,12 +54,12 @@ export type {
   ErrorTranslations,
   SettingsTranslations,
   FormattersType,
-  FoodHelpersType,
+  MealHelpersType,
   MealType,
   CategoryType,
   PeriodType,
   StatType,
-} from './types';
+} from "./types";
 
 // Export development tools (only in development)
 export {
@@ -70,17 +70,17 @@ export {
   generateTypeDefinitions,
   getTranslationStats,
   validateKeyPatterns,
-} from './dev-tools';
+} from "./dev-tools";
 
 // Re-export react-i18next for advanced usage
-export { Trans, withTranslation } from 'react-i18next';
+export { Trans, withTranslation } from "react-i18next";
 
 // Migration utilities for backward compatibility
 export const LEGACY_HOOKS = {
-  useNavigationI18n: 'Use useNavigationI18n from hooks.v2',
-  useCameraI18n: 'Use useCameraI18n from hooks.v2',
-  useTimelineI18n: 'Use useTimelineI18n from hooks.v2',
-  useDiscoverI18n: 'Use useDiscoverI18n from hooks.v2',
-  useCommonI18n: 'Use useCommonI18n from hooks.v2',
-  useErrorI18n: 'Use useErrorI18n from hooks.v2',
+  useNavigationI18n: "Use useNavigationI18n from hooks.v2",
+  useCameraI18n: "Use useCameraI18n from hooks.v2",
+  useTimelineI18n: "Use useTimelineI18n from hooks.v2",
+  useDiscoverI18n: "Use useDiscoverI18n from hooks.v2",
+  useCommonI18n: "Use useCommonI18n from hooks.v2",
+  useErrorI18n: "Use useErrorI18n from hooks.v2",
 } as const;

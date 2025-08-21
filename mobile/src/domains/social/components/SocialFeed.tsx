@@ -14,7 +14,7 @@ interface FeedPost {
     id: string;
     username: string;
     avatar: string;
-    foodCharacter: string;
+    mealCharacter: string;
   };
   meal: {
     imageUri: string;
@@ -45,7 +45,7 @@ const mockPosts: FeedPost[] = [
       id: "user1",
       username: "sarah_eats",
       avatar: "https://i.pravatar.cc/150?img=1",
-      foodCharacter: "🥗 Veggie Warrior",
+      mealCharacter: "🥗 Veggie Warrior",
     },
     meal: {
       imageUri: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop",
@@ -64,7 +64,7 @@ const mockPosts: FeedPost[] = [
       id: "user2",
       username: "mike_gains",
       avatar: "https://i.pravatar.cc/150?img=2",
-      foodCharacter: "💪 Protein Master",
+      mealCharacter: "💪 Protein Master",
     },
     meal: {
       imageUri: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=400&fit=crop",
@@ -149,7 +149,7 @@ export default function SocialFeed({ onNavigate }: SocialFeedProps) {
           <Image source={{ uri: post.user.avatar }} style={styles.avatar} />
           <View>
             <Text style={styles.username}>{post.user.username}</Text>
-            <Text style={styles.foodCharacter}>{post.user.foodCharacter}</Text>
+            <Text style={styles.mealCharacter}>{post.user.mealCharacter}</Text>
           </View>
         </TouchableOpacity>
         <Text style={styles.timestamp}>
@@ -157,9 +157,9 @@ export default function SocialFeed({ onNavigate }: SocialFeedProps) {
         </Text>
       </View>
 
-      {/* Food Image */}
+      {/* Meal Image */}
       <TouchableOpacity style={styles.imageContainer}>
-        <Image source={{ uri: post.meal.imageUri }} style={styles.foodImage} />
+        <Image source={{ uri: post.meal.imageUri }} style={styles.mealImage} />
         <View style={styles.nutritionBadge}>
           <Text style={styles.calorieText}>{post.meal.calories} cal</Text>
         </View>
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  foodCharacter: {
+  mealCharacter: {
     color: "rgba(255, 255, 255, 0.7)",
     fontSize: 12,
   },
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     position: "relative",
   },
-  foodImage: {
+  mealImage: {
     width: "100%",
     height: 300,
   },

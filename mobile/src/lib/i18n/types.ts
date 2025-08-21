@@ -152,7 +152,7 @@ export interface ProgressTranslations {
   viewAll: string;
   balancedExplorer: string;
   balancedExplorerDesc: string;
-  foodDiversityScore: string;
+  mealDiversityScore: string;
   diversityTip: string;
 }
 
@@ -321,7 +321,7 @@ export interface SettingsTranslations {
 }
 
 // Type-safe translation key paths
-export type TranslationKey = 
+export type TranslationKey =
   | `navigation.${keyof NavigationTranslations}`
   | `camera.${KeyPath<CameraTranslations>}`
   | `timeline.${KeyPath<TimelineTranslations>}`
@@ -336,11 +336,7 @@ export type TranslationKey =
 // Utility type for nested key paths
 type KeyPath<T> = T extends object
   ? {
-      [K in keyof T]: K extends string
-        ? T[K] extends object
-          ? `${K}.${KeyPath<T[K]>}`
-          : K
-        : never;
+      [K in keyof T]: K extends string ? (T[K] extends object ? `${K}.${KeyPath<T[K]>}` : K) : never;
     }[keyof T]
   : never;
 
@@ -357,10 +353,10 @@ export type ErrorKeys = keyof ErrorTranslations;
 export type SettingsKeys = KeyPath<SettingsTranslations>;
 
 // Meal types for type safety
-export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
-export type CategoryType = 'all' | 'healthy' | 'quick' | 'comfort' | 'breakfast' | 'lunch' | 'dinner';
-export type PeriodType = 'day' | 'week' | 'month';
-export type StatType = 'meals' | 'avgCalories' | 'goalProgress';
+export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
+export type CategoryType = "all" | "healthy" | "quick" | "comfort" | "breakfast" | "lunch" | "dinner";
+export type PeriodType = "day" | "week" | "month";
+export type StatType = "meals" | "avgCalories" | "goalProgress";
 
 // Formatter function types
 export interface FormattersType {
@@ -373,8 +369,8 @@ export interface FormattersType {
   timeAgo: (date: Date) => string;
 }
 
-// Food helpers function types
-export interface FoodHelpersType {
+// Meal helpers function types
+export interface MealHelpersType {
   mealType: (type: MealType) => string;
   category: (category: CategoryType) => string;
   period: (period: PeriodType) => string;

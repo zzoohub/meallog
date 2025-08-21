@@ -14,9 +14,9 @@
     "description": "Control your data and privacy settings"
   },
   "about": {
-    "title": "About FoodLog",
+    "title": "About MealLog",
     "version": "Version {{version}}",
-    "description": "A minimalist food diary app that makes food logging effortless through instant photo capture."
+    "description": "A minimalist meal diary app that makes meal logging effortless through instant photo capture."
   },
   "display": {
     "title": "Display & Appearance",

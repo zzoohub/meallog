@@ -171,7 +171,7 @@ export default function AICoach({ onNavigate, isActive }: AICoachProps) {
     if (lowercaseText.includes("protein")) {
       return "Great question about protein! Based on your recent meals, you're averaging 85g of protein daily. For your goals, I recommend aiming for 120g. Try adding Greek yogurt or lean chicken to your meals.";
     } else if (lowercaseText.includes("weight") || lowercaseText.includes("lose")) {
-      return "For healthy weight management, focus on creating a moderate calorie deficit. Your current intake is good - try adding more fiber-rich foods to help with satiety.";
+      return "For healthy weight management, focus on creating a moderate calorie deficit. Your current intake is good - try adding more fiber-rich meals to help with satiety.";
     } else if (lowercaseText.includes("meal") || lowercaseText.includes("recipe")) {
       return "Based on your preferences, I suggest a Mediterranean quinoa bowl with grilled chicken, vegetables, and tahini dressing. It fits your macro goals perfectly!";
     } else {

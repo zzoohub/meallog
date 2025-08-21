@@ -4,8 +4,8 @@ description: Use this agent when you need to design, refine, or implement user i
 
 Examples:
 <example>
-Context: The user needs to design a complex user flow for food logging.
-user: "Design the complete food capture and logging experience"
+Context: The user needs to design a complex user flow for meal logging.
+user: "Design the complete meal capture and logging experience"
 assistant: "I'll engage the ui-designer agent to craft a meticulously detailed user interface that perfects every interaction from camera capture to nutritional display."
 <commentary>
 Since the user needs comprehensive UI/UX design, use the Task tool to launch the ui-designer agent to create pixel-perfect interfaces with optimal usability.

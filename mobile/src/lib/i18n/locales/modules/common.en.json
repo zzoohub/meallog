@@ -17,17 +17,17 @@
     "welcome": {
       "title": "Your AI Nutrition Companion",
       "subtitle": "Transform every meal into insights",
-      "startJourney": "Start Your Food Journey"
+      "startJourney": "Start Your Meal Journey"
     },
     "camera": {
       "title": "Enable Quick Capture",
-      "subtitle": "Take photos of your food for instant analysis",
+      "subtitle": "Take photos of your meal for instant analysis",
       "grantAccess": "Grant Access",
-      "description": "Take photos of your food for instant AI-powered nutrition analysis. Your privacy is protected - photos are only processed locally on your device."
+      "description": "Take photos of your meal for instant AI-powered nutrition analysis. Your privacy is protected - photos are only processed locally on your device."
     },
     "demo": {
       "title": "Try It Now!",
-      "subtitle": "See how our AI analyzes your food",
+      "subtitle": "See how our AI analyzes your meal",
       "tryDemo": "Try the Demo"
     },
     "goals": {
@@ -36,7 +36,7 @@
     },
     "profile": {
       "title": "Almost done!",
-      "subtitle": "Help us create your food character"
+      "subtitle": "Help us create your meal character"
     },
     "buttons": {
       "next": "Next",

@@ -1,6 +1,6 @@
 # Product Requirements Document (PRD)
 
-## Food Log - AI-Based Diet Management Diary
+## Meal Log - AI-Based Meal Logging and Diet Management Diary
 
 **Document Version:** 1.0  
 **Date:** August 13, 2025  
@@ -13,15 +13,15 @@
 
 ### Product Vision
 
-"Beyond Simple Recording, Your Dietary Improvement Partner" - A next-generation diet management platform that transforms traditional food logging through AI-powered automation, social engagement, and personalized health insights.
+"Beyond Simple Recording, Your Dietary Improvement Partner" - A next-generation diet management platform that transforms traditional meal logging through AI-powered automation, social engagement, and personalized health insights.
 
 ### Product Overview
 
-Food Log is an AI-driven mobile application that revolutionizes diet management by combining advanced image recognition technology with social networking features. The platform automates nutritional tracking while creating an engaging community experience that motivates users to maintain healthy eating habits.
+Meal Log is an AI-driven mobile application that revolutionizes diet management by combining advanced image recognition technology with social networking features. The platform automates nutritional tracking while creating an engaging community experience that motivates users to maintain healthy eating habits.
 
 ### Key Differentiators
 
-- **AI-Powered Automation**: 85% accuracy in automatic food recognition and nutritional analysis
+- **AI-Powered Automation**: 85% accuracy in automatic meal recognition and nutritional analysis
 - **Social Engagement**: Instagram-style feed for diet sharing and community support
 - **Personalized Insights**: Machine learning-driven recommendations based on individual eating patterns
 - **Gamification**: Achievement system and challenges for sustained engagement
@@ -41,7 +41,7 @@ Food Log is an AI-driven mobile application that revolutionizes diet management 
 
 #### User Problems
 
-1. **Manual Entry Fatigue**: 73% of diet app users abandon within 3 weeks due to tedious manual food logging
+1. **Manual Entry Fatigue**: 73% of diet app users abandon within 3 weeks due to tedious manual meal logging
 2. **Lack of Accuracy**: Users spend 5-10 minutes per meal searching databases and estimating portions
 3. **Social Isolation**: Diet management feels like a solitary struggle without peer support
 4. **Generic Recommendations**: One-size-fits-all advice doesn't address individual dietary needs
@@ -52,11 +52,11 @@ Food Log is an AI-driven mobile application that revolutionizes diet management 
 - Existing solutions focus on either tracking (MyFitnessPal) or social (Instagram) but not both
 - No comprehensive AI solution provides instant, accurate nutritional analysis
 - Limited gamification and engagement mechanics in current diet apps
-- Lack of culturally diverse food recognition capabilities
+- Lack of culturally diverse meal recognition capabilities
 
 ### Solution Hypothesis
 
-By combining AI-powered automatic food analysis with social features and gamification, we can increase user engagement by 300% and retention by 250% compared to traditional diet logging apps.
+By combining AI-powered automatic meal analysis with social features and gamification, we can increase user engagement by 300% and retention by 250% compared to traditional diet logging apps.
 
 ---
 
@@ -67,15 +67,15 @@ By combining AI-powered automatic food analysis with social features and gamific
 #### Story 0: AI Result Correction
 
 **As a** health-conscious user  
-**I want** to easily correct AI-generated food analysis  
+**I want** to easily correct AI-generated meal analysis  
 **So that** I can ensure accurate tracking of my nutrition
 
 **Acceptance Criteria:**
 
-- Given the AI has analyzed my food photo
+- Given the AI has analyzed my meal photo
 - When I review the results
 - Then I can tap on any item to edit it
-- And modify food name, portion size, or nutritional values
+- And modify meal name, portion size, or nutritional values
 - And see visual portion size guides (S/M/L with gram estimates)
 - And use quick adjustment buttons (-25%, +25%, +50%, x2)
 - And the system saves my corrections for future learning
@@ -83,7 +83,7 @@ By combining AI-powered automatic food analysis with social features and gamific
 
 **Story Points:** 5
 
-#### Story 1: Quick Food Logging
+#### Story 1: Quick Meal Logging
 
 **As a** busy office worker  
 **I want** to log my meals by simply taking a photo  
@@ -93,7 +93,7 @@ By combining AI-powered automatic food analysis with social features and gamific
 
 - Given I have the app open
 - When I take a photo of my meal
-- Then the app identifies food items within 3 seconds
+- Then the app identifies meal items within 3 seconds
 - And displays estimated nutritional information with 85% accuracy
 - And allows me to adjust portions with simple gestures
 - And saves the entry with one tap
@@ -171,7 +171,7 @@ By combining AI-powered automatic food analysis with social features and gamific
 
 #### UC2: Restaurant Social Check-in
 
-**Actor:** Food Enthusiast Mike  
+**Actor:** Meal Enthusiast Mike  
 **Scenario:** Mike dines at a new healthy restaurant  
 **Flow:**
 
@@ -180,7 +180,7 @@ By combining AI-powered automatic food analysis with social features and gamific
 3. Tags restaurant location
 4. Shares to feed with #healthyeats
 5. Friends see post and save restaurant
-6. Receives "Foodie Explorer" badge
+6. Receives "Mealie Explorer" badge
 
 **Value Delivered:** Social engagement + discovery
 
@@ -190,11 +190,11 @@ By combining AI-powered automatic food analysis with social features and gamific
 
 ### 4.1 AI Automatic Analysis System
 
-#### FR-AI-001: Food Recognition
+#### FR-AI-001: Meal Recognition
 
-- **Description:** Identify food items from photos using computer vision
+- **Description:** Identify meal items from photos using computer vision
 - **Acceptance Criteria:**
-  - Recognize 10,000+ common food items
+  - Recognize 10,000+ common meal items
   - Support multi-item detection in single photo
   - Identify cooking methods (grilled, fried, steamed)
   - Detect mixed dishes and ingredients
@@ -203,7 +203,7 @@ By combining AI-powered automatic food analysis with social features and gamific
 
 #### FR-AI-002: Nutritional Estimation
 
-- **Description:** Calculate nutritional values from identified foods with user correction capability
+- **Description:** Calculate nutritional values from identified meals with user correction capability
 - **Acceptance Criteria:**
   - Estimate calories within ±15% accuracy
   - Calculate macronutrients (protein, carbs, fats)
@@ -220,9 +220,9 @@ By combining AI-powered automatic food analysis with social features and gamific
 - **Description:** Improve accuracy through user feedback and patterns
 - **Acceptance Criteria:**
   - Learn user's typical portion sizes
-  - Adapt to user's food preferences
+  - Adapt to user's meal preferences
   - Improve recognition of user's frequent meals
-  - Store personal food library
+  - Store personal meal library
 - **Priority:** P1 (High)
 - **Data Requirements:** User feedback loop, ML retraining pipeline
 
@@ -230,7 +230,7 @@ By combining AI-powered automatic food analysis with social features and gamific
 
 #### FR-SNS-001: Feed System
 
-- **Description:** Instagram-style feed for food photos
+- **Description:** Instagram-style feed for meal photos
 - **Acceptance Criteria:**
   - Infinite scroll with lazy loading
   - Display photos with nutrition badges
@@ -263,15 +263,15 @@ By combining AI-powered automatic food analysis with social features and gamific
 
 ### 4.3 AI Correction & Verification System
 
-#### FR-CORRECT-001: Food Item Editing
+#### FR-CORRECT-001: Meal Item Editing
 
-- **Description:** Allow users to modify AI-identified food items
+- **Description:** Allow users to modify AI-identified meal items
 - **Acceptance Criteria:**
-  - Tap-to-edit interface for each food item
-  - Search and replace food items from database
+  - Tap-to-edit interface for each meal item
+  - Search and replace meal items from database
   - Add missing items not detected by AI
   - Remove incorrectly identified items
-  - Combine or split food items
+  - Combine or split meal items
 - **Priority:** P0 (Critical)
 - **UI Requirements:** Inline editing with autocomplete
 
@@ -293,7 +293,7 @@ By combining AI-powered automatic food analysis with social features and gamific
 - **Acceptance Criteria:**
   - Edit calories, protein, carbs, fat directly
   - Copy nutrition from similar meals
-  - Create custom food entries
+  - Create custom meal entries
   - Save frequently used custom items
 - **Priority:** P1 (High)
 - **Validation:** Reasonable value ranges with warnings
@@ -345,15 +345,15 @@ By combining AI-powered automatic food analysis with social features and gamific
 - **Priority:** P2 (Medium)
 - **Privacy:** Opt-in with anonymization
 
-### 4.4 GPS Food Map
+### 4.4 GPS Meal Map
 
-#### FR-MAP-001: Personal Food Map
+#### FR-MAP-001: Personal Meal Map
 
 - **Description:** Location-based meal history
 - **Acceptance Criteria:**
   - Pin meals to map locations
   - Restaurant auto-detection
-  - Timeline view of food journey
+  - Timeline view of meal journey
   - Favorite places marking
 - **Priority:** P2 (Medium)
 - **Location Accuracy:** Within 50 meters
@@ -376,7 +376,7 @@ By combining AI-powered automatic food analysis with social features and gamific
 ### 5.1 Performance Requirements
 
 - **App Launch:** Cold start <3 seconds, warm start <1 second
-- **Photo Processing:** Food recognition <3 seconds for 95% of cases
+- **Photo Processing:** Meal recognition <3 seconds for 95% of cases
 - **Feed Loading:** Initial load <2 seconds, infinite scroll <500ms
 - **Data Sync:** Background sync every 5 minutes when active
 - **Offline Mode:** Core features available without connection
@@ -386,7 +386,7 @@ By combining AI-powered automatic food analysis with social features and gamific
 - **User Capacity:** Support 1M concurrent users
 - **Photo Storage:** 10GB per user allocation
 - **API Rate Limits:** 1000 requests/minute per user
-- **Database:** Handle 10M daily food entries
+- **Database:** Handle 10M daily meal entries
 - **CDN:** Global distribution for <100ms latency
 
 ### 5.3 Security Requirements
@@ -426,16 +426,16 @@ By combining AI-powered automatic food analysis with social features and gamific
 
 ### 6.2 Leading Indicators
 
-| Metric                    | Definition                                  | Target | Measurement |
-| ------------------------- | ------------------------------------------- | ------ | ----------- |
-| Photo-to-Log Rate         | % of photos successfully logged             | >90%   | Daily       |
-| AI Initial Accuracy       | % of items correctly identified by AI       | >75%   | Weekly      |
-| User Correction Rate      | % of AI results modified by users           | <30%   | Daily       |
-| Verification Rate         | % of meals marked as "User Verified"        | >60%   | Weekly      |
-| Time to Log (with edits)  | Average seconds to complete & verify entry  | <45s   | Daily       |
-| Correction Learning Rate  | Accuracy improvement from user feedback     | +2%/mo | Monthly     |
-| Social Engagement Rate    | % of logs shared to feed (Phase 2)          | >40%   | Weekly      |
-| Friend Connections        | Average connections per user (Phase 2)      | >10    | Monthly     |
+| Metric                   | Definition                                 | Target | Measurement |
+| ------------------------ | ------------------------------------------ | ------ | ----------- |
+| Photo-to-Log Rate        | % of photos successfully logged            | >90%   | Daily       |
+| AI Initial Accuracy      | % of items correctly identified by AI      | >75%   | Weekly      |
+| User Correction Rate     | % of AI results modified by users          | <30%   | Daily       |
+| Verification Rate        | % of meals marked as "User Verified"       | >60%   | Weekly      |
+| Time to Log (with edits) | Average seconds to complete & verify entry | <45s   | Daily       |
+| Correction Learning Rate | Accuracy improvement from user feedback    | +2%/mo | Monthly     |
+| Social Engagement Rate   | % of logs shared to feed (Phase 2)         | >40%   | Weekly      |
+| Friend Connections       | Average connections per user (Phase 2)     | >10    | Monthly     |
 
 ### 6.3 Lagging Indicators
 
@@ -461,13 +461,15 @@ By combining AI-powered automatic food analysis with social features and gamific
 ### 7.1 MVP Feature Set (2-Month Launch)
 
 #### Core Strategy
+
 "Personal nutrition diary first, social features later" - Validate core value before adding complexity
 
 #### Included in MVP (Personal Use Only)
 
 1. **AI Photo Analysis**
+
    - Camera-first interface
-   - Food recognition (3,000 common items)
+   - Meal recognition (3,000 common items)
    - Calorie and macro (protein, carbs, fat) estimation
    - **Manual editing of AI-generated results** (essential for accuracy)
    - Manual portion adjustment with visual guides
@@ -475,13 +477,15 @@ By combining AI-powered automatic food analysis with social features and gamific
    - Photo history with timestamps
 
 2. **Personal Nutrition Diary**
+
    - Daily/weekly/monthly view
    - Meal categorization (breakfast, lunch, dinner, snack)
    - Calorie and macro tracking
-   - Simple food search for manual entry
+   - Simple meal search for manual entry
    - Photo timeline view
 
 3. **Analytics & Insights**
+
    - Daily nutrition summary
    - Weekly trends and patterns
    - Calorie goal tracking
@@ -489,6 +493,7 @@ By combining AI-powered automatic food analysis with social features and gamific
    - Meal timing analysis
 
 4. **AI Coach (Basic)**
+
    - Personalized daily tips based on eating patterns
    - Nutrition deficit/surplus alerts
    - Simple meal suggestions
@@ -503,12 +508,14 @@ By combining AI-powered automatic food analysis with social features and gamific
 #### Excluded from MVP (Phase 2 - After User Validation)
 
 **Phase 2 (Month 3-4): Social Features**
+
 - User feed and following system
 - Meal sharing and reactions
 - Community challenges
 - Friend comparisons
 
 **Phase 3 (Month 5-6): Advanced Features**
+
 - Micronutrient analysis
 - Restaurant GPS mapping
 - Barcode scanning
@@ -570,10 +577,10 @@ By combining AI-powered automatic food analysis with social features and gamific
 ### 8.3 Data Architecture
 
 - **User Data:** Encrypted PII storage with GDPR compliance
-- **Food Database:** Licensed nutrition database with 50,000+ items
+- **Meal Database:** Licensed nutrition database with 50,000+ items
 - **Image Storage:** Compressed storage with CDN distribution
 - **Analytics Data:** Time-series database for metrics
-- **ML Training Data:** Labeled dataset with 1M+ food images
+- **ML Training Data:** Labeled dataset with 1M+ meal images
 
 ---
 
@@ -708,7 +715,7 @@ Q4 2025: Market Leadership
 
 ### C. User Research Insights
 
-- 73% want faster food logging
+- 73% want faster meal logging
 - 65% value social accountability
 - 58% struggle with portion estimation
 - 81% abandon apps due to complexity
