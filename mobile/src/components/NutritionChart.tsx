@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTheme } from '@/lib/theme';
 
 
 interface NutritionChartProps {
@@ -8,31 +9,32 @@ interface NutritionChartProps {
 }
 
 export function NutritionChart({ type }: NutritionChartProps) {
+  const { theme } = useTheme();
   if (type === 'heatmap') {
     return (
       <View style={styles.heatmapContainer}>
         <View style={styles.heatmapHeader}>
           <View style={styles.titleRow}>
-            <Text style={styles.heatmapTitle}>Meal Timing Pattern</Text>
+            <Text style={[styles.heatmapTitle, { color: theme.colors.text }]}>Meal Timing Pattern</Text>
             <View style={styles.heatmapLegend}>
-              <Text style={styles.legendLabel}>Less</Text>
+              <Text style={[styles.legendLabel, { color: theme.colors.textSecondary }]}>Less</Text>
               <View style={styles.legendGradient}>
                 {[0, 0.25, 0.5, 0.75, 1].map((intensity, index) => (
                   <View
                     key={index}
                     style={[
                       styles.legendCell,
-                      { backgroundColor: getHeatmapColor(intensity) }
+                      { backgroundColor: getHeatmapColor(intensity, theme.colors.primary) }
                     ]}
                   />
                 ))}
               </View>
-              <Text style={styles.legendLabel}>More</Text>
+              <Text style={[styles.legendLabel, { color: theme.colors.textSecondary }]}>More</Text>
             </View>
           </View>
           <View style={styles.timeLabels}>
             {['6AM', '12PM', '6PM', '12AM'].map((time, index) => (
-              <Text key={index} style={styles.timeLabel}>{time}</Text>
+              <Text key={index} style={[styles.timeLabel, { color: theme.colors.textSecondary }]}>{time}</Text>
             ))}
           </View>
         </View>
@@ -40,7 +42,7 @@ export function NutritionChart({ type }: NutritionChartProps) {
         <View style={styles.heatmapGrid}>
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => (
             <View key={day} style={styles.heatmapRow}>
-              <Text style={styles.dayLabel}>{day}</Text>
+              <Text style={[styles.dayLabel, { color: theme.colors.textSecondary }]}>{day}</Text>
               <View style={styles.heatmapCells}>
                 {Array.from({ length: 24 }, (_, hour) => {
                   // Simulate meal activity
@@ -50,7 +52,7 @@ export function NutritionChart({ type }: NutritionChartProps) {
                       key={hour}
                       style={[
                         styles.heatmapCell,
-                        { backgroundColor: getHeatmapColor(intensity) }
+                        { backgroundColor: getHeatmapColor(intensity, theme.colors.primary) }
                       ]}
                     />
                   );
@@ -65,7 +67,7 @@ export function NutritionChart({ type }: NutritionChartProps) {
 
   return (
     <View style={styles.placeholder}>
-      <Text style={styles.placeholderText}>Chart: {type}</Text>
+      <Text style={[styles.placeholderText, { color: theme.colors.textSecondary }]}>Chart: {type}</Text>
     </View>
   );
 }
@@ -91,13 +93,13 @@ const getMealIntensity = (day: number, hour: number): number => {
   return Math.random() * 0.1; // Background activity
 };
 
-const getHeatmapColor = (intensity: number): string => {
-  if (intensity === 0) return 'rgba(255, 255, 255, 0.05)';
-  if (intensity < 0.2) return 'rgba(255, 107, 53, 0.1)';
-  if (intensity < 0.4) return 'rgba(255, 107, 53, 0.3)';
-  if (intensity < 0.6) return 'rgba(255, 107, 53, 0.5)';
-  if (intensity < 0.8) return 'rgba(255, 107, 53, 0.7)';
-  return 'rgba(255, 107, 53, 0.9)';
+const getHeatmapColor = (intensity: number, primaryColor: string): string => {
+  if (intensity === 0) return 'transparent';
+  if (intensity < 0.2) return primaryColor + '20';
+  if (intensity < 0.4) return primaryColor + '40';
+  if (intensity < 0.6) return primaryColor + '60';
+  if (intensity < 0.8) return primaryColor + '80';
+  return primaryColor + 'C0';
 };
 
 const styles = StyleSheet.create({
@@ -114,7 +116,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   heatmapTitle: {
-    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 12,
     fontWeight: '500',
   },
@@ -124,7 +125,6 @@ const styles = StyleSheet.create({
     paddingLeft: 32,
   },
   timeLabel: {
-    color: 'rgba(255, 255, 255, 0.5)',
     fontSize: 10,
   },
   heatmapGrid: {
@@ -136,7 +136,6 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   dayLabel: {
-    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 10,
     width: 28,
     textAlign: 'right',
@@ -157,7 +156,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   legendLabel: {
-    color: 'rgba(255, 255, 255, 0.5)',
     fontSize: 9,
     marginHorizontal: 4,
   },
@@ -176,7 +174,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   placeholderText: {
-    color: 'rgba(255, 255, 255, 0.5)',
     fontSize: 14,
   },
 });

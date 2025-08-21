@@ -56,17 +56,17 @@ export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
   ];
 
   const renderQuickSetting = (setting: QuickSetting) => (
-    <Card key={setting.id} style={styles.quickSettingCard}>
+    <Card key={setting.id} style={[styles.quickSettingCard, { backgroundColor: theme.colors.surface }]}>
       <TouchableOpacity style={styles.quickSettingContent} onPress={setting.onPress} activeOpacity={0.7}>
         <View style={styles.quickSettingLeft}>
           <View style={styles.quickSettingIcon}>
-            <Ionicons name={setting.icon} size={20} color="#FF6B35" />
+            <Ionicons name={setting.icon} size={20} color={theme.colors.primary} />
           </View>
-          <Text style={styles.quickSettingTitle}>{setting.title}</Text>
+          <Text style={[styles.quickSettingTitle, { color: theme.colors.text }]}>{setting.title}</Text>
         </View>
         <View style={styles.quickSettingRight}>
-          <Text style={styles.quickSettingValue}>{setting.value}</Text>
-          <Ionicons name="chevron-forward" size={16} color="rgba(255, 255, 255, 0.5)" />
+          <Text style={[styles.quickSettingValue, { color: theme.colors.textSecondary }]}>{setting.value}</Text>
+          <Ionicons name="chevron-forward" size={16} color={theme.colors.textSecondary} />
         </View>
       </TouchableOpacity>
     </Card>
@@ -77,17 +77,17 @@ export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => onNavigate("camera")}>
-          <Ionicons name="arrow-back" size={24} color="white" />
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Settings</Text>
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Settings</Text>
 
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* User Profile */}
-        <Card style={styles.profileCard}>
+        <Card style={[styles.profileCard, { backgroundColor: theme.colors.surface }]}>
           <TouchableOpacity
             style={styles.profileContent}
             onPress={() => router.push("/settings/account")}
@@ -97,43 +97,43 @@ export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
               <Text style={styles.avatarText}>{user?.username?.charAt(0).toUpperCase() || "U"}</Text>
             </View>
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{user?.username || "Guest User"}</Text>
-              <Text style={styles.profileEmail}>{user?.email || "Not logged in"}</Text>
+              <Text style={[styles.profileName, { color: theme.colors.text }]}>{user?.username || "Guest User"}</Text>
+              <Text style={[styles.profileEmail, { color: theme.colors.textSecondary }]}>{user?.email || "Not logged in"}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="rgba(255, 255, 255, 0.5)" />
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
           </TouchableOpacity>
         </Card>
 
         {/* Quick Settings */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Settings</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Quick Settings</Text>
           {quickSettings.map(renderQuickSetting)}
         </View>
 
         {/* Main Settings Categories */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>All Settings</Text>
-          <Card style={styles.allSettingsCard}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>All Settings</Text>
+          <Card style={[styles.allSettingsCard, { backgroundColor: theme.colors.surface }]}>
             <TouchableOpacity style={styles.allSettingsContent} onPress={handleSettingsPress} activeOpacity={0.7}>
               <View style={styles.allSettingsLeft}>
                 <View style={styles.allSettingsIcon}>
-                  <Ionicons name="settings-outline" size={24} color="#FF6B35" />
+                  <Ionicons name="settings-outline" size={24} color={theme.colors.primary} />
                 </View>
                 <View>
-                  <Text style={styles.allSettingsTitle}>All Settings</Text>
-                  <Text style={styles.allSettingsDescription}>Manage all app preferences</Text>
+                  <Text style={[styles.allSettingsTitle, { color: theme.colors.text }]}>All Settings</Text>
+                  <Text style={[styles.allSettingsDescription, { color: theme.colors.textSecondary }]}>Manage all app preferences</Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="rgba(255, 255, 255, 0.5)" />
+              <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
             </TouchableOpacity>
           </Card>
         </View>
 
         {/* App Info */}
         <View style={styles.appInfo}>
-          <Text style={styles.appName}>Food Log</Text>
-          <Text style={styles.appVersion}>Version 1.0.0</Text>
-          <Text style={styles.buildInfo}>Build 1</Text>
+          <Text style={[styles.appName, { color: theme.colors.text }]}>Food Log</Text>
+          <Text style={[styles.appVersion, { color: theme.colors.textSecondary }]}>Version 1.0.0</Text>
+          <Text style={[styles.buildInfo, { color: theme.colors.textSecondary }]}>Build 1</Text>
         </View>
       </ScrollView>
     </View>
@@ -153,7 +153,6 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   headerTitle: {
-    color: "white",
     fontSize: 18,
     fontWeight: "600",
   },
@@ -189,7 +188,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileName: {
-    color: "white",
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 4,
@@ -202,7 +200,6 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   sectionTitle: {
-    color: "white",
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 16,
@@ -233,7 +230,6 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   quickSettingTitle: {
-    color: "white",
     fontSize: 16,
     fontWeight: "500",
   },
@@ -272,7 +268,6 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   allSettingsTitle: {
-    color: "white",
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 4,
@@ -286,7 +281,6 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
   },
   appName: {
-    color: "white",
     fontSize: 12,
     fontWeight: "600",
     marginBottom: 4,

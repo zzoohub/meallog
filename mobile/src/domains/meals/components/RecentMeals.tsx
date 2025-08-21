@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTheme } from '@/lib/theme';
 import { Meal } from '../types';
 import { MealStorageService, generateMockMeals } from '../services/mealStorage';
 
@@ -18,6 +19,7 @@ interface RecentMealsProps {
 }
 
 export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
+  const { theme } = useTheme();
   const [recentMeals, setRecentMeals] = useState<Meal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -98,7 +100,7 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
   const renderMealCard = (meal: Meal) => (
     <TouchableOpacity
       key={meal.id}
-      style={styles.mealCard}
+      style={[styles.mealCard, { backgroundColor: theme.colors.surface }]}
       onPress={() => handleMealPress(meal)}
       activeOpacity={0.7}
     >
@@ -107,15 +109,15 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
         {meal.photoUri ? (
           <Image source={{ uri: meal.photoUri }} style={styles.mealPhoto} />
         ) : (
-          <View style={styles.placeholderPhoto}>
-            <Ionicons name="camera" size={24} color="rgba(255, 255, 255, 0.3)" />
+          <View style={[styles.placeholderPhoto, { backgroundColor: theme.colors.border + '40' }]}>
+            <Ionicons name="camera" size={24} color={theme.colors.textSecondary} />
           </View>
         )}
         
         {/* Verification badge */}
         {meal.isVerified && (
           <View style={styles.verifiedBadge}>
-            <Ionicons name="checkmark-circle" size={16} color="#4ECDC4" />
+            <Ionicons name="checkmark-circle" size={16} color={theme.colors.secondary} />
           </View>
         )}
       </View>
@@ -124,25 +126,25 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
       <View style={styles.mealInfo}>
         <View style={styles.mealHeader}>
           <Text style={styles.mealEmoji}>{getMealTypeIcon(meal.mealType)}</Text>
-          <Text style={styles.mealName} numberOfLines={1}>{meal.name}</Text>
+          <Text style={[styles.mealName, { color: theme.colors.text }]} numberOfLines={1}>{meal.name}</Text>
         </View>
         
-        <Text style={styles.mealTime}>{formatTime(meal.timestamp)}</Text>
-        <Text style={styles.relativeTime}>{getRelativeTime(meal.timestamp)}</Text>
+        <Text style={[styles.mealTime, { color: theme.colors.text }]}>{formatTime(meal.timestamp)}</Text>
+        <Text style={[styles.relativeTime, { color: theme.colors.textSecondary }]}>{getRelativeTime(meal.timestamp)}</Text>
         
         <View style={styles.nutritionSummary}>
-          <Text style={styles.calories}>{meal.nutrition.calories} cal</Text>
+          <Text style={[styles.calories, { color: theme.colors.primary }]}>{meal.nutrition.calories} cal</Text>
           <View style={styles.macros}>
-            <Text style={styles.macro}>P: {meal.nutrition.protein}g</Text>
-            <Text style={styles.macro}>C: {meal.nutrition.carbs}g</Text>
-            <Text style={styles.macro}>F: {meal.nutrition.fat}g</Text>
+            <Text style={[styles.macro, { color: theme.colors.textSecondary }]}>P: {meal.nutrition.protein}g</Text>
+            <Text style={[styles.macro, { color: theme.colors.textSecondary }]}>C: {meal.nutrition.carbs}g</Text>
+            <Text style={[styles.macro, { color: theme.colors.textSecondary }]}>F: {meal.nutrition.fat}g</Text>
           </View>
         </View>
       </View>
 
       {/* Edit indicator */}
       <View style={styles.editIndicator}>
-        <Ionicons name="chevron-forward" size={16} color="rgba(255, 255, 255, 0.4)" />
+        <Ionicons name="chevron-forward" size={16} color={theme.colors.textSecondary} />
       </View>
     </TouchableOpacity>
   );
@@ -151,11 +153,11 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.sectionTitle}>Recent Meals</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recent Meals</Text>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#FF6B35" />
-          <Text style={styles.loadingText}>Loading meals...</Text>
+          <ActivityIndicator size="small" color={theme.colors.primary} />
+          <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading meals...</Text>
         </View>
       </View>
     );
@@ -165,19 +167,19 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
     <View style={styles.container}>
       {/* Section Header */}
       <View style={styles.header}>
-        <Text style={styles.sectionTitle}>Recent Meals</Text>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recent Meals</Text>
         <TouchableOpacity onPress={onSeeAll} style={styles.seeAllButton}>
-          <Text style={styles.seeAllText}>See All</Text>
-          <Ionicons name="chevron-forward" size={16} color="#FF6B35" />
+          <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>See All</Text>
+          <Ionicons name="chevron-forward" size={16} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>
 
       {/* Meals List */}
       {recentMeals.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="camera-outline" size={48} color="rgba(255, 255, 255, 0.3)" />
-          <Text style={styles.emptyTitle}>No meals yet</Text>
-          <Text style={styles.emptyText}>Take your first photo to start tracking!</Text>
+          <Ionicons name="camera-outline" size={48} color={theme.colors.textSecondary} />
+          <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>No meals yet</Text>
+          <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>Take your first photo to start tracking!</Text>
         </View>
       ) : (
         <ScrollView
@@ -190,14 +192,14 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
           
           {/* Add meal card */}
           <TouchableOpacity
-            style={styles.addMealCard}
+            style={[styles.addMealCard, { backgroundColor: theme.colors.primary + '20', borderColor: theme.colors.primary + '40' }]}
             onPress={() => router.push('/')} // Go back to camera
             activeOpacity={0.7}
           >
-            <View style={styles.addMealIcon}>
-              <Ionicons name="add" size={32} color="#FF6B35" />
+            <View style={[styles.addMealIcon, { backgroundColor: theme.colors.primary + '30' }]}>
+              <Ionicons name="add" size={32} color={theme.colors.primary} />
             </View>
-            <Text style={styles.addMealText}>Add Meal</Text>
+            <Text style={[styles.addMealText, { color: theme.colors.primary }]}>Add Meal</Text>
           </TouchableOpacity>
         </ScrollView>
       )}
@@ -217,7 +219,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   sectionTitle: {
-    color: 'white',
     fontSize: 18,
     fontWeight: '600',
   },
@@ -227,7 +228,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   seeAllText: {
-    color: '#FF6B35',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -239,7 +239,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   loadingText: {
-    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 14,
   },
   emptyContainer: {
@@ -248,14 +247,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   emptyTitle: {
-    color: 'white',
     fontSize: 16,
     fontWeight: '600',
     marginTop: 16,
     marginBottom: 8,
   },
   emptyText: {
-    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 14,
     textAlign: 'center',
   },
@@ -268,7 +265,6 @@ const styles = StyleSheet.create({
   },
   mealCard: {
     width: 140,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 12,
     overflow: 'hidden',
   },
@@ -284,7 +280,6 @@ const styles = StyleSheet.create({
   placeholderPhoto: {
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -310,18 +305,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   mealName: {
-    color: 'white',
     fontSize: 14,
     fontWeight: '600',
     flex: 1,
   },
   mealTime: {
-    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 12,
     fontWeight: '500',
   },
   relativeTime: {
-    color: 'rgba(255, 255, 255, 0.5)',
     fontSize: 10,
     marginBottom: 8,
   },
@@ -329,7 +321,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   calories: {
-    color: '#FF6B35',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -338,7 +329,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   macro: {
-    color: 'rgba(255, 255, 255, 0.6)',
     fontSize: 10,
     flex: 1,
     textAlign: 'center',
@@ -354,10 +344,8 @@ const styles = StyleSheet.create({
   addMealCard: {
     width: 140,
     height: 140,
-    backgroundColor: 'rgba(255, 107, 53, 0.1)',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 107, 53, 0.3)',
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
@@ -367,12 +355,10 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255, 107, 53, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   addMealText: {
-    color: '#FF6B35',
     fontSize: 12,
     fontWeight: '600',
   },

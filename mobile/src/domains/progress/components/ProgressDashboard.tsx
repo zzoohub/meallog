@@ -95,11 +95,11 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
         >
           <View style={styles.progressContent}>
             <Text style={[styles.progressValue, { color: theme.colors.text }]}>{current}</Text>
-            <Text style={styles.progressUnit}>{unit}</Text>
+            <Text style={[styles.progressUnit, { color: theme.colors.textSecondary }]}>{unit}</Text>
           </View>
         </CircularProgress>
         <Text style={[styles.progressLabel, { color: theme.colors.text }]}>{label}</Text>
-        <Text style={styles.progressTarget}>
+        <Text style={[styles.progressTarget, { color: theme.colors.textSecondary }]}>
           {current}/{target} {unit}
         </Text>
       </View>
@@ -107,21 +107,21 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
   };
 
   const renderAchievement = (achievement: Achievement) => (
-    <TouchableOpacity key={achievement.id} style={styles.achievementCard}>
+    <TouchableOpacity key={achievement.id} style={[styles.achievementCard, { backgroundColor: theme.colors.surface }]}>
       <View style={styles.achievementHeader}>
         <Text style={styles.achievementEmoji}>{achievement.emoji}</Text>
         <View style={styles.achievementInfo}>
-          <Text style={styles.achievementTitle}>{achievement.title}</Text>
-          <Text style={styles.achievementDescription}>{achievement.description}</Text>
+          <Text style={[styles.achievementTitle, { color: theme.colors.text }]}>{achievement.title}</Text>
+          <Text style={[styles.achievementDescription, { color: theme.colors.textSecondary }]}>{achievement.description}</Text>
         </View>
         <View style={styles.achievementProgress}>
-          <Text style={styles.achievementProgressText}>
+          <Text style={[styles.achievementProgressText, { color: theme.colors.primary }]}>
             {achievement.progress}/{achievement.target}
           </Text>
         </View>
       </View>
-      <View style={styles.achievementBar}>
-        <View style={[styles.achievementBarFill, { width: `${(achievement.progress / achievement.target) * 100}%` }]} />
+      <View style={[styles.achievementBar, { backgroundColor: theme.colors.border + '40' }]}>
+        <View style={[styles.achievementBarFill, { width: `${(achievement.progress / achievement.target) * 100}%`, backgroundColor: theme.colors.primary }]} />
       </View>
     </TouchableOpacity>
   );
@@ -161,7 +161,7 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
         <View style={[styles.summaryCard, { backgroundColor: theme.colors.surface }]}>
           <View style={styles.summaryHeader}>
             <Text style={[styles.summaryTitle, { color: theme.colors.text }]}>{progress.todaySummary}</Text>
-            <Text style={styles.summaryDate}>
+            <Text style={[styles.summaryDate, { color: theme.colors.textSecondary }]}>
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",
                 month: "short",
@@ -173,19 +173,19 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
           <View style={styles.calorieOverview}>
             <View style={styles.calorieMain}>
               <Text style={[styles.calorieValue, { color: theme.colors.text }]}>{mockStats.calories.current}</Text>
-              <Text style={styles.calorieLabel}>{progress.caloriesConsumed}</Text>
+              <Text style={[styles.calorieLabel, { color: theme.colors.textSecondary }]}>{progress.caloriesConsumed}</Text>
             </View>
             <View style={styles.calorieRemaining}>
-              <Text style={styles.remainingValue}>{mockStats.calories.target - mockStats.calories.current}</Text>
-              <Text style={styles.remainingLabel}>{progress.remaining}</Text>
+              <Text style={[styles.remainingValue, { color: theme.colors.primary }]}>{mockStats.calories.target - mockStats.calories.current}</Text>
+              <Text style={[styles.remainingLabel, { color: theme.colors.textSecondary }]}>{progress.remaining}</Text>
             </View>
           </View>
 
-          <View style={styles.calorieBar}>
+          <View style={[styles.calorieBar, { backgroundColor: theme.colors.border + '40' }]}>
             <View
               style={[
                 styles.calorieBarFill,
-                { width: `${(mockStats.calories.current / mockStats.calories.target) * 100}%` },
+                { width: `${(mockStats.calories.current / mockStats.calories.target) * 100}%`, backgroundColor: theme.colors.primary },
               ]}
             />
           </View>
@@ -209,32 +209,32 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
           <View style={styles.sectionHeader}>
             <Text style={{ ...styles.sectionTitle, marginBottom: 4, color: theme.colors.text }}>{progress.eatingPattern}</Text>
             {/* <TouchableOpacity>
-              <Text style={styles.seeAllText}>{progress.seeAll}</Text>
+              <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>{progress.seeAll}</Text>
             </TouchableOpacity> */}
           </View>
 
-          <View style={styles.heatmapContainer}>
+          <View style={[styles.heatmapContainer, { backgroundColor: theme.colors.surface }]}>
             <NutritionChart type="heatmap" />
           </View>
         </View>
 
         {/* Food Character */}
         <View style={styles.characterSection}>
-          <View style={styles.characterCard}>
+          <View style={[styles.characterCard, { backgroundColor: theme.colors.surface }]}>
             <Text style={styles.characterEmoji}>🌟</Text>
             <View style={styles.characterInfo}>
-              <Text style={styles.characterTitle}>{progress.balancedExplorer}</Text>
-              <Text style={styles.characterDescription}>{progress.balancedExplorerDesc}</Text>
+              <Text style={[styles.characterTitle, { color: theme.colors.text }]}>{progress.balancedExplorer}</Text>
+              <Text style={[styles.characterDescription, { color: theme.colors.textSecondary }]}>{progress.balancedExplorerDesc}</Text>
             </View>
-            <View style={styles.characterLevel}>
-              <Text style={styles.levelText}>Lv.7</Text>
+            <View style={[styles.characterLevel, { backgroundColor: theme.colors.primary }]}>
+              <Text style={[styles.levelText, { color: theme.colors.text }]}>Lv.7</Text>
             </View>
           </View>
 
-          <View style={styles.diversityScore}>
-            <Text style={styles.diversityLabel}>{progress.foodDiversityScore}</Text>
-            <Text style={styles.diversityValue}>82/100</Text>
-            <Text style={styles.diversityTip}>{progress.diversityTip}</Text>
+          <View style={[styles.diversityScore, { backgroundColor: theme.colors.surface }]}>
+            <Text style={[styles.diversityLabel, { color: theme.colors.textSecondary }]}>{progress.foodDiversityScore}</Text>
+            <Text style={[styles.diversityValue, { color: theme.colors.text }]}>82/100</Text>
+            <Text style={[styles.diversityTip, { color: theme.colors.secondary }]}>{progress.diversityTip}</Text>
           </View>
         </View>
 
@@ -243,7 +243,7 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
           <View style={styles.sectionHeader}>
             <Text style={{ ...styles.sectionTitle, marginBottom: 4, color: theme.colors.text }}>{progress.achievements}</Text>
             {/* <TouchableOpacity>
-              <Text style={styles.seeAllText}>{progress.viewAll}</Text>
+              <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>{progress.viewAll}</Text>
             </TouchableOpacity> */}
           </View>
 
@@ -254,19 +254,19 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
         <View style={styles.insightsSection}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Weekly Insights</Text>
 
-          <View style={styles.insightCard}>
-            <Ionicons name="trending-up" size={24} color="#4ECDC4" />
+          <View style={[styles.insightCard, { backgroundColor: theme.colors.surface }]}>
+            <Ionicons name="trending-up" size={24} color={theme.colors.secondary} />
             <View style={styles.insightContent}>
-              <Text style={styles.insightTitle}>Protein intake improved</Text>
-              <Text style={styles.insightDescription}>You hit your protein goal 5 out of 7 days this week!</Text>
+              <Text style={[styles.insightTitle, { color: theme.colors.text }]}>Protein intake improved</Text>
+              <Text style={[styles.insightDescription, { color: theme.colors.textSecondary }]}>You hit your protein goal 5 out of 7 days this week!</Text>
             </View>
           </View>
 
-          <View style={styles.insightCard}>
-            <Ionicons name="restaurant" size={24} color="#FF6B35" />
+          <View style={[styles.insightCard, { backgroundColor: theme.colors.surface }]}>
+            <Ionicons name="restaurant" size={24} color={theme.colors.primary} />
             <View style={styles.insightContent}>
-              <Text style={styles.insightTitle}>New favorite: Mediterranean</Text>
-              <Text style={styles.insightDescription}>You&apos;ve logged 4 Mediterranean meals this week.</Text>
+              <Text style={[styles.insightTitle, { color: theme.colors.text }]}>New favorite: Mediterranean</Text>
+              <Text style={[styles.insightDescription, { color: theme.colors.textSecondary }]}>You&apos;ve logged 4 Mediterranean meals this week.</Text>
             </View>
           </View>
         </View>
@@ -318,7 +318,6 @@ const styles = StyleSheet.create({
     // color handled inline with theme
   },
   summaryCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
@@ -334,7 +333,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   summaryDate: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
   },
   calorieOverview: {
@@ -350,30 +348,25 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   calorieLabel: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
   },
   calorieRemaining: {
     alignItems: "flex-end",
   },
   remainingValue: {
-    color: "#FF6B35",
     fontSize: 24,
     fontWeight: "600",
   },
   remainingLabel: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
   },
   calorieBar: {
     height: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 4,
     overflow: "hidden",
   },
   calorieBarFill: {
     height: "100%",
-    backgroundColor: "#FF6B35",
   },
   nutritionSection: {
     marginBottom: 24,
@@ -404,7 +397,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   progressUnit: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 10,
   },
   progressLabel: {
@@ -413,7 +405,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   progressTarget: {
-    color: "rgba(255, 255, 255, 0.5)",
     fontSize: 10,
     marginTop: 2,
   },
@@ -427,15 +418,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   seeAllText: {
-    color: "#FF6B35",
     fontSize: 14,
     fontWeight: "500",
   },
   heatmapContainer: {
-    height: 120,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    height: 180,
     borderRadius: 12,
     padding: 16,
+    paddingBottom: 20,
   },
   characterSection: {
     marginBottom: 24,
@@ -443,7 +433,6 @@ const styles = StyleSheet.create({
   characterCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -461,11 +450,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   characterDescription: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
   },
   characterLevel: {
-    backgroundColor: "#FF6B35",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -475,12 +462,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   diversityScore: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 12,
     padding: 16,
   },
   diversityLabel: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
     marginBottom: 4,
   },
@@ -490,7 +475,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   diversityTip: {
-    color: "#4ECDC4",
     fontSize: 12,
     fontStyle: "italic",
   },
@@ -498,7 +482,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   achievementCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -521,26 +504,22 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   achievementDescription: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 12,
   },
   achievementProgress: {
     alignItems: "flex-end",
   },
   achievementProgressText: {
-    color: "#FF6B35",
     fontSize: 14,
     fontWeight: "600",
   },
   achievementBar: {
     height: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 2,
     overflow: "hidden",
   },
   achievementBarFill: {
     height: "100%",
-    backgroundColor: "#FF6B35",
   },
   insightsSection: {
     marginBottom: 24,
@@ -548,7 +527,6 @@ const styles = StyleSheet.create({
   insightCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -563,7 +541,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   insightDescription: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
   },
 });

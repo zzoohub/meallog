@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Meal, MealHistoryFilter } from "@/domains/meals/types";
 import { MealStorageService, generateMockMeals } from "@/domains/meals/services/mealStorage";
 import { useTimelineI18n } from "@/lib/i18n";
+import { useTheme } from "@/lib/theme";
 
 interface MealSection {
   title: string;
@@ -24,6 +25,7 @@ interface MealSection {
 }
 
 export default function MealHistory() {
+  const { theme } = useTheme();
   const router = useRouter();
   const timeline = useTimelineI18n();
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -144,7 +146,6 @@ export default function MealHistory() {
           loadedMeals = await MealStorageService.getMealsFiltered(filter);
         }
 
-        const startIndex = 0;
         const endIndex = ITEMS_PER_PAGE;
         const paginatedMeals = loadedMeals.slice(0, endIndex);
 
@@ -240,22 +241,23 @@ export default function MealHistory() {
   };
 
   // Memoized meal item component for better performance
-  const MealItem = React.memo(({ meal }: { meal: Meal }) => (
-    <TouchableOpacity style={styles.mealItem} onPress={() => handleMealPress(meal)} activeOpacity={0.7}>
+  const MealItem = React.memo(function MealItem({ meal }: { meal: Meal }) {
+    return (
+    <TouchableOpacity style={[styles.mealItem, { backgroundColor: theme.colors.surface }]} onPress={() => handleMealPress(meal)} activeOpacity={0.7}>
       {/* Photo */}
       <View style={styles.mealPhotoContainer}>
         {meal.photoUri ? (
           <Image source={{ uri: meal.photoUri }} style={styles.mealPhoto} />
         ) : (
-          <View style={styles.placeholderPhoto}>
-            <Ionicons name="camera" size={20} color="rgba(255, 255, 255, 0.3)" />
+          <View style={[styles.placeholderPhoto, { backgroundColor: theme.colors.border }]}>
+            <Ionicons name="camera" size={20} color={theme.colors.textSecondary} />
           </View>
         )}
 
         {/* Verification badge */}
         {meal.isVerified && (
           <View style={styles.verifiedBadge}>
-            <Ionicons name="checkmark-circle" size={12} color="#4ECDC4" />
+            <Ionicons name="checkmark-circle" size={12} color={theme.colors.secondary} />
           </View>
         )}
       </View>
@@ -265,20 +267,20 @@ export default function MealHistory() {
         <View style={styles.mealHeader}>
           <View style={styles.mealTitleRow}>
             <Text style={styles.mealEmoji}>{getMealTypeIcon(meal.mealType)}</Text>
-            <Text style={styles.mealName} numberOfLines={1}>
+            <Text style={[styles.mealName, { color: theme.colors.text }]} numberOfLines={1}>
               {meal.name}
             </Text>
-            <Text style={styles.mealTime}>{formatTime(meal.timestamp)}</Text>
+            <Text style={[styles.mealTime, { color: theme.colors.textSecondary }]}>{formatTime(meal.timestamp)}</Text>
           </View>
 
           {/* AI Insights Preview */}
           {meal.aiAnalysis?.insights && (
             <View style={styles.insightsPreview}>
               <View style={styles.healthScore}>
-                <Ionicons name="fitness" size={12} color="#4ECDC4" />
-                <Text style={styles.healthScoreText}>{meal.aiAnalysis.insights.healthScore}/100</Text>
+                <Ionicons name="fitness" size={12} color={theme.colors.secondary} />
+                <Text style={[styles.healthScoreText, { color: theme.colors.secondary }]}>{meal.aiAnalysis.insights.healthScore}/100</Text>
               </View>
-              <Text style={styles.nutritionBalance} numberOfLines={1}>
+              <Text style={[styles.nutritionBalance, { color: theme.colors.textSecondary }]} numberOfLines={1}>
                 {meal.aiAnalysis.insights.nutritionBalance}
               </Text>
             </View>
@@ -288,26 +290,26 @@ export default function MealHistory() {
         {/* Nutrition Summary */}
         <View style={styles.nutritionRow}>
           <View style={styles.nutritionItem}>
-            <Text style={styles.nutritionValue}>{meal.nutrition.calories}</Text>
-            <Text style={styles.nutritionLabel}>cal</Text>
+            <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.calories}</Text>
+            <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>cal</Text>
           </View>
           <View style={styles.nutritionItem}>
-            <Text style={styles.nutritionValue}>{meal.nutrition.protein}g</Text>
-            <Text style={styles.nutritionLabel}>protein</Text>
+            <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.protein}g</Text>
+            <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>protein</Text>
           </View>
           <View style={styles.nutritionItem}>
-            <Text style={styles.nutritionValue}>{meal.nutrition.carbs}g</Text>
-            <Text style={styles.nutritionLabel}>carbs</Text>
+            <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.carbs}g</Text>
+            <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>carbs</Text>
           </View>
           <View style={styles.nutritionItem}>
-            <Text style={styles.nutritionValue}>{meal.nutrition.fat}g</Text>
-            <Text style={styles.nutritionLabel}>fat</Text>
+            <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.fat}g</Text>
+            <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>fat</Text>
           </View>
         </View>
 
         {/* Ingredients Preview */}
         <View style={styles.ingredientsPreview}>
-          <Text style={styles.ingredientsText} numberOfLines={2}>
+          <Text style={[styles.ingredientsText, { color: theme.colors.textSecondary }]} numberOfLines={2}>
             {meal.ingredients.join(", ")}
           </Text>
         </View>
@@ -315,8 +317,8 @@ export default function MealHistory() {
         {/* AI Recommendations */}
         {meal.aiAnalysis?.insights?.recommendations && meal.aiAnalysis.insights.recommendations.length > 0 && (
           <View style={styles.recommendationPreview}>
-            <Ionicons name="bulb" size={12} color="#FFD700" />
-            <Text style={styles.recommendationText} numberOfLines={1}>
+            <Ionicons name="bulb" size={12} color={theme.colors.warning} />
+            <Text style={[styles.recommendationText, { color: theme.colors.warning }]} numberOfLines={1}>
               {meal.aiAnalysis.insights.recommendations[0]}
             </Text>
           </View>
@@ -325,17 +327,18 @@ export default function MealHistory() {
 
       {/* Edit Arrow */}
       <View style={styles.editArrow}>
-        <Ionicons name="chevron-forward" size={20} color="rgba(255, 255, 255, 0.3)" />
+        <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
       </View>
     </TouchableOpacity>
-  ));
+    );
+  });
 
   const renderMealItem = ({ item: meal }: { item: Meal }) => <MealItem meal={meal} />;
 
   const renderSectionHeader = ({ section }: { section: MealSection }) => (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{section.title}</Text>
-      <Text style={styles.sectionCount}>
+    <View style={[styles.sectionHeader, { backgroundColor: theme.colors.background }]}>
+      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{section.title}</Text>
+      <Text style={[styles.sectionCount, { color: theme.colors.textSecondary }]}>
         {section.data.length} {timeline.stat("meals")}
       </Text>
     </View>
@@ -415,8 +418,8 @@ export default function MealHistory() {
     if (!isLoadingMore) return null;
     return (
       <View style={styles.loadingMoreContainer}>
-        <ActivityIndicator size="small" color="#FF6B35" />
-        <Text style={styles.loadingMoreText}>{timeline.loadMore}</Text>
+        <ActivityIndicator size="small" color={theme.colors.primary} />
+        <Text style={[styles.loadingMoreText, { color: theme.colors.textSecondary }]}>{timeline.loadMore}</Text>
       </View>
     );
   };
@@ -487,32 +490,32 @@ export default function MealHistory() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="white" />
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{timeline.mealHistory}</Text>
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>{timeline.mealHistory}</Text>
         <TouchableOpacity onPress={openDateRangeModal} style={styles.dateButton}>
-          <Ionicons name="calendar" size={24} color="white" />
+          <Ionicons name="calendar" size={24} color={theme.colors.text} />
         </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="rgba(255, 255, 255, 0.5)" />
+        <View style={[styles.searchBar, { backgroundColor: theme.colors.surface }]}>
+          <Ionicons name="search" size={20} color={theme.colors.textSecondary} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: theme.colors.text }]}
             placeholder={timeline.searchPlaceholder}
-            placeholderTextColor="rgba(255, 255, 255, 0.5)"
+            placeholderTextColor={theme.colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={20} color="rgba(255, 255, 255, 0.5)" />
+              <Ionicons name="close-circle" size={20} color={theme.colors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>
@@ -520,13 +523,13 @@ export default function MealHistory() {
 
       {/* Date Range Filter */}
       <View style={styles.dateFilterContainer}>
-        <TouchableOpacity style={styles.dateRangeButton} onPress={openDateRangeModal}>
-          <Ionicons name="calendar-outline" size={16} color="#FF6B35" />
-          <Text style={styles.dateRangeText}>{formatDateRange()}</Text>
+        <TouchableOpacity style={[styles.dateRangeButton, { backgroundColor: theme.colors.surface }]} onPress={openDateRangeModal}>
+          <Ionicons name="calendar-outline" size={16} color={theme.colors.primary} />
+          <Text style={[styles.dateRangeText, { color: theme.colors.textSecondary }]}>{formatDateRange()}</Text>
         </TouchableOpacity>
         {(startDate || endDate) && (
-          <TouchableOpacity style={styles.clearDateButton} onPress={clearDateFilter}>
-            <Ionicons name="close" size={16} color="rgba(255, 255, 255, 0.5)" />
+          <TouchableOpacity style={[styles.clearDateButton, { backgroundColor: theme.colors.surface }]} onPress={clearDateFilter}>
+            <Ionicons name="close" size={16} color={theme.colors.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
@@ -534,14 +537,14 @@ export default function MealHistory() {
       {/* Content */}
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FF6B35" />
-          <Text style={styles.loadingText}>Loading your meals...</Text>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={[styles.loadingText, { color: theme.colors.text }]}>Loading your meals...</Text>
         </View>
       ) : sections.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="restaurant-outline" size={64} color="rgba(255, 255, 255, 0.3)" />
-          <Text style={styles.emptyTitle}>{timeline.noMealsFound}</Text>
-          <Text style={styles.emptyText}>
+          <Ionicons name="restaurant-outline" size={64} color={theme.colors.textSecondary} />
+          <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>{timeline.noMealsFound}</Text>
+          <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
             {searchQuery ? "Try adjusting your search" : "Start logging meals to see your history here!"}
           </Text>
           <TouchableOpacity style={styles.addMealButton} onPress={() => router.push("/")}>
@@ -573,64 +576,64 @@ export default function MealHistory() {
         onRequestClose={() => setShowDateRangeModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.dateRangeModal}>
-            <View style={styles.dateRangeHeader}>
-              <Text style={styles.dateRangeModalTitle}>Select Date Range</Text>
+          <View style={[styles.dateRangeModal, { backgroundColor: theme.colors.background }]}>
+            <View style={[styles.dateRangeHeader, { borderBottomColor: theme.colors.border }]}>
+              <Text style={[styles.dateRangeModalTitle, { color: theme.colors.text }]}>Select Date Range</Text>
               <TouchableOpacity onPress={() => setShowDateRangeModal(false)}>
-                <Ionicons name="close" size={24} color="rgba(255, 255, 255, 0.7)" />
+                <Ionicons name="close" size={24} color={theme.colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             {/* Quick Presets */}
-            <View style={styles.presetsContainer}>
-              <Text style={styles.presetsTitle}>Quick Select</Text>
+            <View style={[styles.presetsContainer, { borderBottomColor: theme.colors.border }]}>
+              <Text style={[styles.presetsTitle, { color: theme.colors.text }]}>Quick Select</Text>
               <View style={styles.presetsGrid}>
                 <TouchableOpacity
-                  style={[styles.presetButton, !startDate && !endDate && styles.presetButtonActive]}
+                  style={[styles.presetButton, { backgroundColor: theme.colors.surface }, !startDate && !endDate && { backgroundColor: theme.colors.primary }]}
                   onPress={() => setDateRangePreset(null)}
                 >
-                  <Text style={[styles.presetButtonText, !startDate && !endDate && styles.presetButtonTextActive]}>
+                  <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }, !startDate && !endDate && { color: theme.colors.primary }]}>
                     All Time
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.presetButton} onPress={() => setDateRangePreset(1)}>
-                  <Text style={styles.presetButtonText}>Today</Text>
+                <TouchableOpacity style={[styles.presetButton, { backgroundColor: theme.colors.surface }]} onPress={() => setDateRangePreset(1)}>
+                  <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>Today</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.presetButton} onPress={() => setDateRangePreset(7)}>
-                  <Text style={styles.presetButtonText}>Last 7 Days</Text>
+                <TouchableOpacity style={[styles.presetButton, { backgroundColor: theme.colors.surface }]} onPress={() => setDateRangePreset(7)}>
+                  <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>Last 7 Days</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.presetButton} onPress={() => setDateRangePreset(30)}>
-                  <Text style={styles.presetButtonText}>Last 30 Days</Text>
+                <TouchableOpacity style={[styles.presetButton, { backgroundColor: theme.colors.surface }]} onPress={() => setDateRangePreset(30)}>
+                  <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>Last 30 Days</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.presetButton} onPress={() => setDateRangePreset(90)}>
-                  <Text style={styles.presetButtonText}>Last 3 Months</Text>
+                <TouchableOpacity style={[styles.presetButton, { backgroundColor: theme.colors.surface }]} onPress={() => setDateRangePreset(90)}>
+                  <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>Last 3 Months</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
             {/* Calendar */}
             <View style={styles.calendarContainer}>
-              <Text style={styles.calendarTitle}>Select Date Range</Text>
-              <Text style={styles.calendarInstructions}>Tap to select start date, tap again to select end date</Text>
+              <Text style={[styles.calendarTitle, { color: theme.colors.text }]}>Select Date Range</Text>
+              <Text style={[styles.calendarInstructions, { color: theme.colors.textSecondary }]}>Tap to select start date, tap again to select end date</Text>
 
               <Calendar
                 onDayPress={handleDayPress}
                 markingType={"period"}
                 markedDates={markedDates}
                 theme={{
-                  backgroundColor: "#1C1C1E",
-                  calendarBackground: "#1C1C1E",
-                  textSectionTitleColor: "white",
-                  selectedDayBackgroundColor: "#FF6B35",
+                  backgroundColor: theme.colors.surface,
+                  calendarBackground: theme.colors.surface,
+                  textSectionTitleColor: theme.colors.text,
+                  selectedDayBackgroundColor: theme.colors.primary,
                   selectedDayTextColor: "white",
-                  todayTextColor: "#FF6B35",
-                  dayTextColor: "white",
-                  textDisabledColor: "rgba(255, 255, 255, 0.3)",
-                  dotColor: "#FF6B35",
+                  todayTextColor: theme.colors.primary,
+                  dayTextColor: theme.colors.text,
+                  textDisabledColor: theme.colors.textSecondary,
+                  dotColor: theme.colors.primary,
                   selectedDotColor: "white",
-                  arrowColor: "#FF6B35",
-                  disabledArrowColor: "rgba(255, 255, 255, 0.3)",
-                  monthTextColor: "white",
+                  arrowColor: theme.colors.primary,
+                  disabledArrowColor: theme.colors.textSecondary,
+                  monthTextColor: theme.colors.text,
                   indicatorColor: "#FF6B35",
                   textDayFontWeight: "400",
                   textMonthFontWeight: "600",
@@ -649,8 +652,8 @@ export default function MealHistory() {
                     setEndDate(null);
                   }}
                 >
-                  <Ionicons name="trash-outline" size={16} color="rgba(255, 255, 255, 0.7)" />
-                  <Text style={styles.clearCustomButtonText}>Clear Selection</Text>
+                  <Ionicons name="trash-outline" size={16} color={theme.colors.textSecondary} />
+                  <Text style={[styles.clearCustomButtonText, { color: theme.colors.primary }]}>Clear Selection</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -664,7 +667,6 @@ export default function MealHistory() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000000",
   },
   header: {
     flexDirection: "row",
@@ -678,7 +680,6 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    color: "white",
     fontSize: 18,
     fontWeight: "600",
     flex: 1,
@@ -702,7 +703,6 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: "white",
     fontSize: 16,
   },
   loadingContainer: {
@@ -712,7 +712,6 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 16,
   },
   emptyContainer: {
@@ -723,12 +722,10 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   emptyTitle: {
-    color: "white",
     fontSize: 20,
     fontWeight: "600",
   },
   emptyText: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 16,
     textAlign: "center",
     lineHeight: 24,
@@ -760,20 +757,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 16,
-    backgroundColor: "#000000",
   },
   sectionTitle: {
-    color: "white",
     fontSize: 18,
     fontWeight: "600",
   },
   sectionCount: {
-    color: "rgba(255, 255, 255, 0.5)",
     fontSize: 14,
   },
   mealItem: {
     flexDirection: "row",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -792,7 +785,6 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -820,13 +812,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   mealName: {
-    color: "white",
     fontSize: 16,
     fontWeight: "600",
     flex: 1,
   },
   mealTime: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
   },
   insightsPreview: {
@@ -845,7 +835,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   nutritionBalance: {
-    color: "rgba(255, 255, 255, 0.6)",
     fontSize: 12,
     flex: 1,
   },
@@ -859,19 +848,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   nutritionValue: {
-    color: "#FF6B35",
     fontSize: 14,
     fontWeight: "600",
   },
   nutritionLabel: {
-    color: "rgba(255, 255, 255, 0.5)",
     fontSize: 10,
   },
   ingredientsPreview: {
     paddingTop: 4,
   },
   ingredientsText: {
-    color: "rgba(255, 255, 255, 0.6)",
     fontSize: 12,
     lineHeight: 16,
   },
@@ -882,7 +868,6 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   recommendationText: {
-    color: "#FFD700",
     fontSize: 12,
     fontStyle: "italic",
     flex: 1,
@@ -899,7 +884,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   loadingMoreText: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
   },
   dateFilterContainer: {
@@ -912,7 +896,6 @@ const styles = StyleSheet.create({
   dateRangeButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
@@ -920,12 +903,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dateRangeText: {
-    color: "white",
     fontSize: 14,
     fontWeight: "500",
   },
   clearDateButton: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
     padding: 8,
     borderRadius: 8,
   },
@@ -936,7 +917,6 @@ const styles = StyleSheet.create({
   },
   // Date Range Modal Styles
   dateRangeModal: {
-    backgroundColor: "#1C1C1E",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: "80%",
@@ -948,20 +928,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.1)",
   },
   dateRangeModalTitle: {
-    color: "white",
     fontSize: 18,
     fontWeight: "600",
   },
   presetsContainer: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.1)",
   },
   presetsTitle: {
-    color: "white",
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 16,
@@ -972,36 +948,28 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   presetButton: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
     minWidth: 80,
   },
-  presetButtonActive: {
-    backgroundColor: "#FF6B35",
-  },
   presetButtonText: {
-    color: "rgba(255, 255, 255, 0.8)",
     fontSize: 14,
     fontWeight: "500",
     textAlign: "center",
   },
   presetButtonTextActive: {
-    color: "white",
     fontWeight: "600",
   },
   calendarContainer: {
     padding: 20,
   },
   calendarTitle: {
-    color: "white",
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 8,
   },
   calendarInstructions: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
     marginBottom: 20,
     textAlign: "center",
@@ -1015,7 +983,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   clearCustomButtonText: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
   },
 });

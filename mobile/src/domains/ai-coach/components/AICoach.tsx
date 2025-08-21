@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,10 +9,10 @@ import {
   Animated,
   KeyboardAvoidingView,
   Platform,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useAICoachI18n } from '@/lib/i18n';
-import { useTheme } from '@/lib/theme';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useAICoachI18n } from "@/lib/i18n";
+import { useTheme } from "@/lib/theme";
 
 interface AICoachProps {
   onNavigate: (section: string) => void;
@@ -31,52 +31,52 @@ interface Insight {
   id: string;
   title: string;
   description: string;
-  type: 'nutrition' | 'habit' | 'goal' | 'achievement';
+  type: "nutrition" | "habit" | "goal" | "achievement";
   icon: string;
-  priority: 'high' | 'medium' | 'low';
+  priority: "high" | "medium" | "low";
 }
 
 const mockInsights: Insight[] = [
   {
-    id: '1',
-    title: 'Protein Goal Achievement',
-    description: 'You\'ve hit your protein goal 5 days in a row! Keep up the great work.',
-    type: 'achievement',
-    icon: '💪',
-    priority: 'high',
+    id: "1",
+    title: "Protein Goal Achievement",
+    description: "You've hit your protein goal 5 days in a row! Keep up the great work.",
+    type: "achievement",
+    icon: "💪",
+    priority: "high",
   },
   {
-    id: '2',
-    title: 'Hydration Reminder',
-    description: 'You\'re averaging 6 cups of water daily. Try to increase to 8 cups for optimal hydration.',
-    type: 'habit',
-    icon: '💧',
-    priority: 'medium',
+    id: "2",
+    title: "Hydration Reminder",
+    description: "You're averaging 6 cups of water daily. Try to increase to 8 cups for optimal hydration.",
+    type: "habit",
+    icon: "💧",
+    priority: "medium",
   },
   {
-    id: '3',
-    title: 'Vegetable Variety',
-    description: 'Consider adding more colorful vegetables to increase your nutrient diversity.',
-    type: 'nutrition',
-    icon: '🥗',
-    priority: 'medium',
+    id: "3",
+    title: "Vegetable Variety",
+    description: "Consider adding more colorful vegetables to increase your nutrient diversity.",
+    type: "nutrition",
+    icon: "🥗",
+    priority: "medium",
   },
 ];
 
 const mockConversation: Message[] = [
   {
-    id: '1',
-    text: 'Hello! I\'m your AI nutrition coach. How can I help you today?',
+    id: "1",
+    text: "Hello! I'm your AI nutrition coach. How can I help you today?",
     isUser: false,
     timestamp: new Date(Date.now() - 10 * 60 * 1000),
-    suggestions: ['Analyze my nutrition', 'Set new goals', 'Weekly report', 'Meal suggestions'],
+    suggestions: ["Analyze my nutrition", "Set new goals", "Weekly report", "Meal suggestions"],
   },
 ];
 
 export default function AICoach({ onNavigate, isActive }: AICoachProps) {
   const { theme } = useTheme();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -84,34 +84,34 @@ export default function AICoach({ onNavigate, isActive }: AICoachProps) {
 
   const mockInsights: Insight[] = [
     {
-      id: '1',
+      id: "1",
       title: aiCoach.proteinGoal,
       description: aiCoach.proteinGoalDesc,
-      type: 'achievement',
-      icon: '💪',
-      priority: 'high',
+      type: "achievement",
+      icon: "💪",
+      priority: "high",
     },
     {
-      id: '2',
+      id: "2",
       title: aiCoach.hydrationReminder,
       description: aiCoach.hydrationReminderDesc,
-      type: 'habit',
-      icon: '💧',
-      priority: 'medium',
+      type: "habit",
+      icon: "💧",
+      priority: "medium",
     },
     {
-      id: '3',
+      id: "3",
       title: aiCoach.vegetableVariety,
       description: aiCoach.vegetableVarietyDesc,
-      type: 'nutrition',
-      icon: '🥗',
-      priority: 'medium',
+      type: "nutrition",
+      icon: "🥗",
+      priority: "medium",
     },
   ];
 
   const mockConversation: Message[] = [
     {
-      id: '1',
+      id: "1",
       text: aiCoach.greeting,
       isUser: false,
       timestamp: new Date(Date.now() - 10 * 60 * 1000),
@@ -147,7 +147,7 @@ export default function AICoach({ onNavigate, isActive }: AICoachProps) {
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInputText('');
+    setInputText("");
     setIsTyping(true);
 
     // Simulate AI response
@@ -167,27 +167,27 @@ export default function AICoach({ onNavigate, isActive }: AICoachProps) {
 
   const generateAIResponse = (userText: string): string => {
     const lowercaseText = userText.toLowerCase();
-    
-    if (lowercaseText.includes('protein')) {
-      return 'Great question about protein! Based on your recent meals, you\'re averaging 85g of protein daily. For your goals, I recommend aiming for 120g. Try adding Greek yogurt or lean chicken to your meals.';
-    } else if (lowercaseText.includes('weight') || lowercaseText.includes('lose')) {
-      return 'For healthy weight management, focus on creating a moderate calorie deficit. Your current intake is good - try adding more fiber-rich foods to help with satiety.';
-    } else if (lowercaseText.includes('meal') || lowercaseText.includes('recipe')) {
-      return 'Based on your preferences, I suggest a Mediterranean quinoa bowl with grilled chicken, vegetables, and tahini dressing. It fits your macro goals perfectly!';
+
+    if (lowercaseText.includes("protein")) {
+      return "Great question about protein! Based on your recent meals, you're averaging 85g of protein daily. For your goals, I recommend aiming for 120g. Try adding Greek yogurt or lean chicken to your meals.";
+    } else if (lowercaseText.includes("weight") || lowercaseText.includes("lose")) {
+      return "For healthy weight management, focus on creating a moderate calorie deficit. Your current intake is good - try adding more fiber-rich foods to help with satiety.";
+    } else if (lowercaseText.includes("meal") || lowercaseText.includes("recipe")) {
+      return "Based on your preferences, I suggest a Mediterranean quinoa bowl with grilled chicken, vegetables, and tahini dressing. It fits your macro goals perfectly!";
     } else {
-      return 'I understand you\'re looking for nutrition guidance. Let me analyze your recent eating patterns and provide personalized recommendations based on your goals.';
+      return "I understand you're looking for nutrition guidance. Let me analyze your recent eating patterns and provide personalized recommendations based on your goals.";
     }
   };
 
   const generateSuggestions = (userText: string): string[] => {
     const lowercaseText = userText.toLowerCase();
-    
-    if (lowercaseText.includes('protein')) {
-      return ['High protein recipes', 'Protein timing tips', 'Best protein sources'];
-    } else if (lowercaseText.includes('weight')) {
-      return ['Healthy recipes', 'Portion control tips', 'Exercise suggestions'];
+
+    if (lowercaseText.includes("protein")) {
+      return ["High protein recipes", "Protein timing tips", "Best protein sources"];
+    } else if (lowercaseText.includes("weight")) {
+      return ["Healthy recipes", "Portion control tips", "Exercise suggestions"];
     } else {
-      return ['Nutrition analysis', 'Meal planning', 'Goal setting', 'Progress tracking'];
+      return ["Nutrition analysis", "Meal planning", "Goal setting", "Progress tracking"];
     }
   };
 
@@ -197,94 +197,101 @@ export default function AICoach({ onNavigate, isActive }: AICoachProps) {
 
   const renderMessage = (message: Message, index: number) => {
     const isLast = index === messages.length - 1;
-    
+
     return (
-      <View key={message.id} style={[
-        styles.messageContainer,
-        message.isUser ? styles.userMessageContainer : styles.aiMessageContainer
-      ]}>
+      <View
+        key={message.id}
+        style={[styles.messageContainer, message.isUser ? styles.userMessageContainer : styles.aiMessageContainer]}
+      >
         {!message.isUser && (
-          <View style={styles.aiAvatar}>
+          <View style={[styles.aiAvatar, { backgroundColor: theme.colors.primary }]}>
             <Text style={styles.aiAvatarText}>🤖</Text>
           </View>
         )}
-        
-        <View style={[
-          styles.messageBubble,
-          message.isUser ? styles.userMessageBubble : styles.aiMessageBubble
-        ]}>
-          <Text style={[
-            styles.messageText,
-            message.isUser ? styles.userMessageText : styles.aiMessageText
-          ]}>
+
+        <View
+          style={[
+            styles.messageBubble,
+            message.isUser
+              ? [styles.userMessageBubble, { backgroundColor: theme.colors.primary }]
+              : [styles.aiMessageBubble, { backgroundColor: theme.colors.surface }],
+          ]}
+        >
+          <Text style={[styles.messageText, message.isUser ? { color: "white" } : { color: theme.colors.text }]}>
             {message.text}
           </Text>
-          
+
           {message.suggestions && isLast && (
             <View style={styles.suggestionsContainer}>
               {message.suggestions.map((suggestion, idx) => (
                 <TouchableOpacity
                   key={idx}
-                  style={styles.suggestionChip}
+                  style={[
+                    styles.suggestionChip,
+                    { backgroundColor: theme.colors.primary + "40", borderColor: theme.colors.primary + "80" },
+                  ]}
                   onPress={() => handleSuggestionPress(suggestion)}
                 >
-                  <Text style={styles.suggestionText}>{suggestion}</Text>
+                  <Text style={[styles.suggestionText, { color: theme.colors.primary }]}>{suggestion}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           )}
         </View>
-        
-        <Text style={styles.messageTime}>
-          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+
+        <Text style={[styles.messageTime, { color: theme.colors.textSecondary }]}>
+          {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </Text>
       </View>
     );
   };
 
   const renderInsight = (insight: Insight) => (
-    <TouchableOpacity key={insight.id} style={styles.insightCard}>
+    <TouchableOpacity key={insight.id} style={[styles.insightCard, { backgroundColor: theme.colors.surface }]}>
       <View style={styles.insightHeader}>
         <Text style={styles.insightIcon}>{insight.icon}</Text>
         <View style={styles.insightInfo}>
-          <Text style={styles.insightTitle}>{insight.title}</Text>
-          <Text style={styles.insightDescription}>{insight.description}</Text>
+          <Text style={[styles.insightTitle, { color: theme.colors.text }]}>{insight.title}</Text>
+          <Text style={[styles.insightDescription, { color: theme.colors.textSecondary }]}>{insight.description}</Text>
         </View>
-        <View style={[
-          styles.priorityDot,
-          { backgroundColor: insight.priority === 'high' ? '#FF6B35' : insight.priority === 'medium' ? '#FFD93D' : '#4ECDC4' }
-        ]} />
+        <View
+          style={[
+            styles.priorityDot,
+            {
+              backgroundColor:
+                insight.priority === "high" ? "#FF6B35" : insight.priority === "medium" ? "#FFD93D" : "#4ECDC4",
+            },
+          ]}
+        />
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => onNavigate('camera')}>
+        <TouchableOpacity onPress={() => onNavigate("camera")}>
           <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>
-        
+
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{aiCoach.title}</Text>
-          <Text style={styles.headerSubtitle}>{aiCoach.subtitle}</Text>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>{aiCoach.title}</Text>
+          <Text style={[styles.headerSubtitle, { color: theme.colors.textSecondary }]}>{aiCoach.subtitle}</Text>
         </View>
-        
-        <TouchableOpacity>
-          <Ionicons name="settings-outline" size={24} color="white" />
+
+        <TouchableOpacity onPress={() => onNavigate("settings")}>
+          <Ionicons name="settings-outline" size={24} color={theme.colors.text} />
         </TouchableOpacity>
       </View>
 
       {/* Insights Section */}
       <Animated.View style={[styles.insightsSection, { opacity: fadeAnim }]}>
-        <Text style={styles.sectionTitle}>{aiCoach.insights}</Text>
-        <View style={styles.insightsRow}>
-          {mockInsights.slice(0, 2).map(renderInsight)}
-        </View>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{aiCoach.insights}</Text>
+        <View style={styles.insightsRow}>{mockInsights.slice(0, 2).map(renderInsight)}</View>
       </Animated.View>
 
       {/* Chat Messages */}
@@ -295,17 +302,17 @@ export default function AICoach({ onNavigate, isActive }: AICoachProps) {
         onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
       >
         {messages.map(renderMessage)}
-        
+
         {isTyping && (
           <View style={styles.typingIndicator}>
-            <View style={styles.aiAvatar}>
+            <View style={[styles.aiAvatar, { backgroundColor: theme.colors.primary }]}>
               <Text style={styles.aiAvatarText}>🤖</Text>
             </View>
-            <View style={styles.typingBubble}>
+            <View style={[styles.typingBubble, { backgroundColor: theme.colors.surface }]}>
               <View style={styles.typingDots}>
-                <View style={styles.typingDot} />
-                <View style={styles.typingDot} />
-                <View style={styles.typingDot} />
+                <View style={[styles.typingDot, { backgroundColor: theme.colors.textSecondary }]} />
+                <View style={[styles.typingDot, { backgroundColor: theme.colors.textSecondary }]} />
+                <View style={[styles.typingDot, { backgroundColor: theme.colors.textSecondary }]} />
               </View>
             </View>
           </View>
@@ -313,35 +320,39 @@ export default function AICoach({ onNavigate, isActive }: AICoachProps) {
       </ScrollView>
 
       {/* Input Section */}
-      <View style={styles.inputSection}>
-        <View style={styles.inputContainer}>
+      <View style={[styles.inputSection, { backgroundColor: theme.colors.background + "E6" }]}>
+        <View style={[styles.inputContainer, { backgroundColor: theme.colors.surface }]}>
           <TextInput
-            style={styles.textInput}
+            style={[styles.textInput, { color: theme.colors.text }]}
             value={inputText}
             onChangeText={setInputText}
             placeholder={aiCoach.typeMessage}
-            placeholderTextColor="rgba(255, 255, 255, 0.5)"
+            placeholderTextColor={theme.colors.textSecondary}
             multiline
             maxLength={500}
           />
           <TouchableOpacity
-            style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+            style={[
+              styles.sendButton,
+              { backgroundColor: theme.colors.primary },
+              !inputText.trim() && { backgroundColor: theme.colors.border },
+            ]}
             onPress={() => sendMessage(inputText)}
             disabled={!inputText.trim()}
           >
-            <Ionicons name="send" size={20} color={inputText.trim() ? 'white' : 'rgba(255, 255, 255, 0.3)'} />
+            <Ionicons name="send" size={20} color={inputText.trim() ? "white" : "rgba(255, 255, 255, 0.3)"} />
           </TouchableOpacity>
         </View>
-        
+
         {/* Quick Actions */}
         <View style={styles.quickActions}>
           {[aiCoach.weeklyReport, aiCoach.mealIdeas, aiCoach.goalCheck].map((action, index) => (
             <TouchableOpacity
               key={index}
-              style={styles.quickActionButton}
+              style={[styles.quickActionButton, { backgroundColor: theme.colors.surface }]}
               onPress={() => sendMessage(action)}
             >
-              <Text style={styles.quickActionText}>{action}</Text>
+              <Text style={[styles.quickActionText, { color: theme.colors.textSecondary }]}>{action}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -355,23 +366,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 16,
   },
   headerCenter: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   headerTitle: {
-    // color handled inline with theme
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   headerSubtitle: {
-    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 12,
   },
   insightsSection: {
@@ -379,21 +388,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    // color handled inline with theme
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 12,
   },
   insightCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 12,
     padding: 12,
     flex: 1,
     marginHorizontal: 4,
   },
   insightHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
   },
   insightIcon: {
     fontSize: 20,
@@ -403,13 +410,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   insightTitle: {
-    // color handled inline with theme
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 4,
   },
   insightDescription: {
-    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 12,
     lineHeight: 16,
   },
@@ -424,110 +429,93 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   messageContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 16,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   userMessageContainer: {
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   aiMessageContainer: {
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
   },
   aiAvatar: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#FF6B35',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 8,
   },
   aiAvatarText: {
     fontSize: 16,
   },
   messageBubble: {
-    maxWidth: '80%',
+    maxWidth: "80%",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 18,
   },
   userMessageBubble: {
-    backgroundColor: '#FF6B35',
     borderBottomRightRadius: 4,
   },
   aiMessageBubble: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderBottomLeftRadius: 4,
   },
   messageText: {
     fontSize: 14,
     lineHeight: 20,
   },
-  userMessageText: {
-    // color handled inline with theme
-  },
-  aiMessageText: {
-    // color handled inline with theme
-  },
   messageTime: {
     fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.5)',
     marginTop: 4,
     marginHorizontal: 8,
   },
   suggestionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginTop: 12,
     gap: 8,
   },
   suggestionChip: {
-    backgroundColor: 'rgba(255, 107, 53, 0.3)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 107, 53, 0.5)',
   },
   suggestionText: {
-    color: '#FF6B35',
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   typingIndicator: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     marginBottom: 16,
   },
   typingBubble: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 18,
     borderBottomLeftRadius: 4,
   },
   typingDots: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   typingDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     marginHorizontal: 2,
   },
   inputSection: {
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 32,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    flexDirection: "row",
+    alignItems: "flex-end",
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -535,7 +523,6 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    // color handled inline with theme
     fontSize: 14,
     maxHeight: 100,
     paddingVertical: 8,
@@ -544,34 +531,28 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FF6B35',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginLeft: 8,
   },
-  sendButtonDisabled: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
   quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   insightsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   quickActionButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     marginHorizontal: 2,
   },
   quickActionText: {
-    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });
