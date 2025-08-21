@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   StyleSheet,
-  SafeAreaView,
 } from 'react-native';
 import { useTheme } from '@/lib/theme';
 // Removed gesture handlers to prevent conflicts with scrolling
@@ -81,17 +80,14 @@ export default function OrbitalNavigation() {
 
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        {renderActiveSection()}
-        
-        {/* Floating Notifications */}
-        <FloatingNotifications />
-    </SafeAreaView>
+    <>
+      {renderActiveSection()}
+      {/* Floating Notifications */}
+      <FloatingNotifications />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  // No styles needed for main container
 });

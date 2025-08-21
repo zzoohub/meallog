@@ -6,6 +6,7 @@ import { NutritionChart } from "@/components/NutritionChart";
 import RecentMeals from "@/domains/meals/components/RecentMeals";
 import { useRouter } from "expo-router";
 import { useProgressI18n } from "@/lib/i18n";
+import { useTheme } from "@/lib/theme";
 
 interface ProgressDashboardProps {
   onNavigate: (section: string) => void;
@@ -41,6 +42,7 @@ const mockStats: DailyStats = {
 };
 
 export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps) {
+  const { theme } = useTheme();
   const [selectedPeriod, setSelectedPeriod] = useState<"day" | "week" | "month">("day");
   const router = useRouter();
   const progress = useProgressI18n();
@@ -89,14 +91,14 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
           strokeWidth={6}
           progress={percentage}
           color={color}
-          backgroundColor="rgba(255, 255, 255, 0.1)"
+          backgroundColor={theme.colors.border}
         >
           <View style={styles.progressContent}>
-            <Text style={styles.progressValue}>{current}</Text>
+            <Text style={[styles.progressValue, { color: theme.colors.text }]}>{current}</Text>
             <Text style={styles.progressUnit}>{unit}</Text>
           </View>
         </CircularProgress>
-        <Text style={styles.progressLabel}>{label}</Text>
+        <Text style={[styles.progressLabel, { color: theme.colors.text }]}>{label}</Text>
         <Text style={styles.progressTarget}>
           {current}/{target} {unit}
         </Text>
@@ -125,30 +127,30 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => onNavigate("camera")}>
-          <Ionicons name="arrow-back" size={24} color="white" />
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>{progress.title}</Text>
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>{progress.title}</Text>
 
         <TouchableOpacity onPress={() => onNavigate("settings")}>
-          <Ionicons name="settings-outline" size={24} color="white" />
+          <Ionicons name="settings-outline" size={24} color={theme.colors.text} />
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Period Selector */}
-        <View style={styles.periodSelector}>
+        <View style={[styles.periodSelector, { backgroundColor: theme.colors.surface }]}>
           {(["day", "week", "month"] as const).map(period => (
             <TouchableOpacity
               key={period}
-              style={[styles.periodButton, selectedPeriod === period && styles.periodButtonActive]}
+              style={[styles.periodButton, selectedPeriod === period && { backgroundColor: theme.colors.primary }]}
               onPress={() => setSelectedPeriod(period)}
             >
-              <Text style={[styles.periodButtonText, selectedPeriod === period && styles.periodButtonTextActive]}>
+              <Text style={[styles.periodButtonText, { color: theme.colors.textSecondary }, selectedPeriod === period && { color: 'white' }]}>
                 {progress[period]}
               </Text>
             </TouchableOpacity>
@@ -156,9 +158,9 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
         </View>
 
         {/* Daily Summary */}
-        <View style={styles.summaryCard}>
+        <View style={[styles.summaryCard, { backgroundColor: theme.colors.surface }]}>
           <View style={styles.summaryHeader}>
-            <Text style={styles.summaryTitle}>{progress.todaySummary}</Text>
+            <Text style={[styles.summaryTitle, { color: theme.colors.text }]}>{progress.todaySummary}</Text>
             <Text style={styles.summaryDate}>
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",
@@ -170,7 +172,7 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
 
           <View style={styles.calorieOverview}>
             <View style={styles.calorieMain}>
-              <Text style={styles.calorieValue}>{mockStats.calories.current}</Text>
+              <Text style={[styles.calorieValue, { color: theme.colors.text }]}>{mockStats.calories.current}</Text>
               <Text style={styles.calorieLabel}>{progress.caloriesConsumed}</Text>
             </View>
             <View style={styles.calorieRemaining}>
@@ -194,7 +196,7 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
 
         {/* Nutrition Rings */}
         <View style={styles.nutritionSection}>
-          <Text style={styles.sectionTitle}>{progress.macronutrients}</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{progress.macronutrients}</Text>
           <View style={styles.nutritionRings}>
             {renderProgressRing(progress.protein, mockStats.protein.current, mockStats.protein.target, "#FF6B35", "g")}
             {renderProgressRing(progress.carbs, mockStats.carbs.current, mockStats.carbs.target, "#4ECDC4", "g")}
@@ -205,7 +207,7 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
         {/* Eating Pattern */}
         <View style={styles.patternSection}>
           <View style={styles.sectionHeader}>
-            <Text style={{ ...styles.sectionTitle, marginBottom: 4 }}>{progress.eatingPattern}</Text>
+            <Text style={{ ...styles.sectionTitle, marginBottom: 4, color: theme.colors.text }}>{progress.eatingPattern}</Text>
             {/* <TouchableOpacity>
               <Text style={styles.seeAllText}>{progress.seeAll}</Text>
             </TouchableOpacity> */}
@@ -239,7 +241,7 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
         {/* Achievements */}
         <View style={styles.achievementsSection}>
           <View style={styles.sectionHeader}>
-            <Text style={{ ...styles.sectionTitle, marginBottom: 4 }}>{progress.achievements}</Text>
+            <Text style={{ ...styles.sectionTitle, marginBottom: 4, color: theme.colors.text }}>{progress.achievements}</Text>
             {/* <TouchableOpacity>
               <Text style={styles.seeAllText}>{progress.viewAll}</Text>
             </TouchableOpacity> */}
@@ -250,7 +252,7 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
 
         {/* Weekly Insights */}
         <View style={styles.insightsSection}>
-          <Text style={styles.sectionTitle}>Weekly Insights</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Weekly Insights</Text>
 
           <View style={styles.insightCard}>
             <Ionicons name="trending-up" size={24} color="#4ECDC4" />
@@ -276,7 +278,6 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000000",
   },
   header: {
     flexDirection: "row",
@@ -287,7 +288,6 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   headerTitle: {
-    color: "white",
     fontSize: 18,
     fontWeight: "600",
   },
@@ -297,7 +297,6 @@ const styles = StyleSheet.create({
   },
   periodSelector: {
     flexDirection: "row",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 12,
     padding: 4,
     marginBottom: 20,
@@ -309,15 +308,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   periodButtonActive: {
-    backgroundColor: "#FF6B35",
+    // backgroundColor handled inline with theme
   },
   periodButtonText: {
-    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 14,
     fontWeight: "500",
   },
   periodButtonTextActive: {
-    color: "white",
+    // color handled inline with theme
   },
   summaryCard: {
     backgroundColor: "rgba(255, 255, 255, 0.05)",
@@ -332,7 +330,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   summaryTitle: {
-    color: "white",
     fontSize: 18,
     fontWeight: "600",
   },
@@ -349,7 +346,6 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   calorieValue: {
-    color: "white",
     fontSize: 32,
     fontWeight: "bold",
   },
@@ -383,7 +379,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    color: "white",
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 16,
@@ -405,7 +400,6 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   progressValue: {
-    color: "white",
     fontSize: 16,
     fontWeight: "bold",
   },
@@ -414,7 +408,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   progressLabel: {
-    color: "white",
     fontSize: 12,
     fontWeight: "500",
     marginTop: 8,
@@ -463,7 +456,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   characterTitle: {
-    color: "white",
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 4,
@@ -479,7 +471,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   levelText: {
-    color: "white",
     fontSize: 12,
     fontWeight: "600",
   },
@@ -494,7 +485,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   diversityValue: {
-    color: "white",
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 8,
@@ -526,7 +516,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   achievementTitle: {
-    color: "white",
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 2,
@@ -569,7 +558,6 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   insightTitle: {
-    color: "white",
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 4,

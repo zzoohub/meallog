@@ -19,6 +19,7 @@ import { Meal } from '@/domains/meals/types';
 import { MealStorageService } from '@/domains/meals/services/mealStorage';
 import { MealType } from '@/types';
 import { useMealDetailI18n } from '@/lib/i18n';
+import { useTheme } from '@/lib/theme';
 
 interface NutritionInfo {
   calories: number;
@@ -36,6 +37,7 @@ interface MealData {
 }
 
 export default function MealDetail() {
+  const { theme } = useTheme();
   const { photoUri, isNew, mealId } = useLocalSearchParams<{ 
     photoUri: string; 
     isNew: string;
@@ -256,16 +258,16 @@ export default function MealDetail() {
 
   if (error) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle" size={60} color="#FF6B35" />
-          <Text style={styles.errorTitle}>{mealDetail.analysisFailed}</Text>
-          <Text style={styles.errorMessage}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={analyzeMeal}>
+          <Ionicons name="alert-circle" size={60} color={theme.colors.primary} />
+          <Text style={[styles.errorTitle, { color: theme.colors.text }]}>{mealDetail.analysisFailed}</Text>
+          <Text style={[styles.errorMessage, { color: theme.colors.textSecondary }]}>{error}</Text>
+          <TouchableOpacity style={[styles.retryButton, { backgroundColor: theme.colors.primary }]} onPress={analyzeMeal}>
             <Text style={styles.retryButtonText}>{mealDetail.tryAgain}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>{mealDetail.goBack}</Text>
+          <TouchableOpacity style={[styles.backButton, { borderColor: theme.colors.border }]} onPress={() => router.back()}>
+            <Text style={[styles.backButtonText, { color: theme.colors.text }]}>{mealDetail.goBack}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -273,17 +275,17 @@ export default function MealDetail() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="white" />
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
         {isNew === 'true' ? mealDetail.title : mealDetail.editTitle}
       </Text>
         <TouchableOpacity onPress={handleSave} style={styles.saveBtn}>
-          <Text style={styles.saveText}>{mealDetail.save}</Text>
+          <Text style={[styles.saveText, { color: theme.colors.primary }]}>{mealDetail.save}</Text>
         </TouchableOpacity>
       </View>
 
@@ -352,7 +354,7 @@ export default function MealDetail() {
                 >
                   {editingField === 'name' ? (
                     <TextInput
-                      style={styles.mealNameInput}
+                      style={[styles.mealNameInput, { color: theme.colors.text }]}
                       value={editedValue}
                       onChangeText={setEditedValue}
                       onBlur={handleFieldSave}
@@ -363,20 +365,20 @@ export default function MealDetail() {
                     />
                   ) : (
                     <View style={styles.editableField}>
-                      <Text style={styles.mealName}>{mealData.name}</Text>
+                      <Text style={[styles.mealName, { color: theme.colors.text }]}>{mealData.name}</Text>
                       <View style={styles.editHint} />
                     </View>
                   )}
                 </TouchableOpacity>
-                <Text style={styles.confidence}>
+                <Text style={[styles.confidence, { color: theme.colors.secondary }]}>
                   {`${mealData.confidence}% confidence`}
                 </Text>
               </View>
 
               {/* Nutrition */}
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{mealDetail.nutritionFacts}</Text>
-                <View style={styles.nutritionGrid}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{mealDetail.nutritionFacts}</Text>
+                <View style={[styles.nutritionGrid, { backgroundColor: theme.colors.surface }]}>
                   {/* Calories */}
                   <TouchableOpacity
                     style={styles.nutritionItem}
@@ -397,11 +399,11 @@ export default function MealDetail() {
                       />
                     ) : (
                       <View style={styles.editableField}>
-                        <Text style={styles.nutritionValue}>{mealData.nutrition.calories}</Text>
+                        <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{mealData.nutrition.calories}</Text>
                         <View style={styles.editHintSmall} />
                       </View>
                     )}
-                    <Text style={styles.nutritionLabel}>{mealDetail.calories}</Text>
+                    <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>{mealDetail.calories}</Text>
                   </TouchableOpacity>
 
                   {/* Protein */}
@@ -427,11 +429,11 @@ export default function MealDetail() {
                       </View>
                     ) : (
                       <View style={styles.editableField}>
-                        <Text style={styles.nutritionValue}>{mealData.nutrition.protein}g</Text>
+                        <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{mealData.nutrition.protein}g</Text>
                         <View style={styles.editHintSmall} />
                       </View>
                     )}
-                    <Text style={styles.nutritionLabel}>{mealDetail.protein}</Text>
+                    <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>{mealDetail.protein}</Text>
                   </TouchableOpacity>
 
                   {/* Carbs */}
@@ -457,11 +459,11 @@ export default function MealDetail() {
                       </View>
                     ) : (
                       <View style={styles.editableField}>
-                        <Text style={styles.nutritionValue}>{mealData.nutrition.carbs}g</Text>
+                        <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{mealData.nutrition.carbs}g</Text>
                         <View style={styles.editHintSmall} />
                       </View>
                     )}
-                    <Text style={styles.nutritionLabel}>{mealDetail.carbs}</Text>
+                    <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>{mealDetail.carbs}</Text>
                   </TouchableOpacity>
 
                   {/* Fat */}
@@ -487,11 +489,11 @@ export default function MealDetail() {
                       </View>
                     ) : (
                       <View style={styles.editableField}>
-                        <Text style={styles.nutritionValue}>{mealData.nutrition.fat}g</Text>
+                        <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{mealData.nutrition.fat}g</Text>
                         <View style={styles.editHintSmall} />
                       </View>
                     )}
-                    <Text style={styles.nutritionLabel}>{mealDetail.fat}</Text>
+                    <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>{mealDetail.fat}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -499,14 +501,14 @@ export default function MealDetail() {
               {/* Ingredients */}
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>{mealDetail.ingredients}</Text>
+                  <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{mealDetail.ingredients}</Text>
                   <TouchableOpacity onPress={handleAddIngredient} style={styles.addButton}>
-                    <Ionicons name="add-circle" size={24} color="#4ECDC4" />
+                    <Ionicons name="add-circle" size={24} color={theme.colors.secondary} />
                   </TouchableOpacity>
                 </View>
                 {mealData.ingredients.map((ingredient, index) => (
                   <View key={index} style={styles.ingredientItem}>
-                    <Ionicons name="checkmark-circle" size={20} color="#4ECDC4" />
+                    <Ionicons name="checkmark-circle" size={20} color={theme.colors.secondary} />
                     <TouchableOpacity
                       style={styles.ingredientTextContainer}
                       activeOpacity={0.7}
@@ -514,18 +516,18 @@ export default function MealDetail() {
                     >
                       {editingField === `ingredient.${index}` ? (
                         <TextInput
-                          style={styles.ingredientInput}
+                          style={[styles.ingredientInput, { color: theme.colors.text }]}
                           value={editedValue}
                           onChangeText={setEditedValue}
                           onBlur={handleFieldSave}
                           onSubmitEditing={handleFieldSave}
                           autoFocus
                           placeholder="Enter ingredient"
-                          placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                          placeholderTextColor={theme.colors.textSecondary}
                         />
                       ) : (
                         <View style={styles.editableField}>
-                          <Text style={styles.ingredientText}>{ingredient}</Text>
+                          <Text style={[styles.ingredientText, { color: theme.colors.text }]}>{ingredient}</Text>
                           <View style={styles.editHintIngredient} />
                         </View>
                       )}
@@ -534,7 +536,7 @@ export default function MealDetail() {
                       onPress={() => handleRemoveIngredient(index)}
                       style={styles.removeButton}
                     >
-                      <Ionicons name="close-circle" size={20} color="#FF6B35" />
+                      <Ionicons name="close-circle" size={20} color={theme.colors.primary} />
                     </TouchableOpacity>
                   </View>
                 ))}
@@ -542,11 +544,11 @@ export default function MealDetail() {
 
               {/* Action Buttons */}
               <View style={styles.actionButtons}>
-                <TouchableOpacity style={styles.retakeButton} onPress={handleRetake}>
-                  <Ionicons name="camera" size={20} color="#FF6B35" />
-                  <Text style={styles.retakeText}>Retake Photo</Text>
+                <TouchableOpacity style={[styles.retakeButton, { borderColor: theme.colors.primary }]} onPress={handleRetake}>
+                  <Ionicons name="camera" size={20} color={theme.colors.primary} />
+                  <Text style={[styles.retakeText, { color: theme.colors.primary }]}>Retake Photo</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                <TouchableOpacity style={[styles.saveButton, { backgroundColor: theme.colors.primary }]} onPress={handleSave}>
                   <Ionicons name="checkmark" size={20} color="white" />
                   <Text style={styles.saveButtonText}>Save Meal</Text>
                 </TouchableOpacity>
@@ -561,7 +563,6 @@ export default function MealDetail() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
@@ -570,13 +571,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
   backBtn: {
     padding: 8,
   },
   headerTitle: {
-    color: 'white',
     fontSize: 18,
     fontWeight: '600',
   },
@@ -584,7 +583,6 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   saveText: {
-    color: '#FF6B35',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -629,13 +627,11 @@ const styles = StyleSheet.create({
     padding: 40,
   },
   analyzingText: {
-    color: 'white',
     fontSize: 18,
     fontWeight: '600',
     marginTop: 20,
   },
   analyzingSubtext: {
-    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 14,
     textAlign: 'center',
     marginTop: 8,
@@ -674,13 +670,11 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   mealName: {
-    color: 'white',
     fontSize: 24,
     fontWeight: 'bold',
     paddingVertical: 4,
   },
   mealNameInput: {
-    color: 'white',
     fontSize: 24,
     fontWeight: 'bold',
     paddingVertical: 4,
@@ -693,7 +687,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   sectionTitle: {
-    color: 'white',
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 16,
@@ -710,7 +703,6 @@ const styles = StyleSheet.create({
   nutritionGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 12,
     padding: 20,
   },
@@ -746,7 +738,6 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   nutritionLabel: {
-    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 12,
     marginTop: 4,
   },
@@ -760,12 +751,10 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   ingredientText: {
-    color: 'white',
     fontSize: 16,
     paddingVertical: 4,
   },
   ingredientInput: {
-    color: 'white',
     fontSize: 16,
     paddingVertical: 4,
     borderBottomWidth: 2,
@@ -786,14 +775,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 107, 53, 0.2)',
     borderWidth: 1,
-    borderColor: '#FF6B35',
     borderRadius: 12,
     paddingVertical: 16,
   },
   retakeText: {
-    color: '#FF6B35',
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
@@ -803,7 +789,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FF6B35',
     borderRadius: 12,
     paddingVertical: 16,
   },
@@ -820,20 +805,17 @@ const styles = StyleSheet.create({
     padding: 40,
   },
   errorTitle: {
-    color: 'white',
     fontSize: 24,
     fontWeight: 'bold',
     marginTop: 20,
     marginBottom: 12,
   },
   errorMessage: {
-    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 30,
   },
   retryButton: {
-    backgroundColor: '#FF6B35',
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 12,
@@ -847,13 +829,11 @@ const styles = StyleSheet.create({
   backButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 12,
   },
   backButtonText: {
-    color: 'white',
     fontSize: 16,
     fontWeight: '600',
   },

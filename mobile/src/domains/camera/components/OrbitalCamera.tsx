@@ -6,6 +6,7 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { useCameraI18n } from "@/lib/i18n";
+import { useTheme } from "@/lib/theme";
 
 interface OrbitalCameraProps {
   onNavigate: (section: string) => void;
@@ -13,6 +14,7 @@ interface OrbitalCameraProps {
 }
 
 export default function OrbitalCamera({ onNavigate }: OrbitalCameraProps) {
+  const { theme } = useTheme();
   const [permission, requestPermission] = useCameraPermissions();
   const [flashMode, setFlashMode] = useState<FlashMode>("off");
   const [isCapturing, setIsCapturing] = useState(false);
@@ -133,19 +135,19 @@ export default function OrbitalCamera({ onNavigate }: OrbitalCameraProps) {
 
   if (!permission) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>{t.preparing}</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <Text style={[styles.loadingText, { color: theme.colors.text }]}>{t.preparing}</Text>
       </View>
     );
   }
 
   if (!permission.granted) {
     return (
-      <View style={styles.permissionContainer}>
-        <Ionicons name="camera-outline" size={80} color="#FF6B35" />
-        <Text style={styles.permissionTitle}>{t.permissions.title}</Text>
-        <Text style={styles.permissionMessage}>{t.permissions.message}</Text>
-        <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+      <View style={[styles.permissionContainer, { backgroundColor: theme.colors.background }]}>
+        <Ionicons name="camera-outline" size={80} color={theme.colors.primary} />
+        <Text style={[styles.permissionTitle, { color: theme.colors.text }]}>{t.permissions.title}</Text>
+        <Text style={[styles.permissionMessage, { color: theme.colors.textSecondary }]}>{t.permissions.message}</Text>
+        <TouchableOpacity style={[styles.permissionButton, { backgroundColor: theme.colors.primary }]} onPress={requestPermission}>
           <Text style={styles.permissionButtonText}>{t.welcome.enableCamera}</Text>
         </TouchableOpacity>
       </View>
@@ -255,6 +257,7 @@ export default function OrbitalCamera({ onNavigate }: OrbitalCameraProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#000000',
   },
   camera: {
     flex: 1,
@@ -263,21 +266,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000000",
   },
   loadingText: {
-    color: "white",
     fontSize: 16,
   },
   permissionContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000000",
     padding: 32,
   },
   permissionTitle: {
-    color: "white",
     fontSize: 24,
     fontWeight: "bold",
     marginTop: 24,
@@ -285,14 +284,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   permissionMessage: {
-    color: "rgba(255, 255, 255, 0.8)",
     fontSize: 16,
     textAlign: "center",
     lineHeight: 24,
     marginBottom: 32,
   },
   permissionButton: {
-    backgroundColor: "#FF6B35",
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 12,

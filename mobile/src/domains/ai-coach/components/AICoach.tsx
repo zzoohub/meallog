@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAICoachI18n } from '@/lib/i18n';
+import { useTheme } from '@/lib/theme';
 
 interface AICoachProps {
   onNavigate: (section: string) => void;
@@ -73,6 +74,7 @@ const mockConversation: Message[] = [
 ];
 
 export default function AICoach({ onNavigate, isActive }: AICoachProps) {
+  const { theme } = useTheme();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -258,13 +260,13 @@ export default function AICoach({ onNavigate, isActive }: AICoachProps) {
 
   return (
     <KeyboardAvoidingView 
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => onNavigate('camera')}>
-          <Ionicons name="arrow-back" size={24} color="white" />
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>
         
         <View style={styles.headerCenter}>
@@ -351,7 +353,6 @@ export default function AICoach({ onNavigate, isActive }: AICoachProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
@@ -365,7 +366,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    color: 'white',
+    // color handled inline with theme
     fontSize: 18,
     fontWeight: '600',
   },
@@ -378,7 +379,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    color: 'white',
+    // color handled inline with theme
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 12,
@@ -402,7 +403,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   insightTitle: {
-    color: 'white',
+    // color handled inline with theme
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 4,
@@ -464,10 +465,10 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   userMessageText: {
-    color: 'white',
+    // color handled inline with theme
   },
   aiMessageText: {
-    color: 'white',
+    // color handled inline with theme
   },
   messageTime: {
     fontSize: 10,
@@ -534,7 +535,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    color: 'white',
+    // color handled inline with theme
     fontSize: 14,
     maxHeight: 100,
     paddingVertical: 8,

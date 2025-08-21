@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { useUserStore } from "@/domains/user/stores/userStore";
 import { useSettingsStore } from "@/domains/settings/stores/settingsStore";
 import { useSettingsI18n } from "@/lib/i18n";
+import { useTheme } from "@/lib/theme";
 
 interface SettingsOrbitalProps {
   onNavigate: (section: string) => void;
@@ -21,6 +22,7 @@ interface QuickSetting {
 }
 
 export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
+  const { theme } = useTheme();
   const { user } = useUserStore();
   const { display, notifications } = useSettingsStore();
   const settings = useSettingsI18n();
@@ -71,7 +73,7 @@ export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => onNavigate("camera")}>
@@ -141,7 +143,6 @@ export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000000",
   },
   header: {
     flexDirection: "row",
