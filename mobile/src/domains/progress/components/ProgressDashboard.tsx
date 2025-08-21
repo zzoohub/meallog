@@ -205,10 +205,10 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
         {/* Eating Pattern */}
         <View style={styles.patternSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{progress.eatingPattern}</Text>
-            <TouchableOpacity>
+            <Text style={{ ...styles.sectionTitle, marginBottom: 4 }}>{progress.eatingPattern}</Text>
+            {/* <TouchableOpacity>
               <Text style={styles.seeAllText}>{progress.seeAll}</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           <View style={styles.heatmapContainer}>
@@ -239,10 +239,10 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
         {/* Achievements */}
         <View style={styles.achievementsSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{progress.achievements}</Text>
-            <TouchableOpacity>
+            <Text style={{ ...styles.sectionTitle, marginBottom: 4 }}>{progress.achievements}</Text>
+            {/* <TouchableOpacity>
               <Text style={styles.seeAllText}>{progress.viewAll}</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           {mockAchievements.map(renderAchievement)}
