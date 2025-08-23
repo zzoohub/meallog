@@ -6,11 +6,11 @@ import i18n from '@/lib/i18n/config';
 import { changeLanguage } from '@/lib/i18n';
 import { useUserStore } from '@/domains/user/stores/userStore';
 import { useSettingsStore, flushSettingsStorage } from '@/domains/settings/stores/settingsStore';
-import { API_CONFIG } from '@/constants';
 import { bundleManager } from '@/lib/bundle';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { queryClient } from '@/lib/query';
 import { performanceMonitor } from '@/lib/performance';
+import { AuthProvider } from '@/domains/auth';
 
 function AppInitializer() {
   const loadUserFromStorage = useUserStore(state => state.loadUserFromStorage);
@@ -78,8 +78,10 @@ export default function AppProvider({ children }: { children: ReactNode }) {
     <ErrorBoundary onError={handleError}>
       <QueryClientProvider client={queryClient}>
         <I18nextProvider i18n={i18n}>
-          <AppInitializer />
-          {children}
+          <AuthProvider>
+            <AppInitializer />
+            {children}
+          </AuthProvider>
         </I18nextProvider>
       </QueryClientProvider>
     </ErrorBoundary>

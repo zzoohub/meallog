@@ -10,28 +10,28 @@ import { useTheme } from '@/lib/theme';
 import { SettingsItem, SettingsSection, SettingsLayout } from '@/components/settings';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { useUserStore } from '@/domains/user/stores/userStore';
+import { useAuth } from '@/domains/auth';
 
 export default function AccountSettings() {
   const { theme } = useTheme();
-  const { user, updateUser, logout, isLoading } = useUserStore();
+  const { user, updateUser, logout, isLoading } = useAuth();
   
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     username: user?.username || '',
-    email: user?.email || '',
+    phone: user?.phone || '',
   });
 
   const handleSaveProfile = async () => {
     try {
-      if (!editForm.username.trim() || !editForm.email.trim()) {
+      if (!editForm.username.trim() || !editForm.phone.trim()) {
         Alert.alert('Error', 'Please fill in all required fields');
         return;
       }
 
       await updateUser({
         username: editForm.username.trim(),
-        email: editForm.email.trim(),
+        phone: editForm.phone.trim(),
       });
 
       setIsEditing(false);
@@ -44,7 +44,7 @@ export default function AccountSettings() {
   const handleCancelEdit = () => {
     setEditForm({
       username: user?.username || '',
-      email: user?.email || '',
+      phone: user?.phone || '',
     });
     setIsEditing(false);
   };
@@ -108,8 +108,8 @@ export default function AccountSettings() {
           <Text style={[styles.username, { color: theme.colors.text }]}>
             {user?.username || 'Not set'}
           </Text>
-          <Text style={[styles.email, { color: theme.colors.textSecondary }]}>
-            {user?.email || 'Not set'}
+          <Text style={[styles.phone, { color: theme.colors.textSecondary }]}>
+            {user?.phone || 'Not set'}
           </Text>
         </View>
         <View style={styles.profileActions}>
@@ -164,7 +164,7 @@ export default function AccountSettings() {
 
           <View style={styles.inputGroup}>
             <Text style={[styles.inputLabel, { color: theme.colors.textSecondary }]}>
-              Email
+              Phone
             </Text>
             <TextInput
               style={[styles.input, { 
@@ -172,11 +172,11 @@ export default function AccountSettings() {
                 backgroundColor: theme.colors.surface,
                 color: theme.colors.text 
               }]}
-              value={editForm.email}
-              onChangeText={(text) => setEditForm(prev => ({ ...prev, email: text }))}
-              placeholder="Enter email"
+              value={editForm.phone}
+              onChangeText={(text) => setEditForm(prev => ({ ...prev, phone: text }))}
+              placeholder="Enter phone number"
               placeholderTextColor={theme.colors.textSecondary}
-              keyboardType="email-address"
+              keyboardType="phone-pad"
               autoCapitalize="none"
             />
           </View>
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 2,
   },
-  email: {
+  phone: {
     fontSize: 14,
   },
   profileActions: {

@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Image, Animated } from "react-native";
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Image, Animated, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useCameraPermissions } from "expo-camera";
 import { useCommonI18n } from "@/lib/i18n";
+import { useAuth } from "@/domains/auth";
+import { useTheme } from "@/lib/theme";
 
 const { width } = Dimensions.get("window");
 
@@ -56,7 +58,28 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const { theme } = useTheme();
   const common = useCommonI18n();
+  const { isAuthenticated, isLoading, user, updateUser } = useAuth();
+
+  // Handle initial routing based on authentication state
+  useEffect(() => {
+    if (isLoading) return; // Wait for auth to initialize
+
+    if (!isAuthenticated) {
+      // Not authenticated, redirect to auth
+      router.replace('/auth');
+      return;
+    }
+
+    // If authenticated and already completed onboarding, go to main app
+    if (user?.hasCompletedOnboarding) {
+      router.replace('/(main)');
+      return;
+    }
+
+    // Otherwise, stay on onboarding (authenticated but haven't completed onboarding)
+  }, [isAuthenticated, isLoading, user]);
 
   const nextStep = () => {
     if (currentStep < steps.length - 1) {
@@ -82,14 +105,61 @@ export default function OnboardingScreen() {
     }
   };
 
-  const completeOnboarding = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.replace("/(main)");
+  const completeOnboarding = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      
+      // If not authenticated or no user, redirect to auth
+      if (!isAuthenticated || !user) {
+        router.replace("/auth");
+        return;
+      }
+      
+      // Mark user as having completed onboarding
+      await updateUser({ hasCompletedOnboarding: true });
+      
+      router.replace("/(main)");
+    } catch (error) {
+      console.error('Failed to complete onboarding:', error);
+      // If authenticated but update fails, still navigate
+      if (isAuthenticated && user) {
+        router.replace("/(main)");
+      } else {
+        router.replace("/auth");
+      }
+    }
   };
 
-  const skip = () => {
-    router.replace("/(main)");
+  const skip = async () => {
+    try {
+      // If not authenticated or no user, redirect to auth
+      if (!isAuthenticated || !user) {
+        router.replace("/auth");
+        return;
+      }
+
+      // Mark user as having completed onboarding even when skipping
+      await updateUser({ hasCompletedOnboarding: true });
+      router.replace("/(main)");
+    } catch (error) {
+      console.error('Failed to update user during skip:', error);
+      // If authenticated but update fails, still navigate
+      if (isAuthenticated && user) {
+        router.replace("/(main)");
+      } else {
+        router.replace("/auth");
+      }
+    }
   };
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <LinearGradient colors={["#FF6B35", "#F7931E", "#FFD23F"]} style={styles.container}>
@@ -165,6 +235,7 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
 
 function CameraStep({ onNext }: { onNext: () => void }) {
   const [permission, requestPermission] = useCameraPermissions();
+  const common = useCommonI18n();
 
   const handlePermission = async () => {
     if (!permission?.granted) {
@@ -182,14 +253,15 @@ function CameraStep({ onNext }: { onNext: () => void }) {
       <View style={styles.permissionIcon}>
         <Ionicons name="camera" size={80} color="white" />
       </View>
-      <Text style={styles.stepTitle}>Enable Quick Capture</Text>
+      <Text style={styles.stepTitle}>{common.onboarding.camera.title}</Text>
       <Text style={styles.stepSubtitle}>
-        Take photos of your meal for instant AI-powered nutrition analysis. Your privacy is protected - photos are only
-        analyzed, never shared.
+        {common.onboarding.camera.description}
       </Text>
 
       <TouchableOpacity style={styles.primaryButton} onPress={handlePermission}>
-        <Text style={styles.primaryButtonText}>{permission?.granted ? "Continue" : "Enable Camera"}</Text>
+        <Text style={styles.primaryButtonText}>
+          {permission?.granted ? common.onboarding.buttons.next : common.onboarding.camera.grantAccess}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -197,6 +269,7 @@ function CameraStep({ onNext }: { onNext: () => void }) {
 
 function DemoStep({ onNext }: { onNext: () => void }) {
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const common = useCommonI18n();
 
   const runDemo = () => {
     setShowAnalysis(true);
@@ -223,15 +296,17 @@ function DemoStep({ onNext }: { onNext: () => void }) {
         </View>
       </View>
 
-      <Text style={styles.stepTitle}>Try It Now!</Text>
-      <Text style={styles.stepSubtitle}>Watch our AI identify meals and analyze nutrition in real-time</Text>
+      <Text style={styles.stepTitle}>{common.onboarding.demo.title}</Text>
+      <Text style={styles.stepSubtitle}>{common.onboarding.demo.subtitle}</Text>
 
       <TouchableOpacity
         style={[styles.primaryButton, showAnalysis && styles.primaryButtonDisabled]}
         onPress={runDemo}
         disabled={showAnalysis}
       >
-        <Text style={styles.primaryButtonText}>{showAnalysis ? "Analyzing..." : "See AI in Action"}</Text>
+        <Text style={styles.primaryButtonText}>
+          {showAnalysis ? "Analyzing..." : common.onboarding.demo.tryDemo}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -239,6 +314,7 @@ function DemoStep({ onNext }: { onNext: () => void }) {
 
 function GoalsStep({ onNext, onChoice }: { onNext: () => void; onChoice: (choice: string) => void }) {
   const [selectedGoal, setSelectedGoal] = useState<string>("");
+  const common = useCommonI18n();
 
   const goals = [
     { id: "lose_weight", emoji: "⚖️", title: "Lose weight", description: "Track calories and portion sizes" },
@@ -255,8 +331,8 @@ function GoalsStep({ onNext, onChoice }: { onNext: () => void; onChoice: (choice
 
   return (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>What brings you here?</Text>
-      <Text style={styles.stepSubtitle}>We&apos;ll personalize your experience based on your goals</Text>
+      <Text style={styles.stepTitle}>{common.onboarding.goals.title}</Text>
+      <Text style={styles.stepSubtitle}>{common.onboarding.goals.subtitle}</Text>
 
       <View style={styles.goalsContainer}>
         {goals.map(goal => (
@@ -277,13 +353,15 @@ function GoalsStep({ onNext, onChoice }: { onNext: () => void; onChoice: (choice
         onPress={onNext}
         disabled={!selectedGoal}
       >
-        <Text style={styles.primaryButtonText}>Personalize for me</Text>
+        <Text style={styles.primaryButtonText}>{common.onboarding.buttons.getStarted}</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 function ProfileStep({ onNext }: { onNext: () => void }) {
+  const common = useCommonI18n();
+
   return (
     <View style={styles.stepContent}>
       <View style={styles.characterContainer}>
@@ -291,13 +369,13 @@ function ProfileStep({ onNext }: { onNext: () => void }) {
         <Text style={styles.characterName}>The Balanced Explorer</Text>
       </View>
 
-      <Text style={styles.stepTitle}>Almost done!</Text>
+      <Text style={styles.stepTitle}>{common.onboarding.profile.title}</Text>
       <Text style={styles.stepSubtitle}>
-        Your meal character has been created! You&apos;re ready to start your nutrition journey.
+        {common.onboarding.profile.subtitle}
       </Text>
 
       <TouchableOpacity style={styles.primaryButton} onPress={onNext}>
-        <Text style={styles.primaryButtonText}>Start my journey</Text>
+        <Text style={styles.primaryButtonText}>{common.onboarding.buttons.getStarted}</Text>
         <Ionicons name="rocket" size={20} color="white" style={styles.buttonIcon} />
       </TouchableOpacity>
     </View>
@@ -307,6 +385,11 @@ function ProfileStep({ onNext }: { onNext: () => void }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   skipButton: {
     position: "absolute",

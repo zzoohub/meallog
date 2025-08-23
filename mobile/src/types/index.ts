@@ -2,9 +2,11 @@
 export interface User {
   id: string;
   username: string;
-  email: string;
+  email?: string;
+  phone: string;
   avatar?: string;
   isLoggedIn: boolean;
+  hasCompletedOnboarding?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -112,6 +114,16 @@ export interface RegisterFormData {
   username: string;
   password: string;
   confirmPassword: string;
+}
+
+// Phone auth types
+export interface PhoneAuthFormData {
+  phone: string;
+  countryCode: string;
+}
+
+export interface VerificationFormData {
+  code: string;
 }
 
 export interface PostFormData {

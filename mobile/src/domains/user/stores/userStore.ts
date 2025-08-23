@@ -13,7 +13,7 @@ interface UserStore {
   // Actions
   setUser: (user: Partial<User>) => void;
   updateUser: (updates: Partial<User>) => Promise<void>;
-  login: (user: Pick<User, "id" | "username" | "email">) => Promise<void>;
+  login: (user: Pick<User, "id" | "username" | "phone">) => Promise<void>;
   logout: () => Promise<void>;
   loadUserFromStorage: () => Promise<void>;
   setPreferences: (preferences: Partial<UserPreferences>) => Promise<void>;
@@ -23,7 +23,7 @@ interface UserStore {
 const initialUser: User = {
   id: "",
   username: "",
-  email: "",
+  phone: "",
   isLoggedIn: false,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -83,7 +83,7 @@ export const useUserStore = create<UserStore>()(
       }
     },
 
-    login: async (userData: Pick<User, "id" | "username" | "email">) => {
+    login: async (userData: Pick<User, "id" | "username" | "phone">) => {
       try {
         set({ isLoading: true, error: null });
 

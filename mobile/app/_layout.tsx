@@ -1,22 +1,36 @@
 import { StatusBar } from "expo-status-bar";
-import { Stack } from "expo-router";
+import { Stack, Slot } from "expo-router";
 import { AppProvider } from "@/containers";
-import { useTheme } from "@/lib/theme";
 import "react-native-reanimated";
 import "@/lib/i18n";
 
-function RootLayoutContent() {
-  const { theme } = useTheme();
-  
+export default function RootLayout() {
   return (
-    <>
+    <AppProvider>
       <Stack screenOptions={{ 
         headerShown: false,
-        contentStyle: { backgroundColor: theme.colors.background },
-        animation: 'slide_from_right', // Enable smooth iOS-style transitions
+        animation: 'slide_from_right',
         gestureEnabled: true,
-        animationDuration: 300, // Smooth but not slow
+        animationDuration: 300,
       }}>
+        {/* Initial Screen */}
+        <Stack.Screen 
+          name="index" 
+          options={{
+            gestureEnabled: false,
+            animation: 'fade',
+          }}
+        />
+        
+        {/* Auth Flow */}
+        <Stack.Screen 
+          name="auth" 
+          options={{
+            gestureEnabled: false,
+            animation: 'fade',
+          }}
+        />
+        
         {/* Onboarding Flow */}
         <Stack.Screen 
           name="onboarding" 
@@ -122,15 +136,7 @@ function RootLayoutContent() {
           }}
         />
       </Stack>
-      <StatusBar style={theme.statusBar} />
-    </>
-  );
-}
-
-export default function RootLayout() {
-  return (
-    <AppProvider>
-      <RootLayoutContent />
+      <StatusBar style="auto" />
     </AppProvider>
   );
 }

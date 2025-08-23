@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-nati
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Card } from "@/components/ui/Card";
-import { useUserStore } from "@/domains/user/stores/userStore";
+import { useAuth } from "@/domains/auth";
 import { useSettingsStore } from "@/domains/settings/stores/settingsStore";
 import { useSettingsI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
@@ -23,7 +23,7 @@ interface QuickSetting {
 
 export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
   const { theme } = useTheme();
-  const { user } = useUserStore();
+  const { user, isAuthenticated, logout } = useAuth();
   const { display, notifications } = useSettingsStore();
   const settings = useSettingsI18n();
 
@@ -32,6 +32,19 @@ export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
   };
 
   const quickSettings: QuickSetting[] = [
+    {
+      id: "auth",
+      title: isAuthenticated ? "Account" : "Sign In",
+      icon: isAuthenticated ? "person-outline" : "log-in-outline",
+      value: isAuthenticated ? (user?.username || "Signed in") : "Test auth",
+      onPress: () => {
+        if (isAuthenticated) {
+          router.push("/settings/account");
+        } else {
+          router.push("/auth");
+        }
+      },
+    },
     {
       id: "theme",
       title: settings.display.theme.title,
