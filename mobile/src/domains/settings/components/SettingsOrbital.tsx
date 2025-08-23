@@ -32,19 +32,14 @@ export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
   };
 
   const quickSettings: QuickSetting[] = [
-    {
-      id: "auth",
-      title: isAuthenticated ? "Account" : "Sign In",
-      icon: isAuthenticated ? "person-outline" : "log-in-outline",
-      value: isAuthenticated ? (user?.username || "Signed in") : "Test auth",
-      onPress: () => {
-        if (isAuthenticated) {
-          router.push("/settings/account");
-        } else {
-          router.push("/auth");
-        }
-      },
-    },
+    // Only show Account option for authenticated users
+    ...(isAuthenticated ? [{
+      id: "account",
+      title: "Account",
+      icon: "person-outline" as keyof typeof Ionicons.glyphMap,
+      value: user?.username || "Signed in",
+      onPress: () => router.push("/settings/account"),
+    }] : []),
     {
       id: "theme",
       title: settings.display.theme.title,
@@ -104,25 +99,48 @@ export default function SettingsOrbital({ onNavigate }: SettingsOrbitalProps) {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* User Profile */}
-        <Card style={[styles.profileCard, { backgroundColor: theme.colors.surface }]}>
-          <TouchableOpacity
-            style={styles.profileContent}
-            onPress={() => router.push("/settings/account")}
-            activeOpacity={0.7}
-          >
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{user?.username?.charAt(0).toUpperCase() || "U"}</Text>
-            </View>
-            <View style={styles.profileInfo}>
-              <Text style={[styles.profileName, { color: theme.colors.text }]}>{user?.username || "Guest User"}</Text>
-              <Text style={[styles.profileEmail, { color: theme.colors.textSecondary }]}>
-                {user?.email || "Not logged in"}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
-          </TouchableOpacity>
-        </Card>
+        {/* Authenticated User Profile OR Sign-in Incentive Banner */}
+        {isAuthenticated ? (
+          <Card style={[styles.profileCard, { backgroundColor: theme.colors.surface }]}>
+            <TouchableOpacity
+              style={styles.profileContent}
+              onPress={() => router.push("/settings/account")}
+              activeOpacity={0.7}
+            >
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{user?.username?.charAt(0).toUpperCase() || "U"}</Text>
+              </View>
+              <View style={styles.profileInfo}>
+                <Text style={[styles.profileName, { color: theme.colors.text }]}>{user?.username || "User"}</Text>
+                <Text style={[styles.profileEmail, { color: theme.colors.textSecondary }]}>
+                  {user?.email || "Signed in"}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+            </TouchableOpacity>
+          </Card>
+        ) : (
+          <Card style={[styles.signInBanner, { backgroundColor: theme.colors.primary + "10", borderColor: theme.colors.primary + "20" }]}>
+            <TouchableOpacity
+              style={styles.signInBannerContent}
+              onPress={() => router.push("/auth")}
+              activeOpacity={0.7}
+            >
+              <View style={styles.signInBannerLeft}>
+                <View style={[styles.signInIcon, { backgroundColor: theme.colors.primary + "20" }]}>
+                  <Ionicons name="log-in-outline" size={20} color={theme.colors.primary} />
+                </View>
+                <View style={styles.signInTextContainer}>
+                  <Text style={[styles.signInTitle, { color: theme.colors.text }]}>Sign in to unlock full features</Text>
+                  <Text style={[styles.signInDescription, { color: theme.colors.textSecondary }]}>
+                    Sync your meals across devices and track your progress
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={theme.colors.primary} />
+            </TouchableOpacity>
+          </Card>
+        )}
 
         {/* Quick Settings */}
         <View style={styles.section}>
@@ -315,5 +333,42 @@ const styles = StyleSheet.create({
   buildInfo: {
     color: "rgba(255, 255, 255, 0.5)",
     fontSize: 10,
+  },
+  // Sign In Banner Styles
+  signInBanner: {
+    marginBottom: 24,
+    padding: 0,
+    borderWidth: 1,
+  },
+  signInBannerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+  },
+  signInBannerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  signInIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  signInTextContainer: {
+    flex: 1,
+  },
+  signInTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  signInDescription: {
+    fontSize: 13,
+    lineHeight: 18,
   },
 });
