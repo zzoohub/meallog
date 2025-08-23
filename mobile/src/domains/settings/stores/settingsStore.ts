@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '@/constants';
-import { debouncedStorage, createDebouncedSetter } from '@/lib/storage/debouncedStorage';
+import { optimizedStorage } from '@/lib/storage';
 
 export interface NotificationSettings {
   mealReminders: boolean;
@@ -333,10 +333,10 @@ export const useSettingsStore = create<SettingsState>()(
 );
 
 // Auto-save settings changes using debounced storage for better performance
-const debouncedPrivacySave = createDebouncedSetter<PrivacySettings>(STORAGE_KEYS.PRIVACY_SETTINGS);
-const debouncedDisplaySave = createDebouncedSetter<DisplaySettings>(STORAGE_KEYS.DISPLAY_SETTINGS);
-const debouncedGoalsSave = createDebouncedSetter<GoalSettings>(STORAGE_KEYS.GOAL_SETTINGS);
-const debouncedCameraSave = createDebouncedSetter<CameraSettings>(STORAGE_KEYS.CAMERA_SETTINGS);
+const debouncedPrivacySave = optimizedStorage.createDebouncedSetter<PrivacySettings>(STORAGE_KEYS.PRIVACY_SETTINGS);
+const debouncedDisplaySave = optimizedStorage.createDebouncedSetter<DisplaySettings>(STORAGE_KEYS.DISPLAY_SETTINGS);
+const debouncedGoalsSave = optimizedStorage.createDebouncedSetter<GoalSettings>(STORAGE_KEYS.GOAL_SETTINGS);
+const debouncedCameraSave = optimizedStorage.createDebouncedSetter<CameraSettings>(STORAGE_KEYS.CAMERA_SETTINGS);
 
 useSettingsStore.subscribe(
   (state) => state.privacy,
@@ -375,4 +375,4 @@ useSettingsStore.subscribe(
 );
 
 // Cleanup function to flush any pending saves when app is backgrounded
-export const flushSettingsStorage = () => debouncedStorage.flush();
+export const flushSettingsStorage = () => optimizedStorage.flush();

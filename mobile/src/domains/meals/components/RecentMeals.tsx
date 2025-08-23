@@ -2,26 +2,27 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Image,
-  ActivityIndicator,
+  TouchableOpacity,
+  StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/lib/theme';
-import { Meal } from '../types';
+import { createElevation } from '@/styles/tokens';
+import type { Meal } from '../types';
 import { MealStorageService, generateMockMeals } from '../services/mealStorage';
 
 interface RecentMealsProps {
-  onSeeAll: () => void;
+  onSeeAll?: () => void;
 }
 
 export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
   const { theme } = useTheme();
   const [recentMeals, setRecentMeals] = useState<Meal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [mockDataInitialized, setMockDataInitialized] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -34,9 +35,27 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
       let meals = await MealStorageService.getRecentMeals(6);
       
       // For development: add mock data if no meals exist
-      if (meals.length === 0) {
+      if (meals.length === 0 && !mockDataInitialized) {
         const mockMeals = generateMockMeals();
-        meals = mockMeals.slice(0, 6);
+        // Save mock meals to storage so they can be found later
+        for (const mockMeal of mockMeals) {
+          await MealStorageService.saveMeal({
+            userId: mockMeal.userId,
+            name: mockMeal.name,
+            photoUri: mockMeal.photoUri,
+            timestamp: mockMeal.timestamp,
+            mealType: mockMeal.mealType,
+            nutrition: mockMeal.nutrition,
+            ingredients: mockMeal.ingredients,
+            aiAnalysis: mockMeal.aiAnalysis,
+            location: mockMeal.location,
+            notes: mockMeal.notes,
+            isVerified: mockMeal.isVerified,
+          });
+        }
+        // Reload meals after saving mock data
+        meals = await MealStorageService.getRecentMeals(6);
+        setMockDataInitialized(true);
       }
       
       setRecentMeals(meals);
@@ -59,105 +78,127 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
     });
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
-
-  const getRelativeTime = (date: Date) => {
+  const formatRelativeTime = (date: Date): string => {
     const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours === 0) {
-      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-      return diffInMinutes < 1 ? 'Just now' : `${diffInMinutes}m ago`;
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h ago`;
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    if (minutes < 60) {
+      return `${minutes}m ago`;
+    } else if (hours < 24) {
+      return `${hours}h ago`;
     } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return diffInDays === 1 ? 'Yesterday' : `${diffInDays}d ago`;
+      return `${days}d ago`;
     }
   };
 
-  const getMealTypeIcon = (mealType: string) => {
-    switch (mealType.toLowerCase()) {
-      case 'breakfast':
-        return '🌅';
-      case 'lunch':
-        return '☀️';
-      case 'dinner':
-        return '🌙';
-      case 'snack':
-        return '🍎';
-      default:
-        return '🍽️';
-    }
-  };
-
-  const renderMealCard = (meal: Meal) => (
-    <TouchableOpacity
-      key={meal.id}
-      style={[styles.mealCard, { backgroundColor: theme.colors.surface }]}
-      onPress={() => handleMealPress(meal)}
-      activeOpacity={0.7}
-    >
-      {/* Photo */}
-      <View style={styles.photoContainer}>
-        {meal.photoUri ? (
-          <Image source={{ uri: meal.photoUri }} style={styles.mealPhoto} />
-        ) : (
-          <View style={[styles.placeholderPhoto, { backgroundColor: theme.colors.border + '40' }]}>
-            <Ionicons name="camera" size={24} color={theme.colors.textSecondary} />
-          </View>
-        )}
-        
-        {/* Verification badge */}
-        {meal.isVerified && (
-          <View style={styles.verifiedBadge}>
-            <Ionicons name="checkmark-circle" size={16} color={theme.colors.secondary} />
-          </View>
-        )}
-      </View>
-
-      {/* Meal info */}
-      <View style={styles.mealInfo}>
-        <View style={styles.mealHeader}>
-          <Text style={styles.mealEmoji}>{getMealTypeIcon(meal.mealType)}</Text>
-          <Text style={[styles.mealName, { color: theme.colors.text }]} numberOfLines={1}>{meal.name}</Text>
-        </View>
-        
-        <Text style={[styles.mealTime, { color: theme.colors.text }]}>{formatTime(meal.timestamp)}</Text>
-        <Text style={[styles.relativeTime, { color: theme.colors.textSecondary }]}>{getRelativeTime(meal.timestamp)}</Text>
-        
-        <View style={styles.nutritionSummary}>
-          <Text style={[styles.calories, { color: theme.colors.primary }]}>{meal.nutrition.calories} cal</Text>
-          <View style={styles.macros}>
-            <Text style={[styles.macro, { color: theme.colors.textSecondary }]}>P: {meal.nutrition.protein}g</Text>
-            <Text style={[styles.macro, { color: theme.colors.textSecondary }]}>C: {meal.nutrition.carbs}g</Text>
-            <Text style={[styles.macro, { color: theme.colors.textSecondary }]}>F: {meal.nutrition.fat}g</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Edit indicator */}
-      <View style={styles.editIndicator}>
-        <Ionicons name="chevron-forward" size={16} color={theme.colors.textSecondary} />
-      </View>
-    </TouchableOpacity>
-  );
+  const styles = StyleSheet.create({
+    container: {
+      marginBottom: 24,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+      paddingHorizontal: 20,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.text,
+    },
+    seeAllButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    seeAllText: {
+      fontSize: 14,
+      color: theme.colors.primary,
+      marginRight: 4,
+    },
+    mealsContainer: {
+      paddingLeft: 20,
+    },
+    mealCard: {
+      width: 140,
+      marginRight: 12,
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      overflow: 'hidden',
+      ...createElevation('sm'),
+    },
+    mealImage: {
+      width: '100%',
+      height: 100,
+      backgroundColor: theme.colors.border,
+    },
+    mealInfo: {
+      padding: 12,
+    },
+    mealName: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: theme.colors.text,
+      marginBottom: 4,
+    },
+    mealTime: {
+      fontSize: 12,
+      color: theme.colors.textSecondary,
+      marginBottom: 6,
+    },
+    mealCalories: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: theme.colors.primary,
+    },
+    loadingContainer: {
+      height: 100,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      color: theme.colors.textSecondary,
+      fontSize: 14,
+    },
+    emptyContainer: {
+      height: 100,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+    },
+    emptyText: {
+      color: theme.colors.textSecondary,
+      fontSize: 14,
+      textAlign: 'center',
+    },
+  });
 
   if (isLoading) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recent Meals</Text>
+          <Text style={styles.title}>Recent Meals</Text>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color={theme.colors.primary} />
-          <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading meals...</Text>
+          <Text style={styles.loadingText}>Loading meals...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (recentMeals.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Recent Meals</Text>
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>
+            No meals logged yet. Start by taking a photo of your meal!
+          </Text>
         </View>
       </View>
     );
@@ -165,201 +206,41 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
 
   return (
     <View style={styles.container}>
-      {/* Section Header */}
       <View style={styles.header}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recent Meals</Text>
-        <TouchableOpacity onPress={onSeeAll} style={styles.seeAllButton}>
-          <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>See All</Text>
+        <Text style={styles.title}>Recent Meals</Text>
+        <TouchableOpacity style={styles.seeAllButton} onPress={onSeeAll}>
+          <Text style={styles.seeAllText}>See All</Text>
           <Ionicons name="chevron-forward" size={16} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>
-
-      {/* Meals List */}
-      {recentMeals.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="camera-outline" size={48} color={theme.colors.textSecondary} />
-          <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>No meals yet</Text>
-          <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>Take your first photo to start tracking!</Text>
-        </View>
-      ) : (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContainer}
-          style={styles.scrollView}
-        >
-          {recentMeals.map(renderMealCard)}
-          
-          {/* Add meal card */}
+      
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.mealsContainer}
+      >
+        {recentMeals.map((meal) => (
           <TouchableOpacity
-            style={[styles.addMealCard, { backgroundColor: theme.colors.primary + '20', borderColor: theme.colors.primary + '40' }]}
-            onPress={() => router.push('/')} // Go back to camera
+            key={meal.id}
+            style={styles.mealCard}
+            onPress={() => handleMealPress(meal)}
             activeOpacity={0.7}
           >
-            <View style={[styles.addMealIcon, { backgroundColor: theme.colors.primary + '30' }]}>
-              <Ionicons name="add" size={32} color={theme.colors.primary} />
+            <Image source={{ uri: meal.photoUri }} style={styles.mealImage} />
+            <View style={styles.mealInfo}>
+              <Text style={styles.mealName} numberOfLines={2}>
+                {meal.name}
+              </Text>
+              <Text style={styles.mealTime}>
+                {formatRelativeTime(meal.timestamp)}
+              </Text>
+              <Text style={styles.mealCalories}>
+                {meal.nutrition.calories} cal
+              </Text>
             </View>
-            <Text style={[styles.addMealText, { color: theme.colors.primary }]}>Add Meal</Text>
           </TouchableOpacity>
-        </ScrollView>
-      )}
+        ))}
+      </ScrollView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 24,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingHorizontal: 4,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  seeAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  seeAllText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-    gap: 8,
-  },
-  loadingText: {
-    fontSize: 14,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyText: {
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  scrollView: {
-    marginHorizontal: -16, // Counteract parent padding
-  },
-  scrollContainer: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  mealCard: {
-    width: 140,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  photoContainer: {
-    position: 'relative',
-    height: 80,
-  },
-  mealPhoto: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  placeholderPhoto: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  verifiedBadge: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    borderRadius: 12,
-    padding: 2,
-  },
-  mealInfo: {
-    padding: 12,
-    flex: 1,
-  },
-  mealHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-    gap: 6,
-  },
-  mealEmoji: {
-    fontSize: 14,
-  },
-  mealName: {
-    fontSize: 14,
-    fontWeight: '600',
-    flex: 1,
-  },
-  mealTime: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  relativeTime: {
-    fontSize: 10,
-    marginBottom: 8,
-  },
-  nutritionSummary: {
-    gap: 4,
-  },
-  calories: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  macros: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  macro: {
-    fontSize: 10,
-    flex: 1,
-    textAlign: 'center',
-  },
-  editIndicator: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 12,
-    padding: 4,
-  },
-  addMealCard: {
-    width: 140,
-    height: 140,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
-  addMealIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addMealText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-});

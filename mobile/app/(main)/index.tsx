@@ -8,7 +8,7 @@ import * as Haptics from 'expo-haptics';
 // Import orbital sections with lazy loading
 import { createLazyComponent } from '@/lib/lazy';
 import { FloatingNotifications } from '@/components/FloatingNotifications';
-import { usePrefetchNavigation, prefetchManager } from '@/lib/query';
+import { prefetchManager } from '@/lib/query';
 import { performanceMonitor, usePerformanceMonitor } from '@/lib/performance';
 
 // Lazy load heavy components for better performance
@@ -48,7 +48,7 @@ export default function OrbitalNavigation() {
   const { mark, measure } = usePerformanceMonitor('OrbitalNavigation');
 
   // Prefetch navigation targets based on current section
-  usePrefetchNavigation(SECTION_PREFETCH_MAP[activeSection] || []);
+  // usePrefetchNavigation(SECTION_PREFETCH_MAP[activeSection] || []);
 
   // Preload adjacent sections for instant navigation
   const preloadAdjacentSections = useCallback(async (currentSection: OrbitalSection) => {
@@ -112,8 +112,8 @@ export default function OrbitalNavigation() {
         {
           key: ['meals', 'recent', 'summary'],
           fetcher: async () => {
-            const { mealStorage } = await import('@/domains/meals/services/mealStorage');
-            return mealStorage.getRecentMeals(5);
+            const { MealStorageService } = await import('@/domains/meals/services/mealStorage');
+            return MealStorageService.getRecentMeals(5);
           },
           staleTime: 1000 * 60 * 5, // 5 minutes
         },
