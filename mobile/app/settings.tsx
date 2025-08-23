@@ -158,7 +158,7 @@ export default function SettingsScreen() {
       {renderUserInfo()}
 
       {/* Settings Categories */}
-      <SettingsSection title={settings.title} variant="grouped" style={styles.categoriesContainer}>
+      <SettingsSection variant="grouped" style={styles.categoriesContainer}>
         {settingsCategories.map(renderSettingCategory)}
       </SettingsSection>
 
