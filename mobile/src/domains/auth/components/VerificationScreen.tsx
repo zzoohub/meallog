@@ -129,106 +129,106 @@ export function VerificationScreen({ onSuccess, onBack }: VerificationScreenProp
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.content}>
-          {/* Header */}
-        <View style={styles.header}>
-          <Text style={[styles.icon, { color: theme.colors.primary }]}>
-            📱
-          </Text>
-          <Text style={[styles.title, { color: theme.colors.text }]}>
-            Check your texts
-          </Text>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-            We sent a verification code to:
-          </Text>
-          <Text style={[styles.phoneNumber, { color: theme.colors.text }]}>
-            {formatPhoneForDisplay(pendingPhone)}
-          </Text>
-        </View>
-
-        {/* Verification Input */}
-        <View style={styles.inputSection}>
-          <VerificationInput
-            value={code}
-            onChangeText={handleCodeChange}
-            onComplete={handleCodeComplete}
-            error={error || undefined}
-            disabled={isVerifying || isLoading}
-            autoFocus
-          />
-        </View>
-
-        {/* Resend Section */}
-        <View style={styles.resendSection}>
-          <Text style={[styles.resendText, { color: theme.colors.textSecondary }]}>
-            Didn't get it?
-          </Text>
-          
-          {canResend ? (
-            <TouchableOpacity
-              onPress={handleResendCode}
-              style={styles.resendButton}
-            >
-              <Text style={[styles.resendButtonText, { color: theme.colors.primary }]}>
-                Resend code
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={[styles.icon, { color: theme.colors.primary }]}>
+                📱
               </Text>
-            </TouchableOpacity>
-          ) : (
-            <Text style={[styles.cooldownText, { color: theme.colors.textSecondary }]}>
-              Resend in 0:{resendCooldown.toString().padStart(2, '0')}
-            </Text>
-          )}
-        </View>
+              <Text style={[styles.title, { color: theme.colors.text }]}>
+                Check your texts
+              </Text>
+              <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+                We sent a verification code to:
+              </Text>
+              <Text style={[styles.phoneNumber, { color: theme.colors.text }]}>
+                {formatPhoneForDisplay(pendingPhone)}
+              </Text>
+            </View>
 
-        {/* Alternative Options */}
-        <View style={styles.alternativeSection}>
-          <TouchableOpacity
-            onPress={handleResendCode}
-            disabled={!canResend}
-            style={[
-              styles.alternativeButton,
-              !canResend && { opacity: 0.5 }
-            ]}
-          >
-            <Text style={[styles.alternativeText, { color: theme.colors.textSecondary }]}>
-              Try voice call
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            onPress={handleWrongNumber}
-            style={styles.alternativeButton}
-            disabled={isVerifying || isLoading}
-          >
-            <Text style={[styles.alternativeText, { color: theme.colors.textSecondary }]}>
-              Wrong number?
-            </Text>
-          </TouchableOpacity>
-        </View>
+            {/* Verification Input */}
+            <View style={styles.inputSection}>
+              <VerificationInput
+                value={code}
+                onChangeText={handleCodeChange}
+                onComplete={handleCodeComplete}
+                error={error || undefined}
+                disabled={isVerifying || isLoading}
+                autoFocus
+              />
+            </View>
 
-        {/* Manual Verify Button (fallback) - Reserved space to prevent layout shift */}
-        <View style={styles.verifyButtonContainer}>
-          {code.length === 6 && !isVerifying && (
-            <Button
-              title="Verify Code"
-              onPress={() => handleCodeComplete(code)}
-              loading={isVerifying}
-              style={styles.verifyButton}
-            />
-          )}
-        </View>
-      </View>
+            {/* Resend Section */}
+            <View style={styles.resendSection}>
+              <Text style={[styles.resendText, { color: theme.colors.textSecondary }]}>
+                Didn't get it?
+              </Text>
+              
+              {canResend ? (
+                <TouchableOpacity
+                  onPress={handleResendCode}
+                  style={styles.resendButton}
+                >
+                  <Text style={[styles.resendButtonText, { color: theme.colors.primary }]}>
+                    Resend code
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={[styles.cooldownText, { color: theme.colors.textSecondary }]}>
+                  Resend in 0:{resendCooldown.toString().padStart(2, '0')}
+                </Text>
+              )}
+            </View>
 
-      {/* Back Button */}
-      <View style={styles.backSection}>
-        <TouchableOpacity
-          onPress={onBack}
-          style={styles.backButton}
-          disabled={isVerifying || isLoading}
-        >
-          <Text style={[styles.backButtonText, { color: theme.colors.textSecondary }]}>
-            ← Back
-          </Text>
-        </TouchableOpacity>
+            {/* Alternative Options */}
+            <View style={styles.alternativeSection}>
+              <TouchableOpacity
+                onPress={handleResendCode}
+                disabled={!canResend}
+                style={[
+                  styles.alternativeButton,
+                  !canResend && { opacity: 0.5 }
+                ]}
+              >
+                <Text style={[styles.alternativeText, { color: theme.colors.textSecondary }]}>
+                  Try voice call
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                onPress={handleWrongNumber}
+                style={styles.alternativeButton}
+                disabled={isVerifying || isLoading}
+              >
+                <Text style={[styles.alternativeText, { color: theme.colors.textSecondary }]}>
+                  Wrong number?
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Manual Verify Button (fallback) - Reserved space to prevent layout shift */}
+            <View style={styles.verifyButtonContainer}>
+              {code.length === 6 && !isVerifying && (
+                <Button
+                  title="Verify Code"
+                  onPress={() => handleCodeComplete(code)}
+                  loading={isVerifying}
+                  style={styles.verifyButton}
+                />
+              )}
+            </View>
+
+            {/* Back Button */}
+            <View style={styles.backSection}>
+              <TouchableOpacity
+                onPress={onBack}
+                style={styles.backButton}
+                disabled={isVerifying || isLoading}
+              >
+                <Text style={[styles.backButtonText, { color: theme.colors.textSecondary }]}>
+                  ← Back
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 60,
-    paddingBottom: 20,
+    paddingBottom: 40,
     justifyContent: 'center',
   },
   header: {
@@ -318,9 +318,7 @@ const styles = StyleSheet.create({
     // Remove marginTop since container handles spacing
   },
   backSection: {
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-    paddingTop: 0,
+    marginTop: 24,
   },
   backButton: {
     alignItems: 'center',

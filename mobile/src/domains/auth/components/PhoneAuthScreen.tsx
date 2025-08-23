@@ -104,8 +104,8 @@ export function PhoneAuthScreen({ onSuccess, onCancel }: PhoneAuthScreenProps) {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
@@ -115,7 +115,6 @@ export function PhoneAuthScreen({ onSuccess, onCancel }: PhoneAuthScreenProps) {
             showsVerticalScrollIndicator={false}
             bounces={false}
           >
-            <View style={styles.topContent}>
             {/* Header */}
             <View style={styles.header}>
               <Text style={[styles.title, { color: theme.colors.text }]}>
@@ -144,9 +143,7 @@ export function PhoneAuthScreen({ onSuccess, onCancel }: PhoneAuthScreenProps) {
                 📱 We'll text you a verification code
               </Text>
             </View>
-          </View>
 
-          <View style={styles.bottomContent}>
             {/* Terms Agreement */}
             <View style={styles.termsSection}>
               <TouchableOpacity
@@ -215,7 +212,6 @@ export function PhoneAuthScreen({ onSuccess, onCancel }: PhoneAuthScreenProps) {
                 </Text>
               </TouchableOpacity>
             )}
-            </View>
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
@@ -233,12 +229,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    justifyContent: 'space-between',
-  },
-  topContent: {
     paddingTop: 60,
-  },
-  bottomContent: {
     paddingBottom: 40,
   },
   header: {
@@ -257,7 +248,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   inputSection: {
-    marginBottom: 32,
+    marginBottom: 48,
   },
   helpText: {
     fontSize: 14,
@@ -266,7 +257,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   termsSection: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   checkboxContainer: {
     flexDirection: 'row',

@@ -17,10 +17,15 @@ export default function AuthScreen() {
     router.replace('/(main)');
   };
 
+  const handleAuthCancel = () => {
+    router.replace('/(main)');
+  };
+
   return (
     <View style={styles.container}>
       <AuthFlow 
         onComplete={handleAuthComplete}
+        onCancel={handleAuthCancel}
       />
     </View>
   );
