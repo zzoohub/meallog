@@ -2,7 +2,6 @@ import { ParamListBase } from '@react-navigation/native';
 
 // Define all screen parameters
 export interface RootStackParamList extends ParamListBase {
-  onboarding: undefined;
   '(main)': undefined;
   'meal-detail': {
     mealId?: string;
@@ -49,10 +48,6 @@ export interface NavigationOptions {
 }
 
 export const SCREEN_OPTIONS: Record<keyof RootStackParamList, NavigationOptions> = {
-  onboarding: {
-    gestureEnabled: false,
-    animation: 'fade',
-  },
   '(main)': {
     gestureEnabled: false,
   },
@@ -113,10 +108,6 @@ export interface ScreenPerformanceConfig {
 }
 
 export const SCREEN_PERFORMANCE: Record<keyof RootStackParamList, ScreenPerformanceConfig> = {
-  onboarding: {
-    lazy: false, // Critical path
-    preload: false,
-  },
   '(main)': {
     lazy: false, // Main screen
     preload: false,

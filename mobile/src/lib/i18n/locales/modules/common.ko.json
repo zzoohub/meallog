@@ -13,35 +13,4 @@
   "settings": "설정",
   "language": "언어",
   "about": "정보",
-  "onboarding": {
-    "welcome": {
-      "title": "AI 영양 파트너",
-      "subtitle": "모든 식사를 인사이트로 바꿔보세요",
-      "startJourney": "푸드 여정 시작하기"
-    },
-    "camera": {
-      "title": "빠른 촬영 활성화",
-      "subtitle": "음식 사진을 찍어 즉시 분석하세요",
-      "grantAccess": "액세스 허용",
-      "description": "음식 사진을 찍어 즉시 AI 영양 분석을 받아보세요. 개인정보가 보호됩니다 - 사진은 기기에서만 처리됩니다."
-    },
-    "demo": {
-      "title": "지금 체험해보세요!",
-      "subtitle": "AI가 음식을 어떻게 분석하는지 확인해보세요",
-      "tryDemo": "데모 체험하기"
-    },
-    "goals": {
-      "title": "어떤 목적으로 오셨나요?",
-      "subtitle": "맞춤형 경험을 제공해드릴게요"
-    },
-    "profile": {
-      "title": "거의 다 됐어요!",
-      "subtitle": "푸드 캐릭터를 만들어보세요"
-    },
-    "buttons": {
-      "next": "다음",
-      "skip": "건너뛰기", 
-      "getStarted": "시작하기"
-    }
-  }
 }

@@ -31,14 +31,6 @@ export default function RootLayout() {
           }}
         />
         
-        {/* Onboarding Flow */}
-        <Stack.Screen 
-          name="onboarding" 
-          options={{
-            gestureEnabled: false,
-            animation: 'fade',
-          }}
-        />
         
         {/* Main App with Orbital Navigation */}
         <Stack.Screen 

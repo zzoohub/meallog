@@ -6,7 +6,6 @@ export interface User {
   phone: string;
   avatar?: string;
   isLoggedIn: boolean;
-  hasCompletedOnboarding?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

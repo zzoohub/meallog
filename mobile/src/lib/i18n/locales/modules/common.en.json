@@ -13,35 +13,4 @@
   "settings": "Settings",
   "language": "Language",
   "about": "About",
-  "onboarding": {
-    "welcome": {
-      "title": "Your AI Nutrition Companion",
-      "subtitle": "Transform every meal into insights",
-      "startJourney": "Start Your Meal Journey"
-    },
-    "camera": {
-      "title": "Enable Quick Capture",
-      "subtitle": "Take photos of your meal for instant analysis",
-      "grantAccess": "Grant Access",
-      "description": "Take photos of your meal for instant AI-powered nutrition analysis. Your privacy is protected - photos are only processed locally on your device."
-    },
-    "demo": {
-      "title": "Try It Now!",
-      "subtitle": "See how our AI analyzes your meal",
-      "tryDemo": "Try the Demo"
-    },
-    "goals": {
-      "title": "What brings you here?",
-      "subtitle": "We'll personalize your experience"
-    },
-    "profile": {
-      "title": "Almost done!",
-      "subtitle": "Help us create your meal character"
-    },
-    "buttons": {
-      "next": "Next",
-      "skip": "Skip",
-      "getStarted": "Get Started"
-    }
-  }
 }
