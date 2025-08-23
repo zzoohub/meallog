@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
 } from 'react-native';
 import { useTheme } from '@/lib/theme';
-// Removed gesture handlers to prevent conflicts with scrolling
 import * as Haptics from 'expo-haptics';
 
 // Import orbital sections with lazy loading
 import { createLazyComponent } from '@/lib/lazy';
 import { FloatingNotifications } from '@/components/FloatingNotifications';
+import { usePrefetchNavigation, prefetchManager } from '@/lib/query';
+import { performanceMonitor, usePerformanceMonitor } from '@/lib/performance';
 
 // Lazy load heavy components for better performance
 const CameraCenter = createLazyComponent(() => import('@/domains/camera/components/OrbitalCamera'));
@@ -30,11 +31,102 @@ enum OrbitalSection {
   Settings = 'settings',
 }
 
+// Map sections to prefetch targets
+const SECTION_PREFETCH_MAP: Record<OrbitalSection, string[]> = {
+  [OrbitalSection.Camera]: ['meal-history', 'progress'],
+  [OrbitalSection.Progress]: ['ai-coach', 'settings'],
+  [OrbitalSection.AICoach]: ['progress', 'settings'],
+  [OrbitalSection.Settings]: ['camera', 'progress'],
+};
+
 export default function OrbitalNavigation() {
   const { theme } = useTheme();
   const [activeSection, setActiveSection] = useState<OrbitalSection>(OrbitalSection.Camera);
+  const [preloadedSections, setPreloadedSections] = useState<Set<OrbitalSection>>(
+    new Set([OrbitalSection.Camera])
+  );
+  const { mark, measure } = usePerformanceMonitor('OrbitalNavigation');
 
-  const navigateToSection = (section: OrbitalSection) => {
+  // Prefetch navigation targets based on current section
+  usePrefetchNavigation(SECTION_PREFETCH_MAP[activeSection] || []);
+
+  // Preload adjacent sections for instant navigation
+  const preloadAdjacentSections = useCallback(async (currentSection: OrbitalSection) => {
+    const sections = Object.values(OrbitalSection);
+    const currentIndex = sections.indexOf(currentSection);
+    
+    // Preload next and previous sections
+    const adjacentSections = [
+      sections[currentIndex - 1],
+      sections[currentIndex + 1],
+    ].filter(Boolean);
+
+    adjacentSections.forEach(section => {
+      if (!preloadedSections.has(section)) {
+        // Dynamically import the component to preload it
+        switch (section) {
+          case OrbitalSection.Progress:
+            import('@/domains/progress/components/ProgressDashboard').then(() => {
+              setPreloadedSections(prev => new Set([...prev, section]));
+            });
+            break;
+          case OrbitalSection.AICoach:
+            import('@/domains/ai-coach/components/AICoach').then(() => {
+              setPreloadedSections(prev => new Set([...prev, section]));
+            });
+            break;
+          case OrbitalSection.Settings:
+            import('@/domains/settings/components/SettingsOrbital').then(() => {
+              setPreloadedSections(prev => new Set([...prev, section]));
+            });
+            break;
+        }
+      }
+    });
+  }, [preloadedSections]);
+
+  // Prefetch data for all main sections on mount
+  useEffect(() => {
+    const prefetchMainData = async () => {
+      // Wait a bit for initial render
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Prefetch common data that multiple sections might use
+      await prefetchManager.prefetchBatch([
+        {
+          key: ['user', 'profile'],
+          fetcher: async () => {
+            const { useUserStore } = await import('@/domains/user/stores/userStore');
+            return useUserStore.getState().user;
+          },
+          staleTime: 1000 * 60 * 10, // 10 minutes
+        },
+        {
+          key: ['settings', 'preferences'],
+          fetcher: async () => {
+            const { useSettingsStore } = await import('@/domains/settings/stores/settingsStore');
+            return useSettingsStore.getState();
+          },
+          staleTime: 1000 * 60 * 15, // 15 minutes
+        },
+        {
+          key: ['meals', 'recent', 'summary'],
+          fetcher: async () => {
+            const { mealStorage } = await import('@/domains/meals/services/mealStorage');
+            return mealStorage.getRecentMeals(5);
+          },
+          staleTime: 1000 * 60 * 5, // 5 minutes
+        },
+      ]);
+
+      // Start preloading adjacent sections
+      preloadAdjacentSections(OrbitalSection.Camera);
+    };
+
+    prefetchMainData();
+  }, [preloadAdjacentSections]);
+
+  const navigateToSection = useCallback((section: OrbitalSection) => {
     if (section === activeSection) return;
     
     // Validate section exists
@@ -42,6 +134,9 @@ export default function OrbitalNavigation() {
       console.warn('Invalid section navigation attempted:', section);
       return;
     }
+    
+    // Track navigation performance
+    performanceMonitor.startNavigation(activeSection, section);
     
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -51,7 +146,15 @@ export default function OrbitalNavigation() {
     
     // Instant section change to prevent flickering
     setActiveSection(section);
-  };
+    
+    // End navigation tracking
+    requestAnimationFrame(() => {
+      performanceMonitor.endNavigation(activeSection, section);
+    });
+    
+    // Preload adjacent sections for the new active section
+    preloadAdjacentSections(section);
+  }, [activeSection, preloadAdjacentSections]);
 
   const renderActiveSection = () => {
     const commonProps = {

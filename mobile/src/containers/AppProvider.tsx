@@ -1,6 +1,6 @@
 import { ReactNode, useEffect } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '@/lib/i18n/config';
 import { changeLanguage } from '@/lib/i18n';
@@ -9,28 +9,8 @@ import { useSettingsStore, flushSettingsStorage } from '@/domains/settings/store
 import { API_CONFIG } from '@/constants';
 import { bundleManager } from '@/lib/bundle';
 import ErrorBoundary from '@/components/ErrorBoundary';
-
-// Configure React Query client with better defaults
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: API_CONFIG.CACHE_DURATION,
-      gcTime: API_CONFIG.CACHE_DURATION * 2,
-      retry: (failureCount, error: any) => {
-        // Don't retry for 4xx errors
-        if (error?.status >= 400 && error?.status < 500) {
-          return false;
-        }
-        return failureCount < API_CONFIG.RETRY_ATTEMPTS;
-      },
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
-    },
-    mutations: {
-      retry: 1,
-    },
-  },
-});
+import { queryClient } from '@/lib/query';
+import { performanceMonitor } from '@/lib/performance';
 
 function AppInitializer() {
   const loadUserFromStorage = useUserStore(state => state.loadUserFromStorage);
@@ -38,11 +18,20 @@ function AppInitializer() {
   const displayLanguage = useSettingsStore(state => state.display.language);
 
   useEffect(() => {
+    // Track app initialization performance
+    performanceMonitor.mark('app-init');
+    
     // Initialize user data and settings from storage on app start
     Promise.all([
       loadUserFromStorage(),
       loadSettings(),
-    ]).catch(error => {
+    ]).then(() => {
+      const initTime = performanceMonitor.measure('app-init');
+      if (__DEV__ && initTime && initTime > 1000) {
+        console.warn(`Slow app initialization: ${initTime.toFixed(2)}ms`);
+      }
+    }).catch(error => {
+      performanceMonitor.measure('app-init');
       console.error('Failed to initialize app data:', error);
     });
 
