@@ -1,129 +1,130 @@
 import { StatusBar } from "expo-status-bar";
 import { Stack, Slot } from "expo-router";
-import { AppProvider } from "@/containers";
+import { AppProvider } from "@/contexts";
 import "react-native-reanimated";
 import "@/lib/i18n";
 
 export default function RootLayout() {
   return (
     <AppProvider>
-      <Stack screenOptions={{ 
-        headerShown: false,
-        animation: 'slide_from_right',
-        gestureEnabled: true,
-        animationDuration: 300,
-      }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: "slide_from_right",
+          gestureEnabled: true,
+          animationDuration: 300,
+        }}
+      >
         {/* Initial Screen */}
-        <Stack.Screen 
-          name="index" 
+        <Stack.Screen
+          name="index"
           options={{
             gestureEnabled: false,
-            animation: 'fade',
+            animation: "fade",
           }}
         />
-        
+
         {/* Auth Flow */}
-        <Stack.Screen 
-          name="auth" 
+        <Stack.Screen
+          name="auth"
           options={{
             gestureEnabled: false,
-            animation: 'fade',
+            animation: "fade",
           }}
         />
-        
-        
+
         {/* Main App with Orbital Navigation */}
-        <Stack.Screen 
-          name="(main)" 
+        <Stack.Screen
+          name="(main)"
           options={{
             gestureEnabled: false,
           }}
         />
-        
+
         {/* Modal Screens */}
-        <Stack.Screen 
-          name="meal-detail" 
+        <Stack.Screen
+          name="meal-detail"
           options={{
-            presentation: 'modal',
-            animation: 'slide_from_bottom',
+            presentation: "modal",
+            animation: "slide_from_bottom",
           }}
         />
-        
-        <Stack.Screen 
-          name="ai-coach" 
+
+        <Stack.Screen
+          name="ai-coach"
           options={{
-            presentation: 'modal',
-            animation: 'slide_from_left',
+            presentation: "modal",
+            animation: "slide_from_left",
           }}
         />
-        
-        <Stack.Screen 
-          name="profile" 
+
+        <Stack.Screen
+          name="profile"
           options={{
-            presentation: 'modal',
+            presentation: "modal",
           }}
         />
-        
-        <Stack.Screen 
-          name="challenge-detail" 
+
+        <Stack.Screen
+          name="challenge-detail"
           options={{
-            presentation: 'modal',
+            presentation: "modal",
           }}
         />
-        
+
         {/* Settings Flow - Connected Navigation */}
-        <Stack.Screen 
-          name="settings" 
+        <Stack.Screen
+          name="settings"
           options={{
-            animation: 'slide_from_right',
+            animation: "slide_from_right",
             gestureEnabled: true,
           }}
         />
-        
-        <Stack.Screen 
-          name="settings/account" 
+
+        <Stack.Screen
+          name="settings/account"
           options={{
-            animation: 'slide_from_right',
+            animation: "slide_from_right",
             gestureEnabled: true,
           }}
         />
-        
-        <Stack.Screen 
-          name="settings/display" 
+
+        <Stack.Screen
+          name="settings/display"
           options={{
-            animation: 'slide_from_right',
+            animation: "slide_from_right",
             gestureEnabled: true,
           }}
         />
-        
-        <Stack.Screen 
-          name="settings/notifications" 
+
+        <Stack.Screen
+          name="settings/notifications"
           options={{
-            animation: 'slide_from_right',
+            animation: "slide_from_right",
             gestureEnabled: true,
           }}
         />
-        
-        <Stack.Screen 
-          name="settings/privacy" 
+
+        <Stack.Screen
+          name="settings/privacy"
           options={{
-            animation: 'slide_from_right',
+            animation: "slide_from_right",
             gestureEnabled: true,
           }}
         />
-        
-        <Stack.Screen 
-          name="settings/goals" 
+
+        <Stack.Screen
+          name="settings/goals"
           options={{
-            animation: 'slide_from_right',
+            animation: "slide_from_right",
             gestureEnabled: true,
           }}
         />
-        
-        <Stack.Screen 
-          name="settings/data" 
+
+        <Stack.Screen
+          name="settings/data"
           options={{
-            animation: 'slide_from_right',
+            animation: "slide_from_right",
             gestureEnabled: true,
           }}
         />

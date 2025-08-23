@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   SectionList,
   Modal,
+  FlatList,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { useRouter } from "expo-router";
@@ -18,6 +19,9 @@ import { Meal, MealHistoryFilter } from "@/domains/meals/types";
 import { MealStorageService, generateMockMeals } from "@/domains/meals/services/mealStorage";
 import { useTimelineI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
+import { useTimeContext, SortMethod } from "@/contexts";
+import { mealSortingService } from "@/domains/meals/services/MealSortingService";
+import { performanceOptimizationService } from "@/services/PerformanceOptimizationService";
 
 interface MealSection {
   title: string;
@@ -28,6 +32,8 @@ export default function MealHistory() {
   const { theme } = useTheme();
   const router = useRouter();
   const timeline = useTimelineI18n();
+  const { globalPeriod, setGlobalPeriod, sortMethod, setSortMethod } = useTimeContext();
+
   const [meals, setMeals] = useState<Meal[]>([]);
   const [sections, setSections] = useState<MealSection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,75 +41,62 @@ export default function MealHistory() {
   const [searchQuery, setSearchQuery] = useState("");
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
   const [showDateRangeModal, setShowDateRangeModal] = useState(false);
-  const [markedDates, setMarkedDates] = useState<{ [key: string]: any }>({});
+  const [showSortModal, setShowSortModal] = useState(false);
   const [mockDataGenerated, setMockDataGenerated] = useState(false);
   const ITEMS_PER_PAGE = 20;
 
-  // Date range calendar functions
-  const updateMarkedDates = useCallback(() => {
-    const marked: { [key: string]: any } = {};
+  // State for sorted sections
+  const [sortedSections, setSortedSections] = useState<MealSection[]>([]);
+  const [isSorting, setIsSorting] = useState(false);
 
-    if (startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
+  // Calendar range state
+  const [calendarRange, setCalendarRange] = useState<{
+    startDate: Date | null;
+    endDate: Date | null;
+    markedDates: any;
+  }>({
+    startDate: null,
+    endDate: null,
+    markedDates: {},
+  });
 
-      // Mark the start date
-      const startDateString = start.toISOString().split("T")[0];
-      if (startDateString) {
-        marked[startDateString] = {
-          startingDay: true,
-          color: "#FF6B35",
-          textColor: "white",
-        };
+  // Memoized meal sections for compatibility
+  const mealSections = useMemo(() => {
+    return sortedSections;
+  }, [sortedSections]);
+
+  // Update sections when meals or sort method changes
+  useEffect(() => {
+    const updateSortedSections = async () => {
+      if (meals.length === 0) {
+        setSortedSections([]);
+        return;
       }
 
-      // Mark the end date
-      const endDateString = end.toISOString().split("T")[0];
-      if (endDateString) {
-        marked[endDateString] = {
-          endingDay: true,
-          color: "#FF6B35",
-          textColor: "white",
-        };
+      setIsSorting(true);
+      try {
+        const sections = await performanceOptimizationService.getCachedData(
+          `meal-sections-${sortMethod}-${meals.length}-${searchQuery}`,
+          () => mealSortingService.sortMeals(meals, sortMethod),
+          { ttl: 1 * 60 * 1000 }, // 1 minute cache
+        );
+        setSortedSections(sections);
+      } catch (error) {
+        console.error("Error sorting meals:", error);
+        // Fallback to basic date sorting
+        const fallbackSections = await mealSortingService.sortMeals(meals, "date-desc");
+        setSortedSections(fallbackSections);
+      } finally {
+        setIsSorting(false);
       }
+    };
 
-      // Mark dates in between
-      const currentDate = new Date(start);
-      currentDate.setDate(currentDate.getDate() + 1);
+    updateSortedSections();
+  }, [meals, sortMethod, searchQuery]);
 
-      while (currentDate < end) {
-        const dateString = currentDate.toISOString().split("T")[0];
-        if (dateString) {
-          marked[dateString] = {
-            color: "#FF6B35",
-            textColor: "white",
-          };
-        }
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-    } else if (startDate) {
-      const startDateString = startDate.toISOString().split("T")[0];
-      if (startDateString) {
-        marked[startDateString] = {
-          selected: true,
-          selectedColor: "#FF6B35",
-        };
-      }
-    } else if (endDate) {
-      const endDateString = endDate.toISOString().split("T")[0];
-      if (endDateString) {
-        marked[endDateString] = {
-          selected: true,
-          selectedColor: "#FF6B35",
-        };
-      }
-    }
-
-    setMarkedDates(marked);
-  }, [startDate, endDate]);
+  // Get sort options for UI
+  const sortOptions = mealSortingService.getSortOptions();
 
   useEffect(() => {
     const loadData = async () => {
@@ -114,8 +107,8 @@ export default function MealHistory() {
 
         const filter: MealHistoryFilter = {};
         if (searchQuery) filter.searchQuery = searchQuery;
-        if (startDate) filter.startDate = startDate;
-        if (endDate) filter.endDate = endDate;
+        if (globalPeriod.startDate) filter.startDate = globalPeriod.startDate;
+        if (globalPeriod.endDate) filter.endDate = globalPeriod.endDate;
 
         let loadedMeals = await MealStorageService.getMealsFiltered(filter);
 
@@ -150,46 +143,7 @@ export default function MealHistory() {
         const paginatedMeals = loadedMeals.slice(0, endIndex);
 
         setMeals(paginatedMeals);
-        
-        // Group meals by date inline
-        const grouped = paginatedMeals.reduce((acc, meal) => {
-          const date = meal.timestamp.toDateString();
-          if (!acc[date]) {
-            acc[date] = [];
-          }
-          acc[date].push(meal);
-          return acc;
-        }, {} as Record<string, Meal[]>);
-
-        const sections = Object.entries(grouped)
-          .map(([date, meals]) => {
-            // Format section date inline
-            const sectionDate = new Date(date);
-            const today = new Date();
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-
-            let title: string;
-            if (sectionDate.toDateString() === today.toDateString()) {
-              title = "Today";
-            } else if (sectionDate.toDateString() === yesterday.toDateString()) {
-              title = "Yesterday";
-            } else {
-              title = sectionDate.toLocaleDateString("en-US", {
-                weekday: "long",
-                month: "short",
-                day: "numeric",
-              });
-            }
-
-            return {
-              title,
-              data: meals.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()),
-            };
-          })
-          .sort((a, b) => (b.data[0]?.timestamp?.getTime() ?? 0) - (a.data[0]?.timestamp?.getTime() ?? 0));
-        
-        setSections(sections);
+        // Sections are now handled by useMemo hook
         setHasMore(endIndex < loadedMeals.length);
       } catch (error) {
         console.error("Error loading meals:", error);
@@ -199,11 +153,12 @@ export default function MealHistory() {
     };
 
     loadData();
-  }, [searchQuery, startDate, endDate, mockDataGenerated]);
+  }, [searchQuery, globalPeriod.startDate, globalPeriod.endDate, mockDataGenerated]);
 
+  // Update sections when mealSections changes
   useEffect(() => {
-    updateMarkedDates();
-  }, [updateMarkedDates]);
+    setSections(mealSections);
+  }, [mealSections]);
 
   // Meal list functions
   const handleMealPress = (meal: Meal) => {
@@ -243,93 +198,99 @@ export default function MealHistory() {
   // Memoized meal item component for better performance
   const MealItem = React.memo(function MealItem({ meal }: { meal: Meal }) {
     return (
-    <TouchableOpacity style={[styles.mealItem, { backgroundColor: theme.colors.surface }]} onPress={() => handleMealPress(meal)} activeOpacity={0.7}>
-      {/* Photo */}
-      <View style={styles.mealPhotoContainer}>
-        {meal.photoUri ? (
-          <Image source={{ uri: meal.photoUri }} style={styles.mealPhoto} />
-        ) : (
-          <View style={[styles.placeholderPhoto, { backgroundColor: theme.colors.border }]}>
-            <Ionicons name="camera" size={20} color={theme.colors.textSecondary} />
-          </View>
-        )}
+      <TouchableOpacity
+        style={[styles.mealItem, { backgroundColor: theme.colors.surface }]}
+        onPress={() => handleMealPress(meal)}
+        activeOpacity={0.7}
+      >
+        {/* Photo */}
+        <View style={styles.mealPhotoContainer}>
+          {meal.photoUri ? (
+            <Image source={{ uri: meal.photoUri }} style={styles.mealPhoto} />
+          ) : (
+            <View style={[styles.placeholderPhoto, { backgroundColor: theme.colors.border }]}>
+              <Ionicons name="camera" size={20} color={theme.colors.textSecondary} />
+            </View>
+          )}
 
-        {/* Verification badge */}
-        {meal.isVerified && (
-          <View style={styles.verifiedBadge}>
-            <Ionicons name="checkmark-circle" size={12} color={theme.colors.secondary} />
-          </View>
-        )}
-      </View>
+          {/* Verification badge */}
+          {meal.isVerified && (
+            <View style={styles.verifiedBadge}>
+              <Ionicons name="checkmark-circle" size={12} color={theme.colors.secondary} />
+            </View>
+          )}
+        </View>
 
-      {/* Meal Details */}
-      <View style={styles.mealDetails}>
-        <View style={styles.mealHeader}>
-          <View style={styles.mealTitleRow}>
-            <Text style={styles.mealEmoji}>{getMealTypeIcon(meal.mealType)}</Text>
-            <Text style={[styles.mealName, { color: theme.colors.text }]} numberOfLines={1}>
-              {meal.name}
-            </Text>
-            <Text style={[styles.mealTime, { color: theme.colors.textSecondary }]}>{formatTime(meal.timestamp)}</Text>
-          </View>
+        {/* Meal Details */}
+        <View style={styles.mealDetails}>
+          <View style={styles.mealHeader}>
+            <View style={styles.mealTitleRow}>
+              <Text style={styles.mealEmoji}>{getMealTypeIcon(meal.mealType)}</Text>
+              <Text style={[styles.mealName, { color: theme.colors.text }]} numberOfLines={1}>
+                {meal.name}
+              </Text>
+              <Text style={[styles.mealTime, { color: theme.colors.textSecondary }]}>{formatTime(meal.timestamp)}</Text>
+            </View>
 
-          {/* AI Insights Preview */}
-          {meal.aiAnalysis?.insights && (
-            <View style={styles.insightsPreview}>
-              <View style={styles.healthScore}>
-                <Ionicons name="fitness" size={12} color={theme.colors.secondary} />
-                <Text style={[styles.healthScoreText, { color: theme.colors.secondary }]}>{meal.aiAnalysis.insights.healthScore}/100</Text>
+            {/* AI Insights Preview */}
+            {meal.aiAnalysis?.insights && (
+              <View style={styles.insightsPreview}>
+                <View style={styles.healthScore}>
+                  <Ionicons name="fitness" size={12} color={theme.colors.secondary} />
+                  <Text style={[styles.healthScoreText, { color: theme.colors.secondary }]}>
+                    {meal.aiAnalysis.insights.healthScore}/100
+                  </Text>
+                </View>
+                <Text style={[styles.nutritionBalance, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+                  {meal.aiAnalysis.insights.nutritionBalance}
+                </Text>
               </View>
-              <Text style={[styles.nutritionBalance, { color: theme.colors.textSecondary }]} numberOfLines={1}>
-                {meal.aiAnalysis.insights.nutritionBalance}
+            )}
+          </View>
+
+          {/* Nutrition Summary */}
+          <View style={styles.nutritionRow}>
+            <View style={styles.nutritionItem}>
+              <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.calories}</Text>
+              <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>cal</Text>
+            </View>
+            <View style={styles.nutritionItem}>
+              <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.protein}g</Text>
+              <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>protein</Text>
+            </View>
+            <View style={styles.nutritionItem}>
+              <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.carbs}g</Text>
+              <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>carbs</Text>
+            </View>
+            <View style={styles.nutritionItem}>
+              <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.fat}g</Text>
+              <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>fat</Text>
+            </View>
+          </View>
+
+          {/* Ingredients Preview */}
+          <View style={styles.ingredientsPreview}>
+            <Text style={[styles.ingredientsText, { color: theme.colors.textSecondary }]} numberOfLines={2}>
+              {meal.ingredients.join(", ")}
+            </Text>
+          </View>
+
+          {/* AI Recommendations */}
+          {meal.aiAnalysis?.insights?.recommendations && meal.aiAnalysis.insights.recommendations.length > 0 && (
+            <View style={styles.recommendationPreview}>
+              <Ionicons name="bulb" size={12} color={theme.colors.warning} />
+              <Text style={[styles.recommendationText, { color: theme.colors.warning }]} numberOfLines={1}>
+                {meal.aiAnalysis.insights.recommendations[0]}
               </Text>
             </View>
           )}
         </View>
 
-        {/* Nutrition Summary */}
-        <View style={styles.nutritionRow}>
-          <View style={styles.nutritionItem}>
-            <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.calories}</Text>
-            <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>cal</Text>
-          </View>
-          <View style={styles.nutritionItem}>
-            <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.protein}g</Text>
-            <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>protein</Text>
-          </View>
-          <View style={styles.nutritionItem}>
-            <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.carbs}g</Text>
-            <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>carbs</Text>
-          </View>
-          <View style={styles.nutritionItem}>
-            <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{meal.nutrition.fat}g</Text>
-            <Text style={[styles.nutritionLabel, { color: theme.colors.textSecondary }]}>fat</Text>
-          </View>
+        {/* Edit Arrow */}
+        <View style={styles.editArrow}>
+          <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
         </View>
-
-        {/* Ingredients Preview */}
-        <View style={styles.ingredientsPreview}>
-          <Text style={[styles.ingredientsText, { color: theme.colors.textSecondary }]} numberOfLines={2}>
-            {meal.ingredients.join(", ")}
-          </Text>
-        </View>
-
-        {/* AI Recommendations */}
-        {meal.aiAnalysis?.insights?.recommendations && meal.aiAnalysis.insights.recommendations.length > 0 && (
-          <View style={styles.recommendationPreview}>
-            <Ionicons name="bulb" size={12} color={theme.colors.warning} />
-            <Text style={[styles.recommendationText, { color: theme.colors.warning }]} numberOfLines={1}>
-              {meal.aiAnalysis.insights.recommendations[0]}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Edit Arrow */}
-      <View style={styles.editArrow}>
-        <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
     );
   });
 
@@ -346,17 +307,17 @@ export default function MealHistory() {
 
   const handleLoadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore) return;
-    
+
     try {
       setIsLoadingMore(true);
 
       const filter: MealHistoryFilter = {};
       if (searchQuery) filter.searchQuery = searchQuery;
-      if (startDate) filter.startDate = startDate;
-      if (endDate) filter.endDate = endDate;
+      if (globalPeriod.startDate) filter.startDate = globalPeriod.startDate;
+      if (globalPeriod.endDate) filter.endDate = globalPeriod.endDate;
 
       const loadedMeals = await MealStorageService.getMealsFiltered(filter);
-      
+
       const startIndex = page * ITEMS_PER_PAGE;
       const endIndex = startIndex + ITEMS_PER_PAGE;
       const newMeals = loadedMeals.slice(startIndex, endIndex);
@@ -364,55 +325,17 @@ export default function MealHistory() {
       if (newMeals.length > 0) {
         setMeals(prev => [...prev, ...newMeals]);
         setPage(prev => prev + 1);
-        
-        // Update sections with all meals
-        const allMeals = [...meals, ...newMeals];
-        const grouped = allMeals.reduce((acc, meal) => {
-          const date = meal.timestamp.toDateString();
-          if (!acc[date]) {
-            acc[date] = [];
-          }
-          acc[date].push(meal);
-          return acc;
-        }, {} as Record<string, Meal[]>);
 
-        const sections = Object.entries(grouped)
-          .map(([date, meals]) => {
-            const sectionDate = new Date(date);
-            const today = new Date();
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-
-            let title: string;
-            if (sectionDate.toDateString() === today.toDateString()) {
-              title = "Today";
-            } else if (sectionDate.toDateString() === yesterday.toDateString()) {
-              title = "Yesterday";
-            } else {
-              title = sectionDate.toLocaleDateString("en-US", {
-                weekday: "long",
-                month: "short",
-                day: "numeric",
-              });
-            }
-
-            return {
-              title,
-              data: meals.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()),
-            };
-          })
-          .sort((a, b) => (b.data[0]?.timestamp?.getTime() ?? 0) - (a.data[0]?.timestamp?.getTime() ?? 0));
-        
-        setSections(sections);
+        // Sections are automatically updated by useMemo hook
       }
-      
+
       setHasMore(endIndex < loadedMeals.length);
     } catch (error) {
       console.error("Error loading more meals:", error);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoadingMore, hasMore, searchQuery, startDate, endDate, page, meals]);
+  }, [isLoadingMore, hasMore, searchQuery, globalPeriod.startDate, globalPeriod.endDate, page, meals]);
 
   const renderFooter = () => {
     if (!isLoadingMore) return null;
@@ -424,69 +347,119 @@ export default function MealHistory() {
     );
   };
 
-  // Date selection functions
-  const handleDayPress = (day: any) => {
-    const selectedDate = new Date(day.dateString);
+  // Calendar utility functions
+  const updateCalendarRange = (start: Date | null, end: Date | null) => {
+    const markedDates: any = {};
 
-    if (!startDate || (startDate && endDate)) {
-      // Starting a new selection
-      setStartDate(selectedDate);
-      setEndDate(null);
-    } else if (startDate && !endDate) {
-      // Selecting end date
-      if (selectedDate >= startDate) {
-        setEndDate(selectedDate);
-      } else {
-        // If selected date is before start date, make it the new start date
-        setStartDate(selectedDate);
-        setEndDate(null);
+    if (start && !end) {
+      const dateString = start.toISOString().split("T")[0];
+      if (dateString) {
+        markedDates[dateString] = {
+          startingDay: true,
+          color: theme.colors.primary,
+          textColor: "white",
+        };
       }
+    } else if (start && end) {
+      const startString = start.toISOString().split("T")[0];
+      const endString = end.toISOString().split("T")[0];
+
+      if (startString && endString && startString === endString) {
+        markedDates[startString] = {
+          startingDay: true,
+          endingDay: true,
+          color: theme.colors.primary,
+          textColor: "white",
+        };
+      } else if (startString && endString) {
+        markedDates[startString] = {
+          startingDay: true,
+          color: theme.colors.primary,
+          textColor: "white",
+        };
+        markedDates[endString] = {
+          endingDay: true,
+          color: theme.colors.primary,
+          textColor: "white",
+        };
+
+        // Mark days in between
+        const currentDate = new Date(start);
+        currentDate.setDate(currentDate.getDate() + 1);
+        
+        while (currentDate < end) {
+          const dateString = currentDate.toISOString().split("T")[0];
+          if (dateString) {
+            markedDates[dateString] = {
+              color: theme.colors.primary + "40",
+              textColor: theme.colors.text,
+            };
+          }
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+      }
+    }
+
+    setCalendarRange({ startDate: start, endDate: end, markedDates });
+
+    // Update global period if we have both dates
+    if (start && end) {
+      setGlobalPeriod({
+        type: "custom",
+        startDate: start,
+        endDate: end,
+      });
+    } else if (start && !end) {
+      setGlobalPeriod({
+        type: "custom",
+        startDate: start,
+      });
     }
   };
 
-  const clearDateFilter = () => {
-    setStartDate(null);
-    setEndDate(null);
+  const clearDateRange = () => {
+    setCalendarRange({ startDate: null, endDate: null, markedDates: {} });
+    setGlobalPeriod({ type: "day" });
   };
 
   const formatDateRange = () => {
-    if (!startDate && !endDate) return "All time";
-    if (startDate && endDate) {
-      return `${startDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      })} - ${endDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
-    }
-    if (startDate) {
-      return `From ${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
-    }
-    if (endDate) {
-      return `Until ${endDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+    if (globalPeriod.startDate && globalPeriod.endDate) {
+      return `${globalPeriod.startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${globalPeriod.endDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+    } else if (globalPeriod.startDate) {
+      return `From ${globalPeriod.startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+    } else if (globalPeriod.endDate) {
+      return `Until ${globalPeriod.endDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
     }
     return "All time";
   };
 
-  const setDateRangePreset = (days: number | null) => {
-    if (days === null) {
-      setStartDate(null);
-      setEndDate(null);
-    } else {
-      const today = new Date();
-      const start = new Date();
-      start.setDate(today.getDate() - days + 1);
-      start.setHours(0, 0, 0, 0);
+  const setDateRangePreset = (days: number) => {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - days + 1);
 
-      const end = new Date();
-      end.setHours(23, 59, 59, 999);
-
-      setStartDate(start);
-      setEndDate(end);
-    }
-    setShowDateRangeModal(false);
+    updateCalendarRange(startDate, endDate);
   };
 
-  const openDateRangeModal = () => {
-    setShowDateRangeModal(true);
+  // Date selection functions
+  const handleDayPress = (day: any) => {
+    const selectedDate = new Date(day.dateString);
+    const { startDate, endDate } = calendarRange;
+
+    if (!startDate || (startDate && endDate)) {
+      updateCalendarRange(selectedDate, null);
+    } else if (startDate && !endDate) {
+      if (selectedDate >= startDate) {
+        updateCalendarRange(startDate, selectedDate);
+      } else {
+        updateCalendarRange(selectedDate, null);
+      }
+    }
+  };
+
+  const handleSortMethodSelect = (method: SortMethod) => {
+    setSortMethod(method);
+    setShowSortModal(false);
   };
 
   return (
@@ -497,9 +470,14 @@ export default function MealHistory() {
           <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: theme.colors.text }]}>{timeline.mealHistory}</Text>
-        <TouchableOpacity onPress={openDateRangeModal} style={styles.dateButton}>
-          <Ionicons name="calendar" size={24} color={theme.colors.text} />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity onPress={() => setShowSortModal(true)} style={styles.headerButton}>
+            <Ionicons name="funnel" size={20} color={theme.colors.text} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowDateRangeModal(true)} style={styles.headerButton}>
+            <Ionicons name="calendar" size={20} color={theme.colors.text} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Search Bar */}
@@ -521,14 +499,39 @@ export default function MealHistory() {
         </View>
       </View>
 
-      {/* Date Range Filter */}
-      <View style={styles.dateFilterContainer}>
-        <TouchableOpacity style={[styles.dateRangeButton, { backgroundColor: theme.colors.surface }]} onPress={openDateRangeModal}>
-          <Ionicons name="calendar-outline" size={16} color={theme.colors.primary} />
-          <Text style={[styles.dateRangeText, { color: theme.colors.textSecondary }]}>{formatDateRange()}</Text>
+      {/* Filter Bar */}
+      <View style={styles.filterBar}>
+        {/* Sort Indicator */}
+        <TouchableOpacity
+          style={[styles.filterButton, { backgroundColor: theme.colors.surface }]}
+          onPress={() => setShowSortModal(true)}
+        >
+          <Ionicons
+            name={mealSortingService.getSortMetadata(sortMethod).icon as any}
+            size={16}
+            color={theme.colors.primary}
+          />
+          <Text style={[styles.filterText, { color: theme.colors.text }]}>
+            {mealSortingService.getSortMetadata(sortMethod).label}
+          </Text>
         </TouchableOpacity>
-        {(startDate || endDate) && (
-          <TouchableOpacity style={[styles.clearDateButton, { backgroundColor: theme.colors.surface }]} onPress={clearDateFilter}>
+
+        {/* Date Range Filter */}
+        <TouchableOpacity
+          style={[styles.filterButton, { backgroundColor: theme.colors.surface, flex: 1 }]}
+          onPress={() => setShowDateRangeModal(true)}
+        >
+          <Ionicons name="calendar-outline" size={16} color={theme.colors.primary} />
+          <Text style={[styles.filterText, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+            {formatDateRange()}
+          </Text>
+        </TouchableOpacity>
+
+        {(globalPeriod.startDate || globalPeriod.endDate || globalPeriod.type === "custom") && (
+          <TouchableOpacity
+            style={[styles.clearButton, { backgroundColor: theme.colors.surface }]}
+            onPress={clearDateRange}
+          >
             <Ionicons name="close" size={16} color={theme.colors.textSecondary} />
           </TouchableOpacity>
         )}
@@ -540,7 +543,7 @@ export default function MealHistory() {
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={[styles.loadingText, { color: theme.colors.text }]}>Loading your meals...</Text>
         </View>
-      ) : sections.length === 0 ? (
+      ) : sortedSections.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="restaurant-outline" size={64} color={theme.colors.textSecondary} />
           <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>{timeline.noMealsFound}</Text>
@@ -554,7 +557,7 @@ export default function MealHistory() {
         </View>
       ) : (
         <SectionList
-          sections={sections}
+          sections={sortedSections}
           keyExtractor={(item: Meal) => item.id}
           renderItem={renderMealItem}
           renderSectionHeader={renderSectionHeader}
@@ -568,6 +571,64 @@ export default function MealHistory() {
         />
       )}
 
+      {/* Sort Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showSortModal}
+        onRequestClose={() => setShowSortModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.sortModal, { backgroundColor: theme.colors.background }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Sort By</Text>
+              <TouchableOpacity onPress={() => setShowSortModal(false)}>
+                <Ionicons name="close" size={24} color={theme.colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={sortOptions}
+              keyExtractor={item => item.key}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.sortOption,
+                    sortMethod === item.key && { backgroundColor: theme.colors.primary + "20" },
+                  ]}
+                  onPress={() => handleSortMethodSelect(item.key)}
+                >
+                  <View style={styles.sortOptionLeft}>
+                    <Ionicons
+                      name={item.icon as any}
+                      size={20}
+                      color={sortMethod === item.key ? theme.colors.primary : theme.colors.textSecondary}
+                    />
+                    <View style={styles.sortOptionText}>
+                      <Text
+                        style={[
+                          styles.sortOptionLabel,
+                          { color: sortMethod === item.key ? theme.colors.primary : theme.colors.text },
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                      {item.description && (
+                        <Text style={[styles.sortOptionDescription, { color: theme.colors.textSecondary }]}>
+                          {item.description}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                  {sortMethod === item.key && <Ionicons name="checkmark" size={20} color={theme.colors.primary} />}
+                </TouchableOpacity>
+              )}
+              style={styles.sortOptionsList}
+            />
+          </View>
+        </View>
+      </Modal>
+
       {/* Date Range Selection Modal */}
       <Modal
         animationType="slide"
@@ -577,8 +638,8 @@ export default function MealHistory() {
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.dateRangeModal, { backgroundColor: theme.colors.background }]}>
-            <View style={[styles.dateRangeHeader, { borderBottomColor: theme.colors.border }]}>
-              <Text style={[styles.dateRangeModalTitle, { color: theme.colors.text }]}>Select Date Range</Text>
+            <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Select Date Range</Text>
               <TouchableOpacity onPress={() => setShowDateRangeModal(false)}>
                 <Ionicons name="close" size={24} color={theme.colors.textSecondary} />
               </TouchableOpacity>
@@ -589,23 +650,48 @@ export default function MealHistory() {
               <Text style={[styles.presetsTitle, { color: theme.colors.text }]}>Quick Select</Text>
               <View style={styles.presetsGrid}>
                 <TouchableOpacity
-                  style={[styles.presetButton, { backgroundColor: theme.colors.surface }, !startDate && !endDate && { backgroundColor: theme.colors.primary }]}
-                  onPress={() => setDateRangePreset(null)}
+                  style={[styles.presetButton, { backgroundColor: theme.colors.surface }]}
+                  onPress={() => {
+                    clearDateRange();
+                    setShowDateRangeModal(false);
+                  }}
                 >
-                  <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }, !startDate && !endDate && { color: theme.colors.primary }]}>
-                    All Time
-                  </Text>
+                  <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>All Time</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.presetButton, { backgroundColor: theme.colors.surface }]} onPress={() => setDateRangePreset(1)}>
+                <TouchableOpacity
+                  style={[styles.presetButton, { backgroundColor: theme.colors.surface }]}
+                  onPress={() => {
+                    setDateRangePreset(1);
+                    setShowDateRangeModal(false);
+                  }}
+                >
                   <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>Today</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.presetButton, { backgroundColor: theme.colors.surface }]} onPress={() => setDateRangePreset(7)}>
+                <TouchableOpacity
+                  style={[styles.presetButton, { backgroundColor: theme.colors.surface }]}
+                  onPress={() => {
+                    setDateRangePreset(7);
+                    setShowDateRangeModal(false);
+                  }}
+                >
                   <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>Last 7 Days</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.presetButton, { backgroundColor: theme.colors.surface }]} onPress={() => setDateRangePreset(30)}>
+                <TouchableOpacity
+                  style={[styles.presetButton, { backgroundColor: theme.colors.surface }]}
+                  onPress={() => {
+                    setDateRangePreset(30);
+                    setShowDateRangeModal(false);
+                  }}
+                >
                   <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>Last 30 Days</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.presetButton, { backgroundColor: theme.colors.surface }]} onPress={() => setDateRangePreset(90)}>
+                <TouchableOpacity
+                  style={[styles.presetButton, { backgroundColor: theme.colors.surface }]}
+                  onPress={() => {
+                    setDateRangePreset(90);
+                    setShowDateRangeModal(false);
+                  }}
+                >
                   <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>Last 3 Months</Text>
                 </TouchableOpacity>
               </View>
@@ -614,12 +700,14 @@ export default function MealHistory() {
             {/* Calendar */}
             <View style={styles.calendarContainer}>
               <Text style={[styles.calendarTitle, { color: theme.colors.text }]}>Select Date Range</Text>
-              <Text style={[styles.calendarInstructions, { color: theme.colors.textSecondary }]}>Tap to select start date, tap again to select end date</Text>
+              <Text style={[styles.calendarInstructions, { color: theme.colors.textSecondary }]}>
+                Tap to select start date, tap again to select end date
+              </Text>
 
               <Calendar
                 onDayPress={handleDayPress}
                 markingType={"period"}
-                markedDates={markedDates}
+                markedDates={calendarRange.markedDates}
                 theme={{
                   backgroundColor: theme.colors.surface,
                   calendarBackground: theme.colors.surface,
@@ -644,14 +732,8 @@ export default function MealHistory() {
                 }}
               />
 
-              {(startDate || endDate) && (
-                <TouchableOpacity
-                  style={styles.clearCustomButton}
-                  onPress={() => {
-                    setStartDate(null);
-                    setEndDate(null);
-                  }}
-                >
+              {(calendarRange.startDate || calendarRange.endDate) && (
+                <TouchableOpacity style={styles.clearCustomButton} onPress={() => clearDateRange()}>
                   <Ionicons name="trash-outline" size={16} color={theme.colors.textSecondary} />
                   <Text style={[styles.clearCustomButtonText, { color: theme.colors.primary }]}>Clear Selection</Text>
                 </TouchableOpacity>
@@ -685,8 +767,13 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
   },
-  dateButton: {
-    padding: 4,
+  headerButtons: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  headerButton: {
+    padding: 8,
+    borderRadius: 8,
   },
   searchContainer: {
     paddingHorizontal: 20,
@@ -886,27 +973,26 @@ const styles = StyleSheet.create({
   loadingMoreText: {
     fontSize: 14,
   },
-  dateFilterContainer: {
+  filterBar: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingBottom: 20,
     gap: 12,
   },
-  dateRangeButton: {
+  filterButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    gap: 8,
-    flex: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
   },
-  dateRangeText: {
-    fontSize: 14,
+  filterText: {
+    fontSize: 13,
     fontWeight: "500",
   },
-  clearDateButton: {
+  clearButton: {
     padding: 8,
     borderRadius: 8,
   },
@@ -915,13 +1001,18 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "flex-end",
   },
-  // Date Range Modal Styles
+  // Modal Styles
+  sortModal: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "70%",
+  },
   dateRangeModal: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: "80%",
   },
-  dateRangeHeader: {
+  modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -929,9 +1020,36 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
   },
-  dateRangeModalTitle: {
+  modalTitle: {
     fontSize: 18,
     fontWeight: "600",
+  },
+  sortOptionsList: {
+    maxHeight: 400,
+  },
+  sortOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  sortOptionLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    gap: 12,
+  },
+  sortOptionText: {
+    flex: 1,
+  },
+  sortOptionLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+    marginBottom: 2,
+  },
+  sortOptionDescription: {
+    fontSize: 12,
   },
   presetsContainer: {
     padding: 20,

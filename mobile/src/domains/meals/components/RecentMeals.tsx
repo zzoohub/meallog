@@ -103,7 +103,6 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: 16,
-      paddingHorizontal: 20,
     },
     title: {
       fontSize: 18,
@@ -120,7 +119,7 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
       marginRight: 4,
     },
     mealsContainer: {
-      paddingLeft: 20,
+      paddingLeft: 0,
     },
     mealCard: {
       width: 140,
@@ -167,7 +166,6 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
       height: 100,
       justifyContent: 'center',
       alignItems: 'center',
-      paddingHorizontal: 20,
     },
     emptyText: {
       color: theme.colors.textSecondary,
