@@ -20,8 +20,8 @@ export function StatsContent({ stats, onNavigate }: StatsContentProps) {
   return (
     <View style={[styles.summaryCard, { backgroundColor: theme.colors.surface }]}>
       <View style={styles.summaryHeader}>
-        <Text style={[styles.summaryDate, { color: theme.colors.textSecondary }]}>
-          {stats.periodLabel}
+        <Text style={[styles.summaryTitle, { color: theme.colors.text }]}>
+          {globalPeriod.type === "day" ? progress.todaySummary : "Period Summary"}
         </Text>
         {globalPeriod.type !== "day" && (
           <View style={[styles.inlineToggleButtons, { backgroundColor: theme.colors.background }]}>
@@ -63,54 +63,39 @@ export function StatsContent({ stats, onNavigate }: StatsContentProps) {
         )}
       </View>
 
-      {globalPeriod.type !== "day" && (
-        <View style={styles.metricsInfo}>
-          <Text style={[styles.metricsType, { color: theme.colors.primary }]}>
-            {stats.metricsType === "dailyAverage"
-              ? "Daily Averages"
-              : stats.metricsType === "total"
-              ? "Total Values"
-              : "Current Values"}
+      <Text style={[styles.summaryDate, { color: theme.colors.textSecondary }]}>
+        {stats.periodLabel}
+      </Text>
+
+      <View style={styles.calorieOverview}>
+        <View style={styles.calorieMain}>
+          <Text style={[styles.calorieValue, { color: theme.colors.text }]}>
+            {Math.round(stats.calories.current)}
+          </Text>
+          <Text style={[styles.calorieLabel, { color: theme.colors.textSecondary }]}>
+            {stats.metricsType === "dailyAverage" ? "avg calories/day" : "calories consumed"}
           </Text>
         </View>
-      )}
+        <View style={styles.calorieRemaining}>
+          <Text style={[styles.remainingValue, { color: theme.colors.primary }]}>
+            {Math.round(Math.max(0, stats.calories.target - stats.calories.current))}
+          </Text>
+          <Text style={[styles.remainingLabel, { color: theme.colors.textSecondary }]}>
+            {stats.metricsType === "dailyAverage" ? "avg remaining" : progress.remaining}
+          </Text>
+        </View>
+      </View>
 
-      {/* Nutrition Grid */}
-      <View style={styles.nutritionGrid}>
-        {[
-          { label: "Calories", current: stats.calories.current, target: stats.calories.target, unit: "" },
-          { label: "Protein", current: stats.protein.current, target: stats.protein.target, unit: "g" },
-          { label: "Carbs", current: stats.carbs.current, target: stats.carbs.target, unit: "g" },
-          { label: "Fat", current: stats.fat.current, target: stats.fat.target, unit: "g" },
-          { label: "Fiber", current: stats.fiber.current, target: stats.fiber.target, unit: "g" },
-        ].map((item, index) => {
-          const percentage = Math.min((item.current / item.target) * 100, 100);
-          return (
-            <View key={index} style={styles.nutritionItem}>
-              <View style={styles.nutritionHeader}>
-                <Text style={[styles.nutritionLabel, { color: theme.colors.text }]}>{item.label}</Text>
-                <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>
-                  {item.current}
-                  {item.unit}
-                </Text>
-              </View>
-              <View style={[styles.progressBar, { backgroundColor: theme.colors.border }]}>
-                <View 
-                  style={[
-                    styles.progressFill, 
-                    { 
-                      backgroundColor: theme.colors.primary,
-                      width: `${percentage}%`
-                    }
-                  ]} 
-                />
-              </View>
-              <Text style={[styles.nutritionTarget, { color: theme.colors.textSecondary }]}>
-                Target: {item.target}{item.unit}
-              </Text>
-            </View>
-          );
-        })}
+      <View style={[styles.calorieBar, { backgroundColor: theme.colors.border + "40" }]}>
+        <View
+          style={[
+            styles.calorieBarFill,
+            {
+              width: `${Math.min((stats.calories.current / stats.calories.target) * 100, 100)}%`,
+              backgroundColor: theme.colors.primary,
+            },
+          ]}
+        />
       </View>
     </View>
   );
@@ -118,18 +103,23 @@ export function StatsContent({ stats, onNavigate }: StatsContentProps) {
 
 const styles = StyleSheet.create({
   summaryCard: {
-    padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
   },
   summaryHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  summaryTitle: {
+    fontSize: 18,
+    fontWeight: '600',
   },
   summaryDate: {
     fontSize: 14,
-    fontWeight: '500',
+    marginBottom: 16,
   },
   inlineToggleButtons: {
     flexDirection: 'row',
@@ -147,46 +137,37 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '500',
   },
-  metricsInfo: {
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  metricsType: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#666',
-  },
-  nutritionGrid: {
-    gap: 12,
-  },
-  nutritionItem: {
-    marginBottom: 4,
-  },
-  nutritionHeader: {
+  calorieOverview: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 16,
   },
-  nutritionLabel: {
-    fontSize: 13,
-    fontWeight: '500',
+  calorieMain: {
+    alignItems: 'flex-start',
   },
-  nutritionValue: {
-    fontSize: 15,
+  calorieValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+  calorieLabel: {
+    fontSize: 14,
+  },
+  calorieRemaining: {
+    alignItems: 'flex-end',
+  },
+  remainingValue: {
+    fontSize: 24,
     fontWeight: '600',
   },
-  progressBar: {
-    height: 4,
-    borderRadius: 2,
-    marginBottom: 3,
+  remainingLabel: {
+    fontSize: 14,
   },
-  progressFill: {
+  calorieBar: {
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  calorieBarFill: {
     height: '100%',
-    borderRadius: 2,
-  },
-  nutritionTarget: {
-    fontSize: 11,
-    textAlign: 'right',
   },
 });

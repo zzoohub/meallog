@@ -348,11 +348,8 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
           </View>
         </View>
 
-        {/* Period Summary */}
-        <View style={styles.nutritionSection}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Period Summary</Text>
-          <StatsSuspenseWrapper onNavigate={onNavigate} />
-        </View>
+        {/* Period Summary with Suspense */}
+        <StatsSuspenseWrapper onNavigate={onNavigate} />
 
         {/* Recent Meals */}
         <RecentMeals onSeeAll={handleSeeAllHistory} />
