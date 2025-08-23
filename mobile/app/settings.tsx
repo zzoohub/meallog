@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { SettingsSection, SettingsLayout } from "@/components/settings";
 import { useUserStore } from "@/domains/user/stores/userStore";
+import { useAuth } from "@/domains/auth";
 import * as Haptics from "expo-haptics";
 import { useSettingsI18n } from "@/lib/i18n";
 
@@ -21,6 +22,7 @@ interface SettingsCategory {
 export default function SettingsScreen() {
   const { theme } = useTheme();
   const { user } = useUserStore();
+  const { isAuthenticated } = useAuth();
   const settings = useSettingsI18n();
 
   const handleCategoryPress = (categoryId: string) => {
@@ -35,13 +37,14 @@ export default function SettingsScreen() {
   };
 
   const settingsCategories: SettingsCategory[] = [
-    {
+    // Only show account-related settings for authenticated users
+    ...(isAuthenticated ? [{
       id: "account",
       title: "Account & Profile",
-      icon: "person-outline",
+      icon: "person-outline" as keyof typeof Ionicons.glyphMap,
       description: "Manage your account information and preferences",
       onPress: () => handleCategoryPress("account"),
-    },
+    }] : []),
     {
       id: "privacy",
       title: settings.privacy.title,
@@ -63,20 +66,21 @@ export default function SettingsScreen() {
       description: settings.display.appearance.description,
       onPress: () => handleCategoryPress("display"),
     },
-    {
+    // Only show user-specific settings for authenticated users
+    ...(isAuthenticated ? [{
       id: "goals",
       title: "Goals & Targets",
-      icon: "trophy-outline",
+      icon: "trophy-outline" as keyof typeof Ionicons.glyphMap,
       description: "Set and track your nutrition and health goals",
       onPress: () => handleCategoryPress("goals"),
-    },
-    {
+    }] : []),
+    ...(isAuthenticated ? [{
       id: "data",
       title: "Data Management", 
-      icon: "download-outline",
+      icon: "download-outline" as keyof typeof Ionicons.glyphMap,
       description: "Export, import, and manage your data",
       onPress: () => handleCategoryPress("data"),
-    },
+    }] : []),
   ];
 
   const renderSettingCategory = (category: SettingsCategory) => (
@@ -98,19 +102,28 @@ export default function SettingsScreen() {
     </TouchableOpacity>
   );
 
-  const renderUserInfo = () => (
-    <Card variant="elevated" style={styles.userCard}>
-      <View style={styles.userInfo}>
-        <View style={[styles.avatar, { backgroundColor: theme.colors.primary }]}>
-          <Text style={styles.avatarText}>{user?.username?.charAt(0).toUpperCase() || "U"}</Text>
-        </View>
-        <View style={styles.userDetails}>
-          <Text style={[styles.username, { color: theme.colors.text }]}>{user?.username || "Guest User"}</Text>
-          <Text style={[styles.email, { color: theme.colors.textSecondary }]}>{user?.email || "Not logged in"}</Text>
-        </View>
-      </View>
-    </Card>
-  );
+  const renderUserInfo = () => {
+    if (!isAuthenticated) return null;
+    
+    return (
+      <Card variant="elevated" style={styles.userCard}>
+        <TouchableOpacity
+          style={styles.userInfo}
+          onPress={() => router.push("/settings/account")}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.avatar, { backgroundColor: theme.colors.primary }]}>
+            <Text style={styles.avatarText}>{user?.username?.charAt(0).toUpperCase() || "U"}</Text>
+          </View>
+          <View style={styles.userDetails}>
+            <Text style={[styles.username, { color: theme.colors.text }]}>{user?.username || "User"}</Text>
+            <Text style={[styles.email, { color: theme.colors.textSecondary }]}>{user?.email || "Signed in"}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+        </TouchableOpacity>
+      </Card>
+    );
+  };
 
   const renderQuickActions = () => (
     <View style={styles.quickActions}>
