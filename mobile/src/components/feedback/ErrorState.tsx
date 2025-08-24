@@ -6,8 +6,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/theme';
-import { textStyles } from '@/styles/tokens';
-import { SPACING } from '@/constants';
 import { Button } from '../ui/Button';
 import type { BaseComponentProps } from '@/types';
 

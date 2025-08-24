@@ -1,100 +1,69 @@
 import React from 'react';
 import {
   View,
-  ViewStyle,
   TouchableOpacity,
+  ViewStyle,
 } from 'react-native';
 import { useTheme } from '@/lib/theme';
-import { componentStyles } from '@/styles/tokens';
-import type { BaseComponentProps } from '@/types';
+import type { BaseComponentProps, AccessibilityProps } from '@/types';
 
-interface CardProps extends BaseComponentProps {
-  variant?: 'default' | 'elevated' | 'subtle' | 'grouped';
+type CardVariant = 'flat' | 'elevated' | 'outlined';
+
+interface CardProps extends BaseComponentProps, AccessibilityProps {
+  variant?: CardVariant;
   onPress?: () => void;
-  padding?: 'none' | 'small' | 'medium' | 'large';
+  disabled?: boolean;
+  children: React.ReactNode;
 }
 
-export function Card({
-  children,
-  variant = 'default',
+export default function Card({
+  variant = 'flat',
   onPress,
-  padding = 'medium',
+  disabled = false,
+  children,
+  // Accessibility props
+  accessible = true,
+  accessibilityLabel,
+  accessibilityHint,
+  accessibilityRole,
+  // Base props
   testID,
   style,
 }: CardProps) {
-  const { theme, colorScheme } = useTheme();
+  const { theme } = useTheme();
 
-  const getCardStyle = (): ViewStyle => {
-    const paddingValue = {
-      none: 0,
-      small: 8,
-      medium: 16,
-      large: 24,
-    }[padding];
-
-    switch (variant) {
-      case 'elevated':
-        return {
-          ...componentStyles.card.elevated,
-          backgroundColor: theme.colors.surface,
-          padding: paddingValue,
-          borderWidth: 0,
-        };
-      
-      case 'subtle':
-        return {
-          ...componentStyles.card.default,
-          backgroundColor: colorScheme === 'dark' 
-            ? 'rgba(255, 255, 255, 0.03)' 
-            : 'rgba(0, 0, 0, 0.02)',
-          padding: paddingValue,
-          borderWidth: 0,
-          shadowOpacity: 0, // Remove shadow for subtle variant
-          elevation: 0,
-        };
-      
-      case 'grouped':
-        return {
-          ...componentStyles.card.default,
-          backgroundColor: theme.colors.surface,
-          padding: paddingValue,
-          borderWidth: 0,
-          shadowOpacity: 0,
-          elevation: 0,
-        };
-      
-      case 'default':
-      default:
-        return {
-          ...componentStyles.card.default,
-          backgroundColor: theme.colors.surface,
-          padding: paddingValue,
-          borderColor: theme.colors.border + '20', // 20% opacity for subtle border
-          borderWidth: 0.5, // Thinner border
-        };
-    }
+  const cardStyle: ViewStyle = {
+    borderRadius: 12,
+    padding: 16,
+    backgroundColor: theme.colors.surface,
+    borderWidth: variant === 'outlined' ? 1 : 0,
+    borderColor: variant === 'outlined' ? theme.colors.border : 'transparent',
+    elevation: variant === 'elevated' ? 4 : 0,
+    shadowColor: variant === 'elevated' ? '#000' : 'transparent',
+    shadowOffset: variant === 'elevated' ? { width: 0, height: 2 } : { width: 0, height: 0 },
+    shadowOpacity: variant === 'elevated' ? 0.1 : 0,
+    shadowRadius: variant === 'elevated' ? 4 : 0,
+    opacity: disabled ? 0.6 : 1,
   };
 
-  const cardStyle = getCardStyle();
-
-  if (onPress) {
-    return (
-      <TouchableOpacity
-        style={[cardStyle, style]}
-        onPress={onPress}
-        activeOpacity={0.7}
-        testID={testID}
-      >
-        {children}
-      </TouchableOpacity>
-    );
-  }
+  const Component = onPress ? TouchableOpacity : View;
 
   return (
-    <View style={[cardStyle, style]} testID={testID}>
+    <Component
+      style={[cardStyle, style]}
+      onPress={onPress}
+      disabled={disabled}
+      activeOpacity={onPress ? 0.8 : 1}
+      accessible={accessible && !!onPress}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityRole={accessibilityRole || (onPress ? 'button' : undefined)}
+      testID={testID}
+    >
       {children}
-    </View>
+    </Component>
   );
 }
 
-// No styles required
+export { Card };
+export type { CardProps };

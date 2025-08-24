@@ -6,8 +6,6 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useTheme } from '@/lib/theme';
-import { textStyles } from '@/styles/tokens';
-import { SPACING } from '@/constants';
 import type { BaseComponentProps } from '@/types';
 
 interface LoadingStateProps extends BaseComponentProps {

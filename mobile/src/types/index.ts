@@ -213,6 +213,102 @@ export interface UserPreferences {
   };
 }
 
+// Performance optimization types
+export interface PerformanceMark {
+  name: string;
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface MemoryInfo {
+  jsHeapSizeLimit: number;
+  totalJSHeapSize: number;
+  usedJSHeapSize: number;
+}
+
+// Error handling types
+export interface AppError {
+  name: string;
+  message: string;
+  stack?: string;
+  code?: string;
+  timestamp: Date;
+  userId?: string;
+  context?: Record<string, unknown>;
+}
+
+export interface ErrorBoundaryState {
+  hasError: boolean;
+  error: AppError | null;
+  errorInfo: React.ErrorInfo | null;
+}
+
+// Accessibility types
+export interface AccessibilityProps {
+  accessible?: boolean;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  accessibilityRole?: string;
+  accessibilityState?: {
+    disabled?: boolean;
+    selected?: boolean;
+    checked?: boolean | 'mixed';
+    busy?: boolean;
+    expanded?: boolean;
+  };
+  accessibilityValue?: {
+    min?: number;
+    max?: number;
+    now?: number;
+    text?: string;
+  };
+}
+
+// Animation types
+export interface AnimationConfig {
+  duration: number;
+  easing: 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'linear';
+  delay?: number;
+  iterations?: number;
+  direction?: 'normal' | 'reverse' | 'alternate' | 'alternate-reverse';
+  fillMode?: 'none' | 'forwards' | 'backwards' | 'both';
+}
+
+export interface GestureHandlerConfig {
+  enabled?: boolean;
+  shouldCancelWhenOutside?: boolean;
+  minPointers?: number;
+  maxPointers?: number;
+  avgTouches?: boolean;
+}
+
+// Platform-specific types
+export interface PlatformSpecificStyles<T> {
+  ios?: T;
+  android?: T;
+  web?: T;
+  default?: T;
+}
+
+// State management types
+export interface StoreState<T> {
+  data: T;
+  loading: boolean;
+  error: string | null;
+  lastUpdated: Date | null;
+}
+
+export interface AsyncAction<T, P = void> {
+  pending: boolean;
+  fulfilled: boolean;
+  rejected: boolean;
+  data?: T;
+  error?: string;
+  meta?: P;
+}
+
 // Utility types
 export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
@@ -222,3 +318,17 @@ export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
   { [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>> }[Keys];
+
+export type DeepReadonly<T> = {
+  readonly [P in keyof T]: T[P] extends object ? DeepReadonly<T[P]> : T[P];
+};
+
+export type KeysOfType<T, U> = {
+  [K in keyof T]: T[K] extends U ? K : never;
+}[keyof T];
+
+export type NonNullable<T> = T extends null | undefined ? never : T;
+
+export type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};

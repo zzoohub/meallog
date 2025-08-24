@@ -6,7 +6,6 @@ import i18n from "@/lib/i18n/config";
 import { changeLanguage } from "@/lib/i18n";
 import { useUserStore } from "@/domains/user/stores/userStore";
 import { useSettingsStore, flushSettingsStorage } from "@/domains/settings/stores/settingsStore";
-import { bundleManager } from "@/lib/bundle";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { queryClient } from "@/lib/query";
 import { performanceMonitor } from "@/lib/performance";
@@ -36,7 +35,7 @@ function AppInitializer() {
       });
 
     // Preload critical modules for better performance
-    bundleManager.preloadCriticalModules();
+    // Bundle preloading removed for simplification
 
     // Setup app lifecycle handlers for React Native
     const handleAppStateChange = (nextAppState: AppStateStatus) => {

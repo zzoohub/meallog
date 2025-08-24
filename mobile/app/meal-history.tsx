@@ -20,7 +20,7 @@ import { MealStorageService, generateMockMeals } from "@/domains/meals/services/
 import { useTimelineI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 import { useTimeContext, SortMethod } from "@/contexts";
-import { mealSortingService } from "@/domains/meals/services/MealSortingService";
+import { mealSortingService } from "@/domains/meals/services/mealSortingService";
 import { performanceOptimizationService } from "@/services/PerformanceOptimizationService";
 
 interface MealSection {
@@ -386,7 +386,7 @@ export default function MealHistory() {
         // Mark days in between
         const currentDate = new Date(start);
         currentDate.setDate(currentDate.getDate() + 1);
-        
+
         while (currentDate < end) {
           const dateString = currentDate.toISOString().split("T")[0];
           if (dateString) {
@@ -424,7 +424,10 @@ export default function MealHistory() {
 
   const formatDateRange = () => {
     if (globalPeriod.startDate && globalPeriod.endDate) {
-      return `${globalPeriod.startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${globalPeriod.endDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+      return `${globalPeriod.startDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      })} - ${globalPeriod.endDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
     } else if (globalPeriod.startDate) {
       return `From ${globalPeriod.startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
     } else if (globalPeriod.endDate) {

@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { STORAGE_KEYS } from '@/constants';
+import { STORAGE_KEYS, ENV_CONFIG } from '@/constants';
 import { optimizedStorage } from '@/lib/storage';
+import { performanceMonitor } from '@/lib/performance';
 
 export interface NotificationSettings {
   mealReminders: boolean;
@@ -68,6 +69,7 @@ export interface SettingsState {
   camera: CameraSettings;
   isLoading: boolean;
   error: string | null;
+  lastUpdated?: Date;
   
   // Actions
   updateNotifications: (updates: Partial<NotificationSettings>) => Promise<void>;
@@ -328,8 +330,86 @@ export const useSettingsStore = create<SettingsState>()(
       return JSON.stringify(exportData, null, 2);
     },
 
-    clearError: () => set({ error: null }),
-  }))
+      // Batch update for performance when multiple settings change
+      batchUpdateSettings: async (updates) => {
+        const startTime = performanceMonitor.mark('settings-batch-update');
+        
+        try {
+          set({ isLoading: true, error: null });
+          
+          const currentState = get();
+          const promises: Promise<void>[] = [];
+          const newState: Partial<SettingsState> = { lastUpdated: new Date() };
+          
+          // Prepare updates and storage promises
+          if (updates.notifications) {
+            newState.notifications = { ...currentState.notifications, ...updates.notifications };
+            promises.push(
+              AsyncStorage.setItem(
+                STORAGE_KEYS.NOTIFICATION_SETTINGS,
+                JSON.stringify(newState.notifications)
+              )
+            );
+          }
+          
+          if (updates.privacy) {
+            newState.privacy = { ...currentState.privacy, ...updates.privacy };
+            promises.push(
+              AsyncStorage.setItem(
+                STORAGE_KEYS.PRIVACY_SETTINGS,
+                JSON.stringify(newState.privacy)
+              )
+            );
+          }
+          
+          if (updates.display) {
+            newState.display = { ...currentState.display, ...updates.display };
+            promises.push(
+              AsyncStorage.setItem(
+                STORAGE_KEYS.DISPLAY_SETTINGS,
+                JSON.stringify(newState.display)
+              )
+            );
+          }
+          
+          if (updates.goals) {
+            newState.goals = { ...currentState.goals, ...updates.goals };
+            promises.push(
+              AsyncStorage.setItem(
+                STORAGE_KEYS.GOAL_SETTINGS,
+                JSON.stringify(newState.goals)
+              )
+            );
+          }
+          
+          if (updates.camera) {
+            newState.camera = { ...currentState.camera, ...updates.camera };
+            promises.push(
+              AsyncStorage.setItem(
+                STORAGE_KEYS.CAMERA_SETTINGS,
+                JSON.stringify(newState.camera)
+              )
+            );
+          }
+          
+          // Apply optimistic updates
+          set({ ...newState });
+          
+          // Save all settings in parallel
+          await Promise.all(promises);
+          
+          set({ isLoading: false });
+          performanceMonitor.measure('settings-batch-update', startTime);
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to batch update settings';
+          set({ error: errorMessage, isLoading: false });
+          performanceMonitor.measure('settings-batch-update', startTime);
+          throw error;
+        }
+      },
+
+      clearError: () => set({ error: null }),
+    }))
 );
 
 // Auto-save settings changes using debounced storage for better performance

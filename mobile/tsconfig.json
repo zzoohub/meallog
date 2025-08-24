@@ -1,22 +1,46 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    // Type checking
     "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": true,
+
+    // Module handling
     "jsx": "react-jsx",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "allowJs": false,
+    "checkJs": false,
+    
+    // Compilation
     "noEmit": true,
     "isolatedModules": true,
     "incremental": true,
-    "moduleResolution": "bundler",
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "exactOptionalPropertyTypes": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
+    
+    // Advanced
+    "useDefineForClassFields": true,
+    "verbatimModuleSyntax": true,
+    
+    // Paths mapping
+    "baseUrl": "./",
     "paths": {
       "@/*": ["./src/*"],
       "@/components/*": ["./src/components/*"],
@@ -31,7 +55,11 @@
       "@/lib/*": ["./src/lib/*"],
       "@/assets/*": ["./assets/*"],
       "~/*": ["./*"]
-    }
+    },
+
+    // Target and libs
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
   "include": [
     "app/**/*.ts", 
@@ -39,8 +67,20 @@
     "src/**/*.ts", 
     "src/**/*.tsx", 
     ".expo/types/**/*.ts", 
-    "expo-env.d.ts",
-    "ARCHITECTURE.md"
+    "expo-env.d.ts"
   ],
-  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
+  "exclude": [
+    "node_modules", 
+    "**/*.spec.ts", 
+    "**/*.test.ts",
+    "**/*.spec.tsx", 
+    "**/*.test.tsx",
+    "dist/",
+    ".expo/",
+    "coverage/"
+  ],
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  }
 }

@@ -38,17 +38,9 @@ export {
   validatePassword 
 } from "./utils";
 
-// Design System
-export { 
-  tokens, 
-  lightTheme,
-  darkTheme,
-  createSpacing,
-  createElevation,
-  textStyles,
-  componentStyles
-} from "./styles/tokens";
-export type { Theme } from "./styles/tokens";
+// Theme System
+export { useTheme, lightColors, darkColors } from "./lib/theme/useTheme";
+export type { ThemeType } from "./lib/theme/useTheme";
 
 // Components (organized by category)
 export { Button } from "./components/ui/Button";

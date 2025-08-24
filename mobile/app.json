@@ -1,31 +1,87 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "MealLog",
+    "slug": "meallog",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "meallog",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "primaryColor": "#FF6B35",
+    "backgroundColor": "#000000",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.mobile"
+      "bundleIdentifier": "com.meallog.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "MealLog needs camera access to let you capture photos of your meals and analyze their nutritional content.",
+        "NSMicrophoneUsageDescription": "MealLog needs microphone access for video recording of meal preparation.",
+        "NSPhotoLibraryUsageDescription": "MealLog needs photo library access to let you select existing photos of your meals.",
+        "NSMotionUsageDescription": "MealLog uses motion data to enhance your meal tracking experience.",
+        "NSLocationWhenInUseUsageDescription": "MealLog uses your location to suggest nearby restaurants and track meal locations.",
+        "CFBundleAllowMixedLocalizations": true,
+        "UIBackgroundModes": ["background-processing", "background-fetch"],
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "associatedDomains": ["applinks:meallog.app", "applinks:*.meallog.app"]
     },
     "android": {
+      "compileSdkVersion": 34,
+      "targetSdkVersion": 34,
+      "buildToolsVersion": "34.0.0",
+      "package": "com.meallog.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FF6B35"
       },
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "meallog.app"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
       ]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "MealLog",
+      "shortName": "MealLog",
+      "lang": "en",
+      "scope": "/",
+      "themeColor": "#FF6B35",
+      "description": "Track your meals with AI-powered nutrition analysis",
+      "orientation": "portrait",
+      "dir": "ltr",
+      "display": "standalone",
+      "startUrl": "/"
     },
     "plugins": [
       "expo-router",
@@ -35,31 +91,50 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#000000"
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "cameraPermission": "MealLog needs camera access to let you capture photos of your meals and analyze their nutritional content.",
+          "microphonePermission": "MealLog needs microphone access for video recording of meal preparation.",
           "recordAudioAndroid": true
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "The app accesses your photos to let you share them with your friends."
+          "photosPermission": "MealLog needs photo library access to let you select existing photos of your meals for nutrition analysis."
         }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": ["./assets/fonts/SpaceMono-Regular.ttf"]
+        }
+      ],
+      [
+        "expo-localization"
       ]
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "tsconfigPaths": true
     },
     "extra": {
       "reanimated": {
-        "disableStrictMode": true
+        "disableStrictMode": false
+      },
+      "eas": {
+        "projectId": "your-project-id-here"
       }
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
     }
   }
 }
