@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { Ionicons } from "@expo/vector-icons";
 import { CircularProgress } from "@/components/CircularProgress";
 import { NutritionChart } from "@/components/NutritionChart";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { StatsSuspenseWrapper } from './StatsSuspenseWrapper';
 import RecentMeals from "@/domains/meals/components/RecentMeals";
 import { useRouter } from "expo-router";
@@ -444,96 +445,92 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
         </View>
       </ScrollView>
 
-      {/* Calendar Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
+      {/* Calendar Modal using BottomSheet */}
+      <BottomSheet
         visible={showCalendarModal}
-        onRequestClose={() => setShowCalendarModal(false)}
+        onClose={() => setShowCalendarModal(false)}
+        backgroundColor={theme.colors.background}
+        height="80%"
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.calendarModal, { backgroundColor: theme.colors.background }]}>
-            <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
-              <Text style={[styles.calendarModalTitle, { color: theme.colors.text }]}>Select Period</Text>
-              <TouchableOpacity onPress={() => setShowCalendarModal(false)}>
-                <Ionicons name="close" size={24} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
+        <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
+          <Text style={[styles.calendarModalTitle, { color: theme.colors.text }]}>Select Period</Text>
+          <TouchableOpacity onPress={() => setShowCalendarModal(false)}>
+            <Ionicons name="close" size={24} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
 
-            {/* Quick Presets */}
-            <View style={[styles.presetsContainer, { borderBottomColor: theme.colors.border }]}>
-              <Text style={[styles.presetsTitle, { color: theme.colors.text }]}>Quick Select</Text>
-              <View style={styles.presetsGrid}>
-                <TouchableOpacity
-                  style={[styles.presetButton, { backgroundColor: theme.colors.surface }]}
-                  onPress={() => {
-                    handlePeriodChange("day");
-                    setShowCalendarModal(false);
-                  }}
-                >
-                  <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>Today</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.presetButton, { backgroundColor: theme.colors.surface }]}
-                  onPress={() => {
-                    handlePeriodChange("week");
-                    setShowCalendarModal(false);
-                  }}
-                >
-                  <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>This Week</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.presetButton, { backgroundColor: theme.colors.surface }]}
-                  onPress={() => {
-                    handlePeriodChange("month");
-                    setShowCalendarModal(false);
-                  }}
-                >
-                  <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>This Month</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Calendar */}
-            <View style={styles.calendarContainer}>
-              <Calendar
-                onDayPress={handleDayPress}
-                markingType={"period"}
-                markedDates={calendarRange.markedDates}
-                theme={{
-                  backgroundColor: theme.colors.surface,
-                  calendarBackground: theme.colors.surface,
-                  textSectionTitleColor: theme.colors.text,
-                  selectedDayBackgroundColor: theme.colors.primary,
-                  selectedDayTextColor: "white",
-                  todayTextColor: theme.colors.primary,
-                  dayTextColor: theme.colors.text,
-                  textDisabledColor: theme.colors.textSecondary,
-                  dotColor: theme.colors.primary,
-                  selectedDotColor: "white",
-                  arrowColor: theme.colors.primary,
-                  disabledArrowColor: theme.colors.textSecondary,
-                  monthTextColor: theme.colors.text,
-                  indicatorColor: "#FF6B35",
-                  textDayFontWeight: "400",
-                  textMonthFontWeight: "600",
-                  textDayHeaderFontWeight: "500",
-                  textDayFontSize: 16,
-                  textMonthFontSize: 18,
-                  textDayHeaderFontSize: 14,
-                }}
-              />
-
-              {(calendarRange.startDate || calendarRange.endDate) && (
-                <TouchableOpacity style={styles.clearCustomButton} onPress={() => clearDateRange()}>
-                  <Ionicons name="trash-outline" size={16} color={theme.colors.textSecondary} />
-                  <Text style={[styles.clearCustomButtonText, { color: theme.colors.primary }]}>Clear Selection</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+        {/* Quick Presets */}
+        <View style={[styles.presetsContainer, { borderBottomColor: theme.colors.border }]}>
+          <Text style={[styles.presetsTitle, { color: theme.colors.text }]}>Quick Select</Text>
+          <View style={styles.presetsGrid}>
+            <TouchableOpacity
+              style={[styles.presetButton, { backgroundColor: theme.colors.surface }]}
+              onPress={() => {
+                handlePeriodChange("day");
+                setShowCalendarModal(false);
+              }}
+            >
+              <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>Today</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.presetButton, { backgroundColor: theme.colors.surface }]}
+              onPress={() => {
+                handlePeriodChange("week");
+                setShowCalendarModal(false);
+              }}
+            >
+              <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>This Week</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.presetButton, { backgroundColor: theme.colors.surface }]}
+              onPress={() => {
+                handlePeriodChange("month");
+                setShowCalendarModal(false);
+              }}
+            >
+              <Text style={[styles.presetButtonText, { color: theme.colors.textSecondary }]}>This Month</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+
+        {/* Calendar */}
+        <View style={styles.calendarContainer}>
+          <Calendar
+            onDayPress={handleDayPress}
+            markingType={"period"}
+            markedDates={calendarRange.markedDates}
+            theme={{
+              backgroundColor: theme.colors.surface,
+              calendarBackground: theme.colors.surface,
+              textSectionTitleColor: theme.colors.text,
+              selectedDayBackgroundColor: theme.colors.primary,
+              selectedDayTextColor: "white",
+              todayTextColor: theme.colors.primary,
+              dayTextColor: theme.colors.text,
+              textDisabledColor: theme.colors.textSecondary,
+              dotColor: theme.colors.primary,
+              selectedDotColor: "white",
+              arrowColor: theme.colors.primary,
+              disabledArrowColor: theme.colors.textSecondary,
+              monthTextColor: theme.colors.text,
+              indicatorColor: "#FF6B35",
+              textDayFontWeight: "400",
+              textMonthFontWeight: "600",
+              textDayHeaderFontWeight: "500",
+              textDayFontSize: 16,
+              textMonthFontSize: 18,
+              textDayHeaderFontSize: 14,
+            }}
+          />
+
+          {(calendarRange.startDate || calendarRange.endDate) && (
+            <TouchableOpacity style={styles.clearCustomButton} onPress={() => clearDateRange()}>
+              <Ionicons name="trash-outline" size={16} color={theme.colors.textSecondary} />
+              <Text style={[styles.clearCustomButtonText, { color: theme.colors.primary }]}>Clear Selection</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </BottomSheet>
     </View>
   );
 }
@@ -589,16 +586,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   // Modal styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
-  },
-  calendarModal: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: "80%",
-  },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
