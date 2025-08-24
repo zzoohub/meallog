@@ -1,14 +1,14 @@
-import { useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
-import { TimePeriod, PeriodStats, MetricsDisplayType } from '@/contexts';
-import { statsAggregationService } from '@/domains/progress/services/StatsAggregationService';
-import { MealStorageService } from '@/domains/meals/services/mealStorage';
+import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { TimePeriod, PeriodStats, MetricsDisplayType } from "@/contexts";
+import { statsAggregationService } from "@/domains/progress/services/statsAggregationService";
+import { MealStorageService } from "@/domains/meals/services/mealStorage";
 
 export const useStatsQuery = (period: TimePeriod, metricsType: MetricsDisplayType) => {
   const generateQueryKey = (period: TimePeriod, metricsType: MetricsDisplayType) => [
-    'progress-stats',
+    "progress-stats",
     period.type,
-    period.startDate?.getTime() || 'none',
-    period.endDate?.getTime() || 'none',
+    period.startDate?.getTime() || "none",
+    period.endDate?.getTime() || "none",
     metricsType,
   ];
 
@@ -25,18 +25,18 @@ export const useStatsQuery = (period: TimePeriod, metricsType: MetricsDisplayTyp
 
 // Hook for prefetching stats
 export const usePrefetchStats = () => {
-  const { prefetchQuery } = useQueryClient();
+  const queryClient = useQueryClient();
 
   const prefetchStatsForPeriod = async (period: TimePeriod, metricsType: MetricsDisplayType) => {
     const generateQueryKey = (period: TimePeriod, metricsType: MetricsDisplayType) => [
-      'progress-stats',
+      "progress-stats",
       period.type,
-      period.startDate?.getTime() || 'none',
-      period.endDate?.getTime() || 'none',
+      period.startDate?.getTime() || "none",
+      period.endDate?.getTime() || "none",
       metricsType,
     ];
 
-    await prefetchQuery({
+    await queryClient.prefetchQuery({
       queryKey: generateQueryKey(period, metricsType),
       queryFn: async (): Promise<PeriodStats> => {
         const meals = await MealStorageService.getAllMeals();

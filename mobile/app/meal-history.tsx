@@ -20,7 +20,7 @@ import { MealStorageService, generateMockMeals } from "@/domains/meals/services/
 import { useTimelineI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 import { useTimeContext, SortMethod } from "@/contexts";
-import { mealSortingService } from "@/domains/meals/services/MealSortingService";
+import { mealSortingService } from "@/domains/meals/services/mealSortingService";
 import { performanceOptimizationService } from "@/services/PerformanceOptimizationService";
 
 interface MealSection {
