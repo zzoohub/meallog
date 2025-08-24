@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,31 @@ import {
   FlatList,
 } from 'react-native';
 import { useTheme } from '@/lib/theme';
-import { phoneValidationService } from '../services/phoneValidationService';
-import { usePhoneValidation } from '../hooks/usePhoneValidation';
-import type { Country } from '../types';
+import { VALIDATION_PATTERNS } from '@/constants';
+
+interface Country {
+  name: string;
+  code: string;
+  dialCode: string;
+  flag: string;
+}
+
+const COUNTRIES: Country[] = [
+  { name: 'United States', code: 'US', dialCode: '+1', flag: '🇺🇸' },
+  { name: 'Canada', code: 'CA', dialCode: '+1', flag: '🇨🇦' },
+  { name: 'United Kingdom', code: 'GB', dialCode: '+44', flag: '🇬🇧' },
+  { name: 'Germany', code: 'DE', dialCode: '+49', flag: '🇩🇪' },
+  { name: 'France', code: 'FR', dialCode: '+33', flag: '🇫🇷' },
+  { name: 'Italy', code: 'IT', dialCode: '+39', flag: '🇮🇹' },
+  { name: 'Spain', code: 'ES', dialCode: '+34', flag: '🇪🇸' },
+  { name: 'Japan', code: 'JP', dialCode: '+81', flag: '🇯🇵' },
+  { name: 'South Korea', code: 'KR', dialCode: '+82', flag: '🇰🇷' },
+  { name: 'China', code: 'CN', dialCode: '+86', flag: '🇨🇳' },
+  { name: 'India', code: 'IN', dialCode: '+91', flag: '🇮🇳' },
+  { name: 'Australia', code: 'AU', dialCode: '+61', flag: '🇦🇺' },
+  { name: 'Brazil', code: 'BR', dialCode: '+55', flag: '🇧🇷' },
+  { name: 'Mexico', code: 'MX', dialCode: '+52', flag: '🇲🇽' },
+];
 
 interface PhoneInputProps {
   value: string;
@@ -40,19 +62,46 @@ export function PhoneInput({
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
-  // Get all countries from validation service
-  const countries = useMemo(() => phoneValidationService.getAllCountries(), []);
-  const selectedCountry = phoneValidationService.getCountryByDialCode(countryCode) ?? countries[0];
+  const selectedCountry = COUNTRIES.find(c => c.dialCode === countryCode) ?? COUNTRIES[0];
 
-  // Validate phone number using validation service
-  const validation = useMemo(() => {
-    if (!value) return { isValid: true };
-    return phoneValidationService.validatePhone(value, countryCode);
-  }, [value, countryCode]);
+  // Format phone number as user types
+  const formatPhoneNumber = (text: string) => {
+    // Remove all non-digits
+    const digits = text.replace(/\D/g, '');
+    
+    // Apply US/CA formatting for +1 numbers
+    if (countryCode === '+1' && digits.length >= 3) {
+      if (digits.length <= 3) {
+        return `(${digits}`;
+      } else if (digits.length <= 6) {
+        return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+      } else {
+        return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+      }
+    }
+    
+    // Apply Korean formatting for +82 numbers
+    if (countryCode === '+82' && digits.length >= 3) {
+      // Remove leading 0 if present
+      const cleanDigits = digits.replace(/^0+/, '');
+      
+      if (cleanDigits.length <= 2) {
+        return cleanDigits;
+      } else if (cleanDigits.length <= 6) {
+        return `${cleanDigits.slice(0, 2)}-${cleanDigits.slice(2)}`;
+      } else if (cleanDigits.length <= 10) {
+        return `${cleanDigits.slice(0, 2)}-${cleanDigits.slice(2, 6)}-${cleanDigits.slice(6)}`;
+      } else {
+        return `${cleanDigits.slice(0, 3)}-${cleanDigits.slice(3, 7)}-${cleanDigits.slice(7, 11)}`;
+      }
+    }
+    
+    // For other countries, just return the digits
+    return digits;
+  };
 
   const handleTextChange = (text: string) => {
-    // Format phone number using validation service
-    const formatted = phoneValidationService.formatPhoneForDisplay(text, countryCode);
+    const formatted = formatPhoneNumber(text);
     onChangeText(formatted);
   };
 
@@ -65,8 +114,13 @@ export function PhoneInput({
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
-  const isValid = validation.isValid;
-  const validationError = validation.error;
+  const validatePhone = (phone: string) => {
+    const digits = phone.replace(/\D/g, '');
+    const fullNumber = `${countryCode}${digits}`;
+    return VALIDATION_PATTERNS.PHONE.test(fullNumber);
+  };
+
+  const isValid = value.length > 0 ? validatePhone(value) : true;
 
   const renderCountryItem = ({ item }: { item: Country }) => (
     <TouchableOpacity
@@ -148,20 +202,10 @@ export function PhoneInput({
         </Text>
       )}
 
-      {!isValid && !error && value.length > 0 && validationError && (
+      {!isValid && !error && value.length > 0 && (
         <Text style={[styles.errorText, { color: theme.colors.error }]}>
-          {validationError}
+          Please enter a valid phone number
         </Text>
-      )}
-      
-      {validation.suggestions && validation.suggestions.length > 0 && (
-        <View style={styles.suggestionsContainer}>
-          {validation.suggestions.map((suggestion, index) => (
-            <Text key={index} style={[styles.suggestionText, { color: theme.colors.textSecondary }]}>
-              {suggestion}
-            </Text>
-          ))}
-        </View>
       )}
 
       <Modal
@@ -184,7 +228,7 @@ export function PhoneInput({
             </TouchableOpacity>
           </View>
           <FlatList
-            data={countries}
+            data={COUNTRIES}
             renderItem={renderCountryItem}
             keyExtractor={(item) => item.code}
             style={styles.countryList}
@@ -278,13 +322,5 @@ const styles = StyleSheet.create({
   },
   dialCode: {
     fontSize: 14,
-  },
-  suggestionsContainer: {
-    marginTop: 4,
-  },
-  suggestionText: {
-    fontSize: 12,
-    marginTop: 2,
-    marginLeft: 4,
   },
 });

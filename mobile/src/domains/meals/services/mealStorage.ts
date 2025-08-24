@@ -17,7 +17,7 @@ export class MealStorageService {
 
       const existingMeals = await this.getAllMeals();
       const updatedMeals = [newMeal, ...existingMeals];
-      
+
       await AsyncStorage.setItem(MEALS_STORAGE_KEY, JSON.stringify(updatedMeals));
       return newMeal;
     } catch (error) {
@@ -26,16 +26,55 @@ export class MealStorageService {
     }
   }
 
+  // Update an existing meal
+  static async updateMeal(mealId: string, updates: Partial<Omit<Meal, "id" | "createdAt">>): Promise<Meal> {
+    try {
+      const meals = await this.getAllMeals();
+      const mealIndex = meals.findIndex(meal => meal.id === mealId);
+
+      if (mealIndex === -1) {
+        throw new Error("Meal not found");
+      }
+
+      const existingMeal = meals[mealIndex]!;
+      const updatedMeal: Meal = {
+        id: existingMeal.id,
+        userId: updates.userId ?? existingMeal.userId,
+        name: updates.name ?? existingMeal.name,
+        photoUri: updates.photoUri ?? existingMeal.photoUri,
+        timestamp: updates.timestamp ?? existingMeal.timestamp,
+        mealType: updates.mealType ?? existingMeal.mealType,
+        nutrition: updates.nutrition ?? existingMeal.nutrition,
+        ingredients: updates.ingredients ?? existingMeal.ingredients,
+        aiAnalysis: updates.aiAnalysis ?? existingMeal.aiAnalysis,
+        location: updates.location ?? existingMeal.location,
+        notes: updates.notes ?? existingMeal.notes,
+        isVerified: updates.isVerified ?? existingMeal.isVerified,
+        createdAt: existingMeal.createdAt,
+        updatedAt: new Date(),
+      };
+
+      meals[mealIndex] = updatedMeal;
+      await AsyncStorage.setItem(MEALS_STORAGE_KEY, JSON.stringify(meals));
+
+      return updatedMeal;
+    } catch (error) {
+      console.error("Error updating meal:", error);
+      throw new Error("Failed to update meal");
+    }
+  }
+
   // Get all meals
   static async getAllMeals(): Promise<Meal[]> {
     try {
       const mealsJson = await AsyncStorage.getItem(MEALS_STORAGE_KEY);
       if (!mealsJson) return [];
-      
+
       const meals = JSON.parse(mealsJson);
       // Convert date strings back to Date objects
       return meals.map((meal: any) => ({
         ...meal,
+        timestamp: new Date(meal.timestamp),
         createdAt: new Date(meal.createdAt),
         updatedAt: new Date(meal.updatedAt),
       }));
@@ -45,105 +84,135 @@ export class MealStorageService {
     }
   }
 
-  // Get meal by ID
-  static async getMealById(id: string): Promise<Meal | null> {
-    try {
-      const meals = await this.getAllMeals();
-      return meals.find(meal => meal.id === id) || null;
-    } catch (error) {
-      console.error("Error getting meal by ID:", error);
-      return null;
-    }
-  }
-
-  // Update meal
-  static async updateMeal(id: string, updates: Partial<Meal>): Promise<Meal | null> {
-    try {
-      const meals = await this.getAllMeals();
-      const mealIndex = meals.findIndex(meal => meal.id === id);
-      
-      if (mealIndex === -1) {
-        throw new Error("Meal not found");
-      }
-
-      const updatedMeal = {
-        ...meals[mealIndex],
-        ...updates,
-        updatedAt: new Date(),
-      };
-
-      meals[mealIndex] = updatedMeal;
-      await AsyncStorage.setItem(MEALS_STORAGE_KEY, JSON.stringify(meals));
-      
-      return updatedMeal;
-    } catch (error) {
-      console.error("Error updating meal:", error);
-      return null;
-    }
-  }
-
-  // Delete meal
-  static async deleteMeal(id: string): Promise<boolean> {
-    try {
-      const meals = await this.getAllMeals();
-      const filteredMeals = meals.filter(meal => meal.id !== id);
-      
-      await AsyncStorage.setItem(MEALS_STORAGE_KEY, JSON.stringify(filteredMeals));
-      return true;
-    } catch (error) {
-      console.error("Error deleting meal:", error);
-      return false;
-    }
-  }
-
   // Get meals with filtering
-  static async getMealsWithFilter(filter: MealHistoryFilter): Promise<Meal[]> {
+  static async getMealsFiltered(filter: MealHistoryFilter = {}): Promise<Meal[]> {
     try {
-      const allMeals = await this.getAllMeals();
-      let filteredMeals = allMeals;
+      let meals = await this.getAllMeals();
 
-      // Filter by date range
+      // Sort by timestamp (newest first)
+      meals = meals.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+      // Apply filters
       if (filter.startDate) {
-        filteredMeals = filteredMeals.filter(
-          meal => meal.createdAt >= filter.startDate!
-        );
+        meals = meals.filter(meal => meal.timestamp >= filter.startDate!);
       }
+
       if (filter.endDate) {
-        filteredMeals = filteredMeals.filter(
-          meal => meal.createdAt <= filter.endDate!
-        );
+        meals = meals.filter(meal => meal.timestamp <= filter.endDate!);
       }
 
-      // Filter by meal type
       if (filter.mealType) {
-        filteredMeals = filteredMeals.filter(
-          meal => meal.mealType === filter.mealType
-        );
+        meals = meals.filter(meal => meal.mealType === filter.mealType);
       }
 
-      // Filter by search query
       if (filter.searchQuery) {
         const query = filter.searchQuery.toLowerCase();
-        filteredMeals = filteredMeals.filter(meal =>
-          meal.name.toLowerCase().includes(query) ||
-          meal.description?.toLowerCase().includes(query)
+        meals = meals.filter(
+          meal =>
+            meal.name.toLowerCase().includes(query) ||
+            meal.ingredients.some(ingredient => ingredient.toLowerCase().includes(query)),
         );
       }
 
-      return filteredMeals;
+      return meals;
     } catch (error) {
       console.error("Error filtering meals:", error);
       return [];
     }
   }
 
-  // Clear all meals
+  // Get recent meals (for dashboard)
+  static async getRecentMeals(limit: number = 8): Promise<Meal[]> {
+    try {
+      const meals = await this.getAllMeals();
+      return meals.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, limit);
+    } catch (error) {
+      console.error("Error getting recent meals:", error);
+      return [];
+    }
+  }
+
+  // Get meals for a specific date
+  static async getMealsForDate(date: Date): Promise<Meal[]> {
+    const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
+
+    return this.getMealsFiltered({
+      startDate: startOfDay,
+      endDate: endOfDay,
+    });
+  }
+
+  // Get meals for today
+  static async getTodaysMeals(): Promise<Meal[]> {
+    return this.getMealsForDate(new Date());
+  }
+
+  // Delete a meal
+  static async deleteMeal(mealId: string): Promise<void> {
+    try {
+      const meals = await this.getAllMeals();
+      const filteredMeals = meals.filter(meal => meal.id !== mealId);
+      await AsyncStorage.setItem(MEALS_STORAGE_KEY, JSON.stringify(filteredMeals));
+    } catch (error) {
+      console.error("Error deleting meal:", error);
+      throw new Error("Failed to delete meal");
+    }
+  }
+
+  // Clear all meals (for testing/reset)
   static async clearAllMeals(): Promise<void> {
     try {
       await AsyncStorage.removeItem(MEALS_STORAGE_KEY);
     } catch (error) {
       console.error("Error clearing meals:", error);
       throw new Error("Failed to clear meals");
+    }
+  }
+
+  // Get nutrition statistics for a date range
+  static async getNutritionStats(
+    startDate: Date,
+    endDate: Date,
+  ): Promise<{
+    totalMeals: number;
+    averageCalories: number;
+    totalNutrition: NutritionInfo;
+  }> {
+    try {
+      const meals = await this.getMealsFiltered({ startDate, endDate });
+
+      if (meals.length === 0) {
+        return {
+          totalMeals: 0,
+          averageCalories: 0,
+          totalNutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+        };
+      }
+
+      const totalNutrition = meals.reduce(
+        (acc, meal) => ({
+          calories: acc.calories + meal.nutrition.calories,
+          protein: acc.protein + meal.nutrition.protein,
+          carbs: acc.carbs + meal.nutrition.carbs,
+          fat: acc.fat + meal.nutrition.fat,
+          fiber: (acc.fiber || 0) + (meal.nutrition.fiber || 0),
+        }),
+        { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
+      );
+
+      return {
+        totalMeals: meals.length,
+        averageCalories: Math.round(totalNutrition.calories / meals.length),
+        totalNutrition,
+      };
+    } catch (error) {
+      console.error("Error getting nutrition stats:", error);
+      return {
+        totalMeals: 0,
+        averageCalories: 0,
+        totalNutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+      };
     }
   }
 }
@@ -160,33 +229,82 @@ export function generateMockMeals(): Meal[] {
       id: "meal_1",
       userId: "user_1",
       name: "Grilled Chicken Salad",
-      description: "Fresh mixed greens with grilled chicken breast",
-      photoUri: "mock://chicken-salad.jpg",
+      photoUri: "https://via.placeholder.com/300x200",
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
       mealType: MealType.LUNCH,
-      nutrition: {
-        calories: 420,
-        protein: 35,
-        carbs: 15,
-        fat: 18,
+      nutrition: { calories: 380, protein: 32, carbs: 18, fat: 22, fiber: 8 },
+      ingredients: ["Grilled chicken breast", "Mixed greens", "Cherry tomatoes", "Cucumber", "Olive oil dressing"],
+      aiAnalysis: {
+        detectedMeals: ["chicken", "salad", "tomatoes"],
+        confidence: 85,
+        estimatedCalories: 380,
+        mealCategory: MealType.LUNCH,
+        ingredients: ["chicken", "lettuce", "tomatoes", "cucumber"],
+        insights: {
+          healthScore: 85,
+          nutritionBalance: "High protein, low carbs",
+          recommendations: ["Great protein source!", "Add some healthy fats"],
+        },
       },
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-      updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
+      location: { latitude: 37.7749, longitude: -122.4194, address: "San Francisco, CA" },
+      notes: "",
+      isVerified: true,
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
     },
     {
-      id: "meal_2", 
+      id: "meal_2",
       userId: "user_1",
-      name: "Oatmeal with Berries",
-      description: "Steel-cut oats with mixed berries and honey",
-      photoUri: "mock://oatmeal.jpg",
+      name: "Overnight Oats",
+      photoUri: "https://via.placeholder.com/300x200",
+      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
       mealType: MealType.BREAKFAST,
-      nutrition: {
-        calories: 320,
-        protein: 12,
-        carbs: 58,
-        fat: 8,
+      nutrition: { calories: 320, protein: 12, carbs: 45, fat: 8, fiber: 6 },
+      ingredients: ["Rolled oats", "Greek yogurt", "Blueberries", "Chia seeds", "Honey"],
+      aiAnalysis: {
+        detectedMeals: ["oats", "yogurt", "berries"],
+        confidence: 92,
+        estimatedCalories: 320,
+        mealCategory: MealType.BREAKFAST,
+        ingredients: ["oats", "yogurt", "blueberries", "seeds"],
+        insights: {
+          healthScore: 90,
+          nutritionBalance: "High fiber, balanced macros",
+          recommendations: ["Perfect breakfast choice!", "Good source of probiotics"],
+        },
       },
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
-      updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 12),
+      location: { latitude: 34.0522, longitude: -118.2437, address: "Los Angeles, CA" },
+      notes: "",
+      isVerified: false,
+      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
+      updatedAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
+    },
+    {
+      id: "meal_3",
+      userId: "user_1",
+      name: "Salmon with Sweet Potato",
+      photoUri: "https://via.placeholder.com/300x200",
+      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // Yesterday
+      mealType: MealType.DINNER,
+      nutrition: { calories: 520, protein: 35, carbs: 32, fat: 28, fiber: 4 },
+      ingredients: ["Grilled salmon", "Roasted sweet potato", "Steamed broccoli", "Lemon"],
+      aiAnalysis: {
+        detectedMeals: ["salmon", "sweet potato", "broccoli"],
+        confidence: 88,
+        estimatedCalories: 520,
+        mealCategory: MealType.DINNER,
+        ingredients: ["salmon", "sweet potato", "broccoli"],
+        insights: {
+          healthScore: 95,
+          nutritionBalance: "Excellent omega-3 source",
+          recommendations: ["Perfect balance of nutrients", "Great for heart health"],
+        },
+      },
+      location: { latitude: 40.7128, longitude: -74.006, address: "New York, NY" },
+      notes: "",
+      isVerified: true,
+      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
     },
   ];
 

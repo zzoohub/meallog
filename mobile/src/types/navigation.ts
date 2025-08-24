@@ -1,35 +1,17 @@
-import type { ParamListBase, NavigationProp, RouteProp } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import { ParamListBase } from '@react-navigation/native';
 
-// Define all screen parameters with proper typing
+// Define all screen parameters
 export interface RootStackParamList extends ParamListBase {
-  index: undefined;
-  auth: undefined;
   '(main)': undefined;
   'meal-detail': {
     mealId?: string;
     photoUri?: string;
-    isNew: boolean;
-    source?: 'camera' | 'gallery' | 'history';
+    isNew: string;
   };
-  'meal-history': {
-    filter?: 'all' | 'breakfast' | 'lunch' | 'dinner' | 'snack';
-    dateRange?: {
-      start: string;
-      end: string;
-    };
-  };
-  'ai-coach': {
-    context?: 'nutrition' | 'goals' | 'recommendations';
-    data?: Record<string, unknown>;
-  };
-  profile: {
-    userId?: string;
-    mode?: 'view' | 'edit';
-  };
+  'ai-coach': undefined;
+  profile: undefined;
   'challenge-detail': {
     challengeId: string;
-    source?: 'discovery' | 'invitation' | 'history';
   };
   settings: undefined;
   'settings/account': undefined;
@@ -38,6 +20,7 @@ export interface RootStackParamList extends ParamListBase {
   'settings/privacy': undefined;
   'settings/goals': undefined;
   'settings/data': undefined;
+  'meal-history': undefined;
 }
 
 export interface MainTabParamList extends ParamListBase {
@@ -45,34 +28,14 @@ export interface MainTabParamList extends ParamListBase {
 }
 
 // Type-safe navigation helpers
-export type RootStackNavigationProp<T extends keyof RootStackParamList> = StackNavigationProp<
-  RootStackParamList,
-  T
->;
-
-export type RootStackRouteProp<T extends keyof RootStackParamList> = RouteProp<
-  RootStackParamList,
-  T
->;
-
 export type RootStackScreenProps<T extends keyof RootStackParamList> = {
-  navigation: RootStackNavigationProp<T>;
-  route: RootStackRouteProp<T>;
+  params: RootStackParamList[T];
+  navigation: any; // Would be properly typed with navigation library
 };
 
-export type MainTabNavigationProp<T extends keyof MainTabParamList> = NavigationProp<
-  MainTabParamList,
-  T
->;
-
-export type MainTabRouteProp<T extends keyof MainTabParamList> = RouteProp<
-  MainTabParamList,
-  T
->;
-
 export type MainTabScreenProps<T extends keyof MainTabParamList> = {
-  navigation: MainTabNavigationProp<T>;
-  route: MainTabRouteProp<T>;
+  params: MainTabParamList[T];
+  navigation: any;
 };
 
 // Navigation options for each screen

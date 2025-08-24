@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/lib/theme';
+import { createElevation } from '@/styles/tokens';
 import type { Meal } from '../types';
 import { MealStorageService, generateMockMeals } from '../services/mealStorage';
 
@@ -126,11 +127,7 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
       backgroundColor: theme.colors.surface,
       borderRadius: 12,
       overflow: 'hidden',
-      elevation: 2,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
-      shadowRadius: 2,
+      ...createElevation('sm'),
     },
     mealImage: {
       width: '100%',

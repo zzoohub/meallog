@@ -9,12 +9,8 @@ export const getScreenDimensions = () => {
   return { width, height };
 };
 
-// Platform detection
 export const isIOS = Platform.OS === "ios";
 export const isAndroid = Platform.OS === "android";
-export const isWeb = Platform.OS === "web";
-export const isNative = Platform.OS !== "web";
-
 
 // Date and time utilities
 export const formatDate = (date: Date | string, locale = "en-US"): string => {
@@ -174,7 +170,7 @@ export const compressImageUri = (uri: string, quality = 0.8): Promise<string> =>
 
 // Haptic feedback utilities
 export const triggerHaptic = (type: keyof typeof HAPTIC_TYPES = "MEDIUM") => {
-  if (Platform.OS !== "ios") return; // Haptics are iOS-specific
+  if (!isIOS) return; // Haptics are iOS-specific
 
   try {
     switch (type) {

@@ -2,21 +2,46 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { STORAGE_KEYS, ERROR_MESSAGES } from "@/constants";
-import type { AuthUser, PhoneAuthFormData, VerificationFormData, AuthStore, UserPreferences, AuthError } from "../types";
-import { authApiService } from "../services/authApiService";
-import { phoneValidationService } from "../services/phoneValidationService";
+import type { User, PhoneAuthFormData, VerificationFormData } from "@/types";
+import { networkService } from "../services/networkService";
 
-// Initial state
-const initialState = {
+interface AuthState {
+  user: User | null;
+  isLoading: boolean;
+  isVerifying: boolean;
+  error: string | null;
+  pendingPhone: string | null;
+  resendCooldown: number;
+}
+
+interface AuthActions {
+  // Phone auth actions
+  sendVerificationCode: (data: PhoneAuthFormData) => Promise<void>;
+  verifyCode: (data: VerificationFormData) => Promise<void>;
+  resendCode: () => Promise<void>;
+  
+  // User management
+  setUser: (user: Partial<User>) => void;
+  updateUser: (updates: Partial<User>) => Promise<void>;
+  logout: () => Promise<void>;
+  loadUserFromStorage: () => Promise<void>;
+  
+  // Utility
+  clearError: () => void;
+  clearPendingAuth: () => void;
+  startResendCooldown: () => void;
+}
+
+type AuthStore = AuthState & AuthActions;
+
+const initialState: AuthState = {
   user: null,
   isLoading: false,
   isVerifying: false,
   error: null,
   pendingPhone: null,
   resendCooldown: 0,
-  lastAuthAttempt: null,
 };
-
 
 export const useAuthStore = create<AuthStore>()(
   subscribeWithSelector((set, get) => ({
@@ -289,26 +314,8 @@ useAuthStore.subscribe(
     if (user) {
       // Auto-save user data when it changes
       AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user)).catch(error =>
-        console.error('Failed to auto-save user data:', error),
+        console.error("Failed to auto-save user data:", error),
       );
-    }
-  },
-);
-
-// Auto-refresh token periodically
-let tokenRefreshInterval: NodeJS.Timeout | null = null;
-
-useAuthStore.subscribe(
-  state => state.user,
-  user => {
-    if (user && !tokenRefreshInterval) {
-      // Check token expiry every 10 minutes
-      tokenRefreshInterval = setInterval(() => {
-        useAuthStore.getState().refreshAuthToken();
-      }, 10 * 60 * 1000);
-    } else if (!user && tokenRefreshInterval) {
-      clearInterval(tokenRefreshInterval);
-      tokenRefreshInterval = null;
     }
   },
 );

@@ -1,14 +1,14 @@
-import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
-import { TimePeriod, PeriodStats, MetricsDisplayType } from "@/contexts";
-import { statsAggregationService } from "@/domains/progress/services/statsAggregationService";
-import { MealStorageService } from "@/domains/meals/services/mealStorage";
+import { useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
+import { TimePeriod, PeriodStats, MetricsDisplayType } from '@/contexts';
+import { statsAggregationService } from '@/domains/progress/services/StatsAggregationService';
+import { MealStorageService } from '@/domains/meals/services/mealStorage';
 
 export const useStatsQuery = (period: TimePeriod, metricsType: MetricsDisplayType) => {
   const generateQueryKey = (period: TimePeriod, metricsType: MetricsDisplayType) => [
-    "progress-stats",
+    'progress-stats',
     period.type,
-    period.startDate?.getTime() || "none",
-    period.endDate?.getTime() || "none",
+    period.startDate?.getTime() || 'none',
+    period.endDate?.getTime() || 'none',
     metricsType,
   ];
 
@@ -29,10 +29,10 @@ export const usePrefetchStats = () => {
 
   const prefetchStatsForPeriod = async (period: TimePeriod, metricsType: MetricsDisplayType) => {
     const generateQueryKey = (period: TimePeriod, metricsType: MetricsDisplayType) => [
-      "progress-stats",
+      'progress-stats',
       period.type,
-      period.startDate?.getTime() || "none",
-      period.endDate?.getTime() || "none",
+      period.startDate?.getTime() || 'none',
+      period.endDate?.getTime() || 'none',
       metricsType,
     ];
 

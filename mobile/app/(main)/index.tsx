@@ -5,16 +5,17 @@ import {
 import { useTheme } from '@/lib/theme';
 import * as Haptics from 'expo-haptics';
 
-// Import orbital sections directly
+// Import orbital sections with lazy loading
+import { createLazyComponent } from '@/lib/lazy';
 import { FloatingNotifications } from '@/components/FloatingNotifications';
 import { prefetchManager } from '@/lib/query';
 import { performanceMonitor, usePerformanceMonitor } from '@/lib/performance';
 
-// Import heavy components directly (lazy loading removed for simplicity)
-import CameraCenter from '@/domains/camera/components/OrbitalCamera';
-import ProgressDashboard from '@/domains/progress/components/ProgressDashboard';
-import AICoach from '@/domains/ai-coach/components/AICoach';
-import SettingsOrbital from '@/domains/settings/components/SettingsOrbital';
+// Lazy load heavy components for better performance
+const CameraCenter = createLazyComponent(() => import('@/domains/camera/components/OrbitalCamera'));
+const ProgressDashboard = createLazyComponent(() => import('@/domains/progress/components/ProgressDashboard'));
+const AICoach = createLazyComponent(() => import('@/domains/ai-coach/components/AICoach'));
+const SettingsOrbital = createLazyComponent(() => import('@/domains/settings/components/SettingsOrbital'));
 
 // MVP Phase 2: Social features (lazy loaded but currently disabled)
 // const SocialFeed = createLazyComponent(() => import('@/domains/social/components/SocialFeed'));
