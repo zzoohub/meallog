@@ -35,7 +35,7 @@ class BundleManager {
     domain: K
   ): () => Promise<{ default: DomainModules[K] }> {
     const importMap = {
-      camera: () => import('@/domains/camera/components/OrbitalCamera'),
+      camera: () => import('@/components/orbital/Camera'),
       meals: () => import('../../../app/meal-history'), 
       aiCoach: () => import('@/domains/ai-coach/components/AICoach'),
       settings: () => import('@/domains/settings/components/SettingsOrbital'),
@@ -83,7 +83,7 @@ class BundleManager {
 export const bundleManager = new BundleManager();
 
 export const importDomain = {
-  camera: () => import('@/domains/camera/components/OrbitalCamera'),
+  camera: () => import('@/components/orbital/Camera'),
   meals: () => import('../../../app/meal-history'),
   aiCoach: () => import('@/domains/ai-coach/components/AICoach'),
   settings: () => import('@/domains/settings/components/SettingsOrbital'),

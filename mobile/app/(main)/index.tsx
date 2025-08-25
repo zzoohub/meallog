@@ -12,7 +12,7 @@ import { prefetchManager } from '@/lib/query';
 import { performanceMonitor, usePerformanceMonitor } from '@/lib/performance';
 
 // Lazy load heavy components for better performance
-const CameraCenter = createLazyComponent(() => import('@/domains/camera/components/OrbitalCamera'));
+const CameraCenter = createLazyComponent(() => import('@/components/orbital/Camera'));
 const ProgressDashboard = createLazyComponent(() => import('@/domains/progress/components/ProgressDashboard'));
 const AICoach = createLazyComponent(() => import('@/domains/ai-coach/components/AICoach'));
 const SettingsOrbital = createLazyComponent(() => import('@/domains/settings/components/SettingsOrbital'));

@@ -57,8 +57,7 @@ export { LoadingState } from "./components/feedback/LoadingState";
 export { ErrorState } from "./components/feedback/ErrorState";
 
 // Domains (feature-based exports)
-export { CameraView } from "./domains/camera";
-export { useCamera } from "./domains/camera";
+// Camera moved to orbital components
 // export { TakePicture } from "./domains/posts";  // TODO: Implement posts domain
 // export { usePosts } from "./domains/posts";    // TODO: Implement posts domain
 export { useAuthStore } from "./domains/auth/stores/authStore";
