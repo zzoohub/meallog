@@ -1,5 +1,5 @@
 // ============================================================================
-// TYPES
+// TYPES & CONFIGURATION
 // ============================================================================
 export type {
   CacheConfig,
@@ -14,19 +14,16 @@ export type {
   PrefetchQuery,
 } from './types';
 
-// ============================================================================
-// CONFIGURATION
-// ============================================================================
 export {
   DEFAULT_CACHE_CONFIG,
   VIRTUALIZATION_CONFIG,
   CHUNK_SIZE,
   DEBOUNCE_DELAY,
   DOMAIN_IMPORT_MAP,
-} from './config';
+} from './types';
 
 // ============================================================================
-// QUERY CLIENT & PREFETCH
+// REACT QUERY & PREFETCH
 // ============================================================================
 export {
   queryClient,
@@ -35,53 +32,14 @@ export {
 } from './query';
 
 // ============================================================================
-// CACHE UTILITIES
+// RUNTIME: CACHE & MONITORING
 // ============================================================================
 export {
+  // Cache functions
   getCachedData,
   clearAllCaches,
   getCacheMetrics,
-} from './cache';
-
-// ============================================================================
-// LAZY LOADING
-// ============================================================================
-export {
-  withLazy,
-  createLazyComponent,
-  preloadComponent,
-} from './lazy';
-
-// ============================================================================
-// GENERAL UTILITIES
-// ============================================================================
-export {
-  processInChunks,
-  debounce,
-  shouldUseVirtualization,
-  getVirtualizationConfig,
-  calculateOptimalWindowSize,
-  queueTask,
-  preloadImages,
-  createBatchUpdater,
-  cleanup,
-} from './utils';
-
-// ============================================================================
-// BUNDLE MANAGEMENT
-// ============================================================================
-export {
-  importDomain,
-  preloadCriticalModules,
-  getLoadedModulesCount,
-  isModuleLoaded,
-  importDomainMap,
-} from './bundle';
-
-// ============================================================================
-// PERFORMANCE MONITORING
-// ============================================================================
-export {
+  // Performance monitoring
   markPerformance,
   measurePerformance,
   startNavigation,
@@ -93,12 +51,29 @@ export {
   logPerformanceReport,
   measureAsync,
   measureInteraction,
-} from './monitor';
+} from './runtime';
 
 // ============================================================================
-// PERFORMANCE HOOKS
+// BUNDLING: LAZY LOADING & BUNDLE MANAGEMENT
 // ============================================================================
 export {
+  // Bundle management
+  importDomain,
+  preloadCriticalModules,
+  getLoadedModulesCount,
+  isModuleLoaded,
+  importDomainMap,
+  // Lazy loading
+  withLazy,
+  createLazyComponent,
+  preloadComponent,
+} from './bundling';
+
+// ============================================================================
+// HOOKS & UTILITIES
+// ============================================================================
+export {
+  // Performance hooks
   useStableCallback,
   useDebouncedCallback,
   useThrottledCallback,
@@ -106,4 +81,14 @@ export {
   useMemoWithEquals,
   useAsyncOperation,
   usePerformanceMonitor,
+  // Utility functions
+  processInChunks,
+  debounce,
+  shouldUseVirtualization,
+  getVirtualizationConfig,
+  calculateOptimalWindowSize,
+  queueTask,
+  preloadImages,
+  createBatchUpdater,
+  cleanup,
 } from './hooks';
