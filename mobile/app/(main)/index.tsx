@@ -6,10 +6,14 @@ import { useTheme } from '@/lib/theme';
 import * as Haptics from 'expo-haptics';
 
 // Import orbital sections with lazy loading
-import { createLazyComponent } from '@/lib/lazy';
 import { FloatingNotifications } from '@/components/FloatingNotifications';
-import { prefetchManager } from '@/lib/query';
-import { performanceMonitor, usePerformanceMonitor } from '@/lib/performance';
+import { 
+  createLazyComponent, 
+  prefetchBatch, 
+  startNavigation, 
+  endNavigation, 
+  usePerformanceMonitor 
+} from '@/lib/performance';
 
 // Lazy load heavy components for better performance
 const CameraCenter = createLazyComponent(() => import('@/components/orbital/Camera'));
@@ -92,7 +96,7 @@ export default function OrbitalNavigation() {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Prefetch common data that multiple sections might use
-      await prefetchManager.prefetchBatch([
+      await prefetchBatch([
         {
           key: ['user', 'profile'],
           fetcher: async () => {
@@ -136,7 +140,7 @@ export default function OrbitalNavigation() {
     }
     
     // Track navigation performance
-    performanceMonitor.startNavigation(activeSection, section);
+    startNavigation(activeSection, section);
     
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -149,7 +153,7 @@ export default function OrbitalNavigation() {
     
     // End navigation tracking
     requestAnimationFrame(() => {
-      performanceMonitor.endNavigation(activeSection, section);
+      endNavigation(activeSection, section);
     });
     
     // Preload adjacent sections for the new active section

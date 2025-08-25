@@ -1,13 +1,7 @@
 // Core exports for better tree-shaking and module resolution
 
 // Common Types (always import types only)
-export type {
-  PaginatedResponse,
-  ApiResponse,
-  ThemeColors,
-  BaseComponentProps,
-  LoadingState
-} from "./types";
+export type { PaginatedResponse, ApiResponse, ThemeColors, BaseComponentProps, LoadingState } from "./types";
 
 // Domain-specific Types
 export type {
@@ -15,7 +9,7 @@ export type {
   LoginFormData,
   RegisterFormData,
   PhoneAuthFormData,
-  VerificationFormData
+  VerificationFormData,
 } from "./domains/auth/types";
 
 export type {
@@ -27,52 +21,34 @@ export type {
   PostFormData,
   CapturedPhoto,
   CameraSettings,
-  Meal
+  Meal,
 } from "./domains/meals/types";
 
-export type {
-  Post
-} from "./domains/social/types";
+export type { Post } from "./domains/social/types";
 
-export type {
-  AnalyticsEvent
-} from "./domains/analytics/types";
+export type { AnalyticsEvent } from "./domains/analytics/types";
 
-export type {
-  UserPreferences
-} from "./domains/settings/types";
+export type { UserPreferences } from "./domains/settings/types";
 
 // Constants
-export { 
-  CAMERA_SETTINGS, 
-  APP_CONFIG, 
-  API_CONFIG,
-  STORAGE_KEYS,
-  QUERY_KEYS,
-  MUTATION_KEYS 
-} from "./constants";
+export { CAMERA_SETTINGS, APP_CONFIG, API_CONFIG, STORAGE_KEYS, QUERY_KEYS, MUTATION_KEYS } from "./constants";
 
 // Common Utilities
-export { 
-  formatBytes, 
-  formatDate, 
-  showAlert, 
-  showConfirmAlert 
-} from "./utils";
+export { formatBytes, formatDate, showAlert, showConfirmAlert } from "./utils";
 
 // Domain-specific utilities
 export { getCurrentMealType, formatCalories, formatWeight } from "./domains/meals/utils";
 export { validateEmail, validatePassword, validateUsername, getPasswordStrength } from "./domains/auth/utils";
 
 // Design System
-export { 
-  tokens, 
+export {
+  tokens,
   lightTheme,
   darkTheme,
   createSpacing,
   createElevation,
   textStyles,
-  componentStyles
+  componentStyles,
 } from "./styles/tokens";
 export type { Theme } from "./styles/tokens";
 

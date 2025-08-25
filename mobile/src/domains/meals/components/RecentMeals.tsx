@@ -1,18 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useTheme } from '@/lib/theme';
-import { createElevation } from '@/styles/tokens';
-import type { Meal } from '../types';
-import { MealStorageService, generateMockMeals } from '../services/mealStorage';
+import React, { useState, useEffect } from "react";
+import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useTheme } from "@/lib/theme";
+import { createElevation } from "@/styles/tokens";
+import type { Meal } from "../types";
+import { MealStorageService, generateMockMeals } from "../services/mealStorage";
 
 interface RecentMealsProps {
   onSeeAll?: () => void;
@@ -33,7 +26,7 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
     try {
       setIsLoading(true);
       let meals = await MealStorageService.getRecentMeals(6);
-      
+
       // For development: add mock data if no meals exist
       if (meals.length === 0 && !mockDataInitialized) {
         const mockMeals = generateMockMeals();
@@ -57,10 +50,10 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
         meals = await MealStorageService.getRecentMeals(6);
         setMockDataInitialized(true);
       }
-      
+
       setRecentMeals(meals);
     } catch (error) {
-      console.error('Error loading recent meals:', error);
+      console.error("Error loading recent meals:", error);
     } finally {
       setIsLoading(false);
     }
@@ -69,11 +62,11 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
   const handleMealPress = (meal: Meal) => {
     // Navigate to meal detail for editing
     router.push({
-      pathname: '/meal-detail',
+      pathname: "/meal-detail",
       params: {
         mealId: meal.id,
-        photoUri: meal.photoUri || '',
-        isNew: 'false',
+        photoUri: meal.photoUri || "",
+        isNew: "false",
       },
     });
   };
@@ -99,19 +92,19 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
       marginBottom: 24,
     },
     header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       marginBottom: 16,
     },
     title: {
       fontSize: 18,
-      fontWeight: '600',
+      fontWeight: "600",
       color: theme.colors.text,
     },
     seeAllButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
     },
     seeAllText: {
       fontSize: 14,
@@ -126,11 +119,11 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
       marginRight: 12,
       backgroundColor: theme.colors.surface,
       borderRadius: 12,
-      overflow: 'hidden',
-      ...createElevation('sm'),
+      overflow: "hidden",
+      ...createElevation("sm"),
     },
     mealImage: {
-      width: '100%',
+      width: "100%",
       height: 100,
       backgroundColor: theme.colors.border,
     },
@@ -139,7 +132,7 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
     },
     mealName: {
       fontSize: 14,
-      fontWeight: '500',
+      fontWeight: "500",
       color: theme.colors.text,
       marginBottom: 4,
     },
@@ -150,13 +143,13 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
     },
     mealCalories: {
       fontSize: 12,
-      fontWeight: '500',
+      fontWeight: "500",
       color: theme.colors.primary,
     },
     loadingContainer: {
       height: 100,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
     },
     loadingText: {
       color: theme.colors.textSecondary,
@@ -164,13 +157,13 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
     },
     emptyContainer: {
       height: 100,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
     },
     emptyText: {
       color: theme.colors.textSecondary,
       fontSize: 14,
-      textAlign: 'center',
+      textAlign: "center",
     },
   });
 
@@ -194,9 +187,7 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
           <Text style={styles.title}>Recent Meals</Text>
         </View>
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>
-            No meals logged yet. Start by taking a photo of your meal!
-          </Text>
+          <Text style={styles.emptyText}>No meals logged yet. Start by taking a photo of your meal!</Text>
         </View>
       </View>
     );
@@ -211,13 +202,9 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
           <Ionicons name="chevron-forward" size={16} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>
-      
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.mealsContainer}
-      >
-        {recentMeals.map((meal) => (
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.mealsContainer}>
+        {recentMeals.map(meal => (
           <TouchableOpacity
             key={meal.id}
             style={styles.mealCard}
@@ -229,12 +216,8 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
               <Text style={styles.mealName} numberOfLines={2}>
                 {meal.name}
               </Text>
-              <Text style={styles.mealTime}>
-                {formatRelativeTime(meal.timestamp)}
-              </Text>
-              <Text style={styles.mealCalories}>
-                {meal.nutrition.calories} cal
-              </Text>
+              <Text style={styles.mealTime}>{formatRelativeTime(meal.timestamp)}</Text>
+              <Text style={styles.mealCalories}>{meal.nutrition.calories} cal</Text>
             </View>
           </TouchableOpacity>
         ))}

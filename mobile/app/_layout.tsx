@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { Stack, Slot } from "expo-router";
-import AppProvider from "@/contexts/AppProvider";
+import { AppProvider } from "@/components";
 import "react-native-reanimated";
 import "@/lib/i18n";
 

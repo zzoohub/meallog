@@ -74,14 +74,17 @@ export default function MealDetail() {
       }
 
       const meals = await MealStorageService.getAllMeals();
-      console.log('All meals loaded:', meals.length, 'meals');
-      console.log('Looking for meal ID:', mealId);
-      console.log('Available meal IDs:', meals.map(m => m.id));
+      console.log("All meals loaded:", meals.length, "meals");
+      console.log("Looking for meal ID:", mealId);
+      console.log(
+        "Available meal IDs:",
+        meals.map(m => m.id),
+      );
       const meal = meals.find(m => m.id === mealId);
 
       if (!meal) {
-        console.error('Meal not found with ID:', mealId);
-        console.error('Available meals:', meals.length);
+        console.error("Meal not found with ID:", mealId);
+        console.error("Available meals:", meals.length);
         throw new Error(`${mealDetail.mealNotFound}: ${mealId}`);
       }
 
@@ -95,11 +98,11 @@ export default function MealDetail() {
       });
     } catch (err) {
       setError(mealDetail.failedToLoad);
-      
+
       // If meal not found, redirect back to meal history after a delay
       if (err instanceof Error && err.message.includes(mealDetail.mealNotFound)) {
         setTimeout(() => {
-          router.replace('/meal-history');
+          router.replace("/meal-history");
         }, 2000);
       }
     } finally {

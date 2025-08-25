@@ -6,10 +6,8 @@ import i18n from "@/lib/i18n/config";
 import { changeLanguage } from "@/lib/i18n";
 import { useAuthStore } from "@/domains/auth/stores/authStore";
 import { useSettingsStore, flushSettingsStorage } from "@/domains/settings/stores/settingsStore";
-import { bundleManager } from "@/lib/bundle";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { queryClient } from "@/lib/query";
-import { performanceMonitor } from "@/lib/performance";
+import { queryClient, preloadCriticalModules, markPerformance, measurePerformance } from "@/lib/performance";
 
 function AppInitializer() {
   const loadUserFromStorage = useAuthStore(state => state.loadUserFromStorage);
@@ -18,23 +16,23 @@ function AppInitializer() {
 
   useEffect(() => {
     // Track app initialization performance
-    performanceMonitor.mark("app-init");
+    markPerformance("app-init");
 
     // Initialize user data and settings from storage on app start
     Promise.all([loadUserFromStorage(), loadSettings()])
       .then(() => {
-        const initTime = performanceMonitor.measure("app-init");
+        const initTime = measurePerformance("app-init");
         if (__DEV__ && initTime && initTime > 1000) {
           console.warn(`Slow app initialization: ${initTime.toFixed(2)}ms`);
         }
       })
       .catch(error => {
-        performanceMonitor.measure("app-init");
+        measurePerformance("app-init");
         console.error("Failed to initialize app data:", error);
       });
 
     // Preload critical modules for better performance
-    bundleManager.preloadCriticalModules();
+    preloadCriticalModules();
 
     // Setup app lifecycle handlers for React Native
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
