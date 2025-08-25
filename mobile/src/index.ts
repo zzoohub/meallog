@@ -27,16 +27,17 @@ export {
   MUTATION_KEYS 
 } from "./constants";
 
-// Utilities
+// Common Utilities
 export { 
   formatBytes, 
   formatDate, 
   showAlert, 
-  showConfirmAlert,
-  getCurrentMealType,
-  validateEmail,
-  validatePassword 
+  showConfirmAlert 
 } from "./utils";
+
+// Domain-specific utilities
+export { getCurrentMealType, formatCalories, formatWeight } from "./domains/meals/utils";
+export { validateEmail, validatePassword, validateUsername, getPasswordStrength } from "./domains/auth/utils";
 
 // Design System
 export { 

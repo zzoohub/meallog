@@ -1,7 +1,6 @@
 import { Alert, Dimensions, Platform } from "react-native";
 import * as Haptics from "expo-haptics";
-import { VALIDATION_PATTERNS, HAPTIC_TYPES } from "../constants";
-import { MealType } from "../types";
+import { HAPTIC_TYPES } from "../constants";
 
 // Device utilities
 export const getScreenDimensions = () => {
@@ -64,19 +63,6 @@ export const getRelativeTime = (date: Date | string, locale = "en-US"): string =
   }
 };
 
-export const getCurrentMealType = (): MealType => {
-  const hour = new Date().getHours();
-
-  if (hour >= 6 && hour < 11) {
-    return MealType.BREAKFAST;
-  } else if (hour >= 11 && hour < 16) {
-    return MealType.LUNCH;
-  } else if (hour >= 16 && hour < 22) {
-    return MealType.DINNER;
-  } else {
-    return MealType.SNACK;
-  }
-};
 
 // String utilities
 export const capitalize = (str: string): string => {
@@ -92,38 +78,12 @@ export const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 
-// Validation utilities
-export const validateEmail = (email: string): boolean => {
-  return VALIDATION_PATTERNS.EMAIL.test(email.trim().toLowerCase());
-};
-
-export const validateUsername = (username: string): boolean => {
-  return VALIDATION_PATTERNS.USERNAME.test(username.trim());
-};
-
-export const validatePassword = (password: string): boolean => {
-  return VALIDATION_PATTERNS.PASSWORD.test(password);
-};
-
-export const getPasswordStrength = (password: string): "weak" | "medium" | "strong" => {
-  if (password.length < 6) return "weak";
-  if (password.length < 10 && !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) return "weak";
-  if (password.length >= 10 && /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) return "strong";
-  return "medium";
-};
 
 // Number utilities
 export const formatNumber = (num: number, locale = "en-US"): string => {
   return new Intl.NumberFormat(locale).format(num);
 };
 
-export const formatCalories = (calories: number): string => {
-  return `${Math.round(calories)} cal`;
-};
-
-export const formatWeight = (weight: number, unit: "kg" | "lbs" = "kg"): string => {
-  return `${weight.toFixed(1)} ${unit}`;
-};
 
 export const clamp = (value: number, min: number, max: number): number => {
   return Math.min(Math.max(value, min), max);
@@ -150,23 +110,6 @@ export const groupBy = <T, K extends keyof T>(array: T[], key: K): Record<string
   }, {} as Record<string, T[]>);
 };
 
-// Image utilities
-export const getImageAspectRatio = async (uri: string): Promise<number> => {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => {
-      resolve(image.width / image.height);
-    };
-    image.onerror = reject;
-    image.src = uri;
-  });
-};
-
-export const compressImageUri = (uri: string, quality = 0.8): Promise<string> => {
-  // This would typically use a library like expo-image-manipulator
-  // For now, return the original URI
-  return Promise.resolve(uri);
-};
 
 // Haptic feedback utilities
 export const triggerHaptic = (type: keyof typeof HAPTIC_TYPES = "MEDIUM") => {
