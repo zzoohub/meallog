@@ -71,16 +71,3 @@ export {
   getTranslationStats,
   validateKeyPatterns,
 } from "./dev-tools";
-
-// Re-export react-i18next for advanced usage
-export { Trans, withTranslation } from "react-i18next";
-
-// Migration utilities for backward compatibility
-export const LEGACY_HOOKS = {
-  useNavigationI18n: "Use useNavigationI18n from hooks.v2",
-  useCameraI18n: "Use useCameraI18n from hooks.v2",
-  useTimelineI18n: "Use useTimelineI18n from hooks.v2",
-  useDiscoverI18n: "Use useDiscoverI18n from hooks.v2",
-  useCommonI18n: "Use useCommonI18n from hooks.v2",
-  useErrorI18n: "Use useErrorI18n from hooks.v2",
-} as const;

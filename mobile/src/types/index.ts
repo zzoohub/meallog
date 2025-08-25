@@ -88,14 +88,3 @@ export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
   { [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>> }[Keys];
-
-// Re-export domain-specific types for backward compatibility and easier imports
-// Auth types
-export type { User, PhoneAuthFormData, VerificationFormData } from "../domains/auth/types";
-
-// Meal types - export MealType as both value and type (enum can be both)
-export { MealType } from "../domains/meals/types";
-export type { NutritionInfo, Meal, AIAnalysis, Location } from "../domains/meals/types";
-
-// Settings types
-export type { UserPreferences } from "../domains/settings/types";

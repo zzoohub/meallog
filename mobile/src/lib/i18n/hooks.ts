@@ -480,6 +480,3 @@ export const useSettingsI18n = () => {
     [t],
   );
 };
-
-// Re-export the original useTranslation for backwards compatibility
-export { useTranslation } from "react-i18next";
