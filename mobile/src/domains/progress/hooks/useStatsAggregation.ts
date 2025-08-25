@@ -405,25 +405,24 @@ export const useStatsAggregation = () => {
   const [error, setError] = useState<string | null>(null);
   const cacheRef = useRef(statsCache);
 
-  const calculatePeriodStats = useCallback(async (
-    meals: Meal[],
-    period: TimePeriod,
-    userMetricsType?: "total" | "dailyAverage"
-  ) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const result = await statsAggregationUtils.calculatePeriodStats(meals, period, userMetricsType);
-      return result;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to calculate stats';
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const calculatePeriodStats = useCallback(
+    async (meals: Meal[], period: TimePeriod, userMetricsType?: "total" | "dailyAverage") => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const result = await statsAggregationUtils.calculatePeriodStats(meals, period, userMetricsType);
+        return result;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to calculate stats";
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
   const preloadCommonPeriods = useCallback(async (meals: Meal[]) => {
     try {
@@ -456,15 +455,6 @@ export const useStatsAggregation = () => {
     // Direct access to utils for advanced usage
     utils: statsAggregationUtils,
   };
-};
-
-// Backward compatibility - deprecated, use useStatsAggregation hook instead
-// @deprecated Use useStatsAggregation hook for new code
-export const statsAggregationService = {
-  calculatePeriodStats: statsAggregationUtils.calculatePeriodStats,
-  clearCache: statsAggregationUtils.clearCache,
-  getCacheStats: statsAggregationUtils.getCacheStats,
-  preloadCommonPeriods: statsAggregationUtils.preloadCommonPeriods,
 };
 
 export default statsAggregationUtils;
