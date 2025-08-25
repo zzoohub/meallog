@@ -113,8 +113,8 @@ export default function OrbitalNavigation() {
         {
           key: ["meals", "recent", "summary"],
           fetcher: async () => {
-            const { MealStorageService } = await import("@/domains/meals/hooks/useMealStorage");
-            return MealStorageService.getRecentMeals(5);
+            const { mealStorageUtils } = await import("@/domains/meals/hooks/useMealStorage");
+            return mealStorageUtils.getRecentMeals(5);
           },
           staleTime: 1000 * 60 * 5, // 5 minutes
         },

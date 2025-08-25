@@ -16,7 +16,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Meal } from "@/domains/meals/types";
-import { MealStorageService } from "@/domains/meals/hooks/useMealStorage";
+import { mealStorageUtils } from "@/domains/meals/hooks/useMealStorage";
 import { MealType } from "@/types";
 import { useMealDetailI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
@@ -73,7 +73,7 @@ export default function MealDetail() {
         throw new Error(mealDetail.noMealId);
       }
 
-      const meals = await MealStorageService.getAllMeals();
+      const meals = await mealStorageUtils.getAllMeals();
       console.log("All meals loaded:", meals.length, "meals");
       console.log("Looking for meal ID:", mealId);
       console.log(
@@ -217,7 +217,7 @@ export default function MealDetail() {
     try {
       if (isNew === "true") {
         // Save new meal
-        await MealStorageService.saveMeal({
+        await mealStorageUtils.saveMeal({
           userId: "user_1", // TODO: Get actual user ID
           name: mealData.name,
           photoUri,
@@ -238,7 +238,7 @@ export default function MealDetail() {
         });
       } else if (existingMeal) {
         // Update existing meal
-        await MealStorageService.updateMeal(existingMeal.id, {
+        await mealStorageUtils.updateMeal(existingMeal.id, {
           name: mealData.name,
           nutrition: mealData.nutrition,
           ingredients: mealData.ingredients,

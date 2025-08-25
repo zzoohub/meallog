@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import { useTheme } from "@/lib/theme";
 import { createElevation } from "@/styles/tokens";
 import type { Meal } from "../types";
-import { MealStorageService, generateMockMeals } from "../hooks/useMealStorage";
+import { mealStorageUtils, generateMockMeals } from "../hooks/useMealStorage";
 
 interface RecentMealsProps {
   onSeeAll?: () => void;
@@ -25,14 +25,14 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
   const loadRecentMeals = async () => {
     try {
       setIsLoading(true);
-      let meals = await MealStorageService.getRecentMeals(6);
+      let meals = await mealStorageUtils.getRecentMeals(6);
 
       // For development: add mock data if no meals exist
       if (meals.length === 0 && !mockDataInitialized) {
         const mockMeals = generateMockMeals();
         // Save mock meals to storage so they can be found later
         for (const mockMeal of mockMeals) {
-          await MealStorageService.saveMeal({
+          await mealStorageUtils.saveMeal({
             userId: mockMeal.userId,
             name: mockMeal.name,
             photoUri: mockMeal.photoUri,
@@ -47,7 +47,7 @@ export default function RecentMeals({ onSeeAll }: RecentMealsProps) {
           });
         }
         // Reload meals after saving mock data
-        meals = await MealStorageService.getRecentMeals(6);
+        meals = await mealStorageUtils.getRecentMeals(6);
         setMockDataInitialized(true);
       }
 

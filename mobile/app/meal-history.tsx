@@ -16,7 +16,7 @@ import { Calendar } from "react-native-calendars";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Meal, MealHistoryFilter } from "@/domains/meals/types";
-import { MealStorageService, generateMockMeals } from "@/domains/meals/hooks/useMealStorage";
+import { mealStorageUtils, generateMockMeals } from "@/domains/meals/hooks/useMealStorage";
 import { useTimelineI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 import { useAnalyticsStore as useTimeContext, SortMethod } from "@/domains/analytics";
@@ -110,7 +110,7 @@ export default function MealHistory() {
         if (globalPeriod.startDate) filter.startDate = globalPeriod.startDate;
         if (globalPeriod.endDate) filter.endDate = globalPeriod.endDate;
 
-        let loadedMeals = await MealStorageService.getMealsFiltered(filter);
+        let loadedMeals = await mealStorageUtils.getMealsFiltered(filter);
 
         // For development: add mock data if no meals exist (only once)
         if (loadedMeals.length === 0 && !searchQuery && !mockDataGenerated) {
@@ -118,7 +118,7 @@ export default function MealHistory() {
           // Save mock meals to storage for persistence
           for (const mockMeal of mockMeals) {
             try {
-              await MealStorageService.saveMeal({
+              await mealStorageUtils.saveMeal({
                 userId: mockMeal.userId,
                 name: mockMeal.name,
                 photoUri: mockMeal.photoUri,
@@ -136,7 +136,7 @@ export default function MealHistory() {
             }
           }
           setMockDataGenerated(true);
-          loadedMeals = await MealStorageService.getMealsFiltered(filter);
+          loadedMeals = await mealStorageUtils.getMealsFiltered(filter);
         }
 
         const endIndex = ITEMS_PER_PAGE;
@@ -316,7 +316,7 @@ export default function MealHistory() {
       if (globalPeriod.startDate) filter.startDate = globalPeriod.startDate;
       if (globalPeriod.endDate) filter.endDate = globalPeriod.endDate;
 
-      const loadedMeals = await MealStorageService.getMealsFiltered(filter);
+      const loadedMeals = await mealStorageUtils.getMealsFiltered(filter);
 
       const startIndex = page * ITEMS_PER_PAGE;
       const endIndex = startIndex + ITEMS_PER_PAGE;
