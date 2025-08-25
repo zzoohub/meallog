@@ -5,87 +5,55 @@ model: opus
 color: green
 ---
 
-# Next.js 15+ App Router Frontend Design Guideline
+# Next.js 15+ App Router Design Guidelines
 
-This document summarizes key frontend design principles and rules for Next.js 15+ App Router applications, showcasing recommended patterns that leverage Streaming SSR and React Server Components.
+## Core Principles
 
-# Core Next.js App router Principles
+- **Server Components by Default**: Client Components only when needed (reduces bundle size, improves performance)
+- **Streaming SSR**: Progressive rendering with Suspense boundaries
+- **Functional Programming**: Async server functions, immutable updates, pure functions
 
-## Server Components by Default
+## 1. Server Components & Streaming
 
-**Rule:** Use Server Components by default, Client Components only when needed.
-
-**Reasoning:**
-
-- Reduces JavaScript bundle size
-- Improves initial page load performance
-- Better SEO and accessibility
+### Server Components Default
 
 ```tsx
-// app/products/page.tsx - Server Component by default
+// app/products/page.tsx - Server Component
 async function ProductsPage() {
   const products = await fetch("https://api.example.com/products", {
-    next: { revalidate: 3600 }, // ISR with 1 hour cache
+    next: { revalidate: 3600 }, // ISR with 1hr cache
   });
 
-  return (
-    <div>
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
-    </div>
-  );
+  return products.map((p) => <ProductCard key={p.id} product={p} />);
 }
 ```
 
-## Streaming SSR with Suspense
-
-**Rule:** Leverage Suspense boundaries for progressive rendering.
-
-**Reasoning:**
-
-- Improves perceived performance
-- Shows content as soon as it's ready
-- Better user experience with loading states
+### Streaming with Suspense
 
 ```tsx
 // app/dashboard/page.tsx
-import { Suspense } from "react";
-import { DashboardSkeleton, ChartSkeleton } from "@/components/skeletons";
-
 export default function DashboardPage() {
   return (
-    <div>
+    <>
       <Suspense fallback={<DashboardSkeleton />}>
         <Dashboard />
       </Suspense>
-
       <Suspense fallback={<ChartSkeleton />}>
         <RevenueChart />
       </Suspense>
-    </div>
+    </>
   );
 }
 
-// Server Components that fetch data
 async function Dashboard() {
   const data = await fetchDashboardData();
   return <DashboardContent data={data} />;
 }
-
-async function RevenueChart() {
-  const chartData = await fetchChartData();
-  return <Chart data={chartData} />;
-}
 ```
 
-# Readability
+## 2. Readability
 
-## Naming Magic Numbers
-
-**Rule:** Replace magic numbers with named constants for clarity.
-
-#### Recommended Pattern:
+### Named Constants
 
 ```typescript
 // app/constants/animation.ts
@@ -94,34 +62,12 @@ export const ANIMATION_DELAYS = {
   PAGE_TRANSITION: 200,
   MODAL_OPEN: 150,
 } as const;
-
-// app/components/like-button.tsx
-("use client");
-
-import { ANIMATION_DELAYS } from "@/constants/animation";
-
-export function LikeButton({ postId }: { postId: string }) {
-  const handleLike = async () => {
-    await postLike(postId);
-    await delay(ANIMATION_DELAYS.LIKE_FEEDBACK);
-    router.refresh(); // Revalidate Server Component data
-  };
-
-  return <button onClick={handleLike}>Like</button>;
-}
 ```
 
-## Abstracting Implementation Details
-
-**Rule:** Abstract complex logic into dedicated components, leveraging Server/Client Component boundaries.
-
-#### Recommended Pattern 1: Auth Guard with Middleware
+### Authentication with Middleware
 
 ```tsx
 // middleware.ts
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
 export function middleware(request: NextRequest) {
   const token = request.cookies.get("auth-token");
 
@@ -136,17 +82,10 @@ export const config = {
   matcher: ["/dashboard/:path*", "/admin/:path*"],
 };
 
-// app/dashboard/layout.tsx - Server Component
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const user = await getCurrentUser(); // Server-side auth check
-
-  if (!user) {
-    redirect("/login");
-  }
+// app/dashboard/layout.tsx
+export default async function DashboardLayout({ children }) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
   return (
     <div>
@@ -157,7 +96,7 @@ export default async function DashboardLayout({
 }
 ```
 
-#### Recommended Pattern 2: Parallel Routes for Role-Based UI
+### Parallel Routes for Role-Based UI
 
 ```tsx
 // app/dashboard/@admin/page.tsx
@@ -171,51 +110,33 @@ export default function ViewerDashboard() {
 }
 
 // app/dashboard/layout.tsx
-export default async function DashboardLayout({
-  admin,
-  viewer,
-}: {
-  admin: React.ReactNode;
-  viewer: React.ReactNode;
-}) {
+export default async function Layout({ admin, viewer }) {
   const user = await getCurrentUser();
-
   return user?.role === "admin" ? admin : viewer;
 }
 ```
 
-## Separating Code Paths with Route Groups
-
-**Rule:** Use Route Groups to organize different user experiences.
+### Route Groups Organization
 
 ```
 app/
 ├── (auth)/
-│   ├── login/
-│   │   └── page.tsx
-│   ├── register/
-│   │   └── page.tsx
-│   └── layout.tsx      # Minimal layout for auth pages
+│   ├── login/page.tsx
+│   └── layout.tsx      # Minimal layout
 ├── (dashboard)/
-│   ├── dashboard/
-│   │   └── page.tsx
-│   ├── settings/
-│   │   └── page.tsx
+│   ├── dashboard/page.tsx
 │   └── layout.tsx      # Full layout with sidebar
 └── layout.tsx          # Root layout
 ```
 
-## Simplifying Complex Conditions with Server Components
-
-**Rule:** Move complex conditional logic to Server Components when possible.
+### Server-Side Business Logic
 
 ```tsx
-// app/products/[id]/page.tsx - Server Component
-async function ProductPage({ params }: { params: { id: string } }) {
+// app/products/[id]/page.tsx
+async function ProductPage({ params }) {
   const product = await getProduct(params.id);
   const user = await getCurrentUser();
 
-  // Complex business logic on the server
   const pricing = (() => {
     if (user?.membership === "premium" && product.onSale) return "PREMIUM_SALE";
     if (user?.membership === "premium") return "PREMIUM";
@@ -227,19 +148,13 @@ async function ProductPage({ params }: { params: { id: string } }) {
 }
 ```
 
-## Colocating Data Fetching with Components
-
-**Rule:** Fetch data where it's needed using Server Components.
+### Colocated Data Fetching
 
 ```tsx
 // app/components/user-profile.tsx - Server Component
-async function UserProfile({ userId }: { userId: string }) {
-  // Data fetching colocated with component
+async function UserProfile({ userId }) {
   const user = await fetch(`/api/users/${userId}`, {
-    next: {
-      revalidate: 60,
-      tags: [`user-${userId}`],
-    },
+    next: { revalidate: 60, tags: [`user-${userId}`] },
   }).then((res) => res.json());
 
   return (
@@ -250,7 +165,7 @@ async function UserProfile({ userId }: { userId: string }) {
   );
 }
 
-// Can be used anywhere without props drilling
+// Usage without props drilling
 export default function Page() {
   return (
     <Suspense fallback={<ProfileSkeleton />}>
@@ -260,41 +175,29 @@ export default function Page() {
 }
 ```
 
-# Predictability
+## 3. Predictability
 
-## Standardizing Data Fetching Patterns
-
-**Rule:** Use consistent patterns for data fetching across the app.
-
-#### Recommended Pattern: Data Access Layer
+### Data Access Layer
 
 ```typescript
 // app/lib/data/user.ts
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 
-// Request deduplication with React cache
+// Request deduplication
 export const getUser = cache(async (id: string) => {
-  const user = await db.user.findUnique({ where: { id } });
-  return user;
+  return await db.user.findUnique({ where: { id } });
 });
 
-// Data caching with Next.js cache
+// Data caching
 export const getCachedUser = unstable_cache(
-  async (id: string) => {
-    return getUser(id);
-  },
+  async (id: string) => getUser(id),
   ["user-by-id"],
-  {
-    revalidate: 3600,
-    tags: [`user-${id}`],
-  }
+  { revalidate: 3600, tags: [`user-${id}`] }
 );
 ```
 
-## Using Server Actions for Mutations
-
-**Rule:** Use Server Actions for data mutations with consistent return types.
+### Server Actions Pattern
 
 ```typescript
 // app/actions/user.ts
@@ -322,10 +225,7 @@ export async function updateUser(
       email: formData.get("email"),
     });
 
-    await db.user.update({
-      where: { id: userId },
-      data: validatedData,
-    });
+    await db.user.update({ where: { id: userId }, data: validatedData });
 
     revalidateTag(`user-${userId}`);
     revalidatePath("/dashboard");
@@ -340,43 +240,26 @@ export async function updateUser(
 }
 ```
 
-## Error Boundaries with error.tsx
-
-**Rule:** Use error.tsx files for predictable error handling.
+### Error Boundaries
 
 ```tsx
 // app/dashboard/error.tsx
 "use client";
 
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
+export default function Error({ error, reset }) {
   return (
-    <div className="error-container">
+    <div>
       <h2>Something went wrong!</h2>
       <p>{error.message}</p>
       <button onClick={reset}>Try again</button>
     </div>
   );
 }
-
-// app/dashboard/page.tsx
-export default async function DashboardPage() {
-  // If this throws, error.tsx handles it
-  const data = await fetchDashboardData();
-  return <Dashboard data={data} />;
-}
 ```
 
-# Cohesion
+## 4. Cohesion
 
-## Form Handling with Server Actions
-
-**Rule:** Keep form logic cohesive using Server Actions and useFormState.
+### Form Handling with Server Actions
 
 ```tsx
 // app/components/user-form.tsx
@@ -385,14 +268,9 @@ export default async function DashboardPage() {
 import { useFormState, useFormStatus } from "react-dom";
 import { updateUser } from "@/app/actions/user";
 
-const initialState = {
-  message: "",
-  errors: {},
-};
-
-export function UserForm({ userId }: { userId: string }) {
+export function UserForm({ userId }) {
   const updateUserWithId = updateUser.bind(null, userId);
-  const [state, dispatch] = useFormState(updateUserWithId, initialState);
+  const [state, dispatch] = useFormState(updateUserWithId, {});
 
   return (
     <form action={dispatch}>
@@ -417,129 +295,70 @@ function SubmitButton() {
 }
 ```
 
-## Organizing Code by Feature/Domain
-
-**Rule:** Organize directories by feature/domain, not just by code type - same as original guideline but adapted for App Router.
-
-**Reasoning:**
-
-- Increases cohesion by keeping related files together
-- Simplifies feature understanding, development, maintenance, and deletion
-- Server-side code requires separate files due to `'use server'` directive
-
-#### Recommended Pattern:
+### Domain-Driven File Structure
 
 ```
 app/
-├── components/     # Shared/common components
-├── hooks/         # Shared/common hooks
-├── utils/         # Shared/common utils
-├── actions/       # Shared/common server actions & data fetching
+├── components/     # Shared components
+├── hooks/         # Shared hooks
+├── utils/         # Shared utilities
+├── actions/       # Shared server actions
 ├── domains/
 │   ├── user/
 │   │   ├── components/
-│   │   │   ├── UserProfileCard.tsx      # Can be Server or Client Component
-│   │   │   └── UserEditForm.tsx         # 'use client' - for form interactivity
+│   │   │   ├── UserProfileCard.tsx      # Server/Client Component
+│   │   │   └── UserEditForm.tsx         # 'use client'
 │   │   ├── hooks/
-│   │   │   └── useUserPreferences.ts    # Client-side hook
+│   │   │   └── useUserPreferences.ts    # Client-side
 │   │   ├── actions/
-│   │   │   ├── user.queries.ts          # Data fetching (getUser, getUsers, etc.)
-│   │   │   └── user.mutations.ts        # Mutations (updateUser, deleteUser, etc.)
-│   │   ├── utils/
-│   │   │   └── formatUserName.ts        # Shared between server/client
-│   │   └── index.ts                     # Optional barrel file (no 'use' directives)
+│   │   │   ├── user.queries.ts          # getUser, getUsers
+│   │   │   └── user.mutations.ts        # updateUser, deleteUser
+│   │   └── utils/
+│   │       └── formatUserName.ts
 │   ├── product/
 │   │   ├── components/
-│   │   │   ├── ProductList.tsx          # Server Component (default)
-│   │   │   ├── ProductCard.tsx          # Server Component
-│   │   │   └── AddToCartButton.tsx      # 'use client' - for onClick
+│   │   │   ├── ProductList.tsx          # Server Component
+│   │   │   └── AddToCartButton.tsx      # 'use client'
 │   │   ├── hooks/
-│   │   │   └── useProductFilter.ts      # Client-side state management
+│   │   │   └── useProductFilter.ts
 │   │   ├── actions/
-│   │   │   ├── product.queries.ts       # getProducts, getProductById, etc.
-│   │   │   ├── product.mutations.ts     # createProduct, updateProduct, etc.
-│   │   │   └── cart.mutations.ts        # addToCart, removeFromCart, etc.
+│   │   │   ├── product.queries.ts       # Data fetching
+│   │   │   ├── product.mutations.ts     # Mutations
+│   │   │   └── cart.mutations.ts
 │   │   └── utils/
-│   │       └── calculatePrice.ts        # Business logic
+│   │       └── calculatePrice.ts
 │   └── order/
 │       ├── components/
-│       │   ├── OrderSummary.tsx         # Server Component
-│       │   └── OrderActions.tsx         # 'use client' - interactive buttons
 │       ├── hooks/
-│       │   └── useOrderStatus.ts        # Client-side hook
 │       ├── actions/
-│       │   ├── order.queries.ts         # getOrders, getOrderById, etc.
-│       │   └── order.mutations.ts       # createOrder, cancelOrder, etc.
 │       └── utils/
-│           └── calculateTotal.ts        # Order calculations
-├── (marketing)/        # Route group for marketing pages
-│   ├── page.tsx
-│   └── about/
-├── (shop)/            # Route group for shop pages
+├── (marketing)/    # Route group
+│   └── page.tsx
+├── (shop)/        # Route group
 │   ├── products/
-│   │   ├── page.tsx   # Uses domains/product components
-│   │   └── [id]/
-│   │       └── page.tsx
-│   └── cart/
-│       └── page.tsx   # Uses domains/order components
-└── (dashboard)/       # Route group for dashboard
-    └── orders/
-        └── page.tsx   # Uses domains/order components
+│   │   ├── page.tsx
+│   │   └── [id]/page.tsx
+│   └── cart/page.tsx
+└── (dashboard)/   # Route group
+    └── orders/page.tsx
 ```
 
-### Key Principles:
-
-1. **Unified `actions` folder**: Combines both data fetching (queries) and mutations in one place since both are server-side code
-
-2. **Naming convention for clarity**:
-
-   - `*.queries.ts` - Data fetching functions (GET operations)
-   - `*.mutations.ts` - Data mutation functions (POST/PUT/DELETE operations)
-
-3. **Clear separation of concerns**:
-
-   - `components/` - Can be Server or Client Components
-   - `hooks/` - Always client-side (`'use client'` context)
-   - `actions/` - Always server-side (both queries and mutations)
-   - `utils/` - Shared utilities (no directives)
-
-4. **Route groups for organization**: The actual routes use route groups like `(shop)`, `(dashboard)` but import from the `domains` folder
-
-### Example Usage:
+### Domain Actions Example
 
 ```tsx
 // app/domains/product/actions/product.queries.ts
-import { cache } from "react";
-import { unstable_cache } from "next/cache";
-
-// Data fetching with caching
 export const getProducts = cache(async () => {
-  const products = await db.product.findMany();
-  return products;
+  return await db.product.findMany();
 });
 
 export const getProductById = unstable_cache(
-  async (id: string) => {
-    const product = await db.product.findUnique({ where: { id } });
-    return product;
-  },
+  async (id: string) => db.product.findUnique({ where: { id } }),
   ["product-by-id"],
-  {
-    revalidate: 3600,
-    tags: ["products"],
-  }
+  { revalidate: 3600, tags: ["products"] }
 );
 
 // app/domains/product/actions/product.mutations.ts
 ("use server");
-
-import { revalidateTag } from "next/cache";
-import { z } from "zod";
-
-const productSchema = z.object({
-  name: z.string().min(1),
-  price: z.number().positive(),
-});
 
 export async function createProduct(formData: FormData) {
   const validatedData = productSchema.parse({
@@ -553,25 +372,8 @@ export async function createProduct(formData: FormData) {
   return { success: true, product };
 }
 
-export async function updateProduct(id: string, formData: FormData) {
-  const validatedData = productSchema.parse({
-    name: formData.get("name"),
-    price: Number(formData.get("price")),
-  });
-
-  const product = await db.product.update({
-    where: { id },
-    data: validatedData,
-  });
-
-  revalidateTag("products");
-  return { success: true, product };
-}
-
 // app/domains/product/components/ProductList.tsx
-// Server Component by default
 import { getProducts } from "../actions/product.queries";
-import { ProductCard } from "./ProductCard";
 
 export async function ProductList() {
   const products = await getProducts();
@@ -585,33 +387,14 @@ export async function ProductList() {
   );
 }
 
-// app/domains/product/components/AddToCartButton.tsx
-("use client");
-
-import { addToCart } from "../actions/cart.mutations";
-import { useFormStatus } from "react-dom";
-
-export function AddToCartButton({ productId }: { productId: string }) {
-  const { pending } = useFormStatus();
-
-  return (
-    <form action={() => addToCart(productId)}>
-      <button disabled={pending}>
-        {pending ? "Adding..." : "Add to Cart"}
-      </button>
-    </form>
-  );
-}
-
 // app/(shop)/products/page.tsx
 import { ProductList } from "@/domains/product/components/ProductList";
-import { Suspense } from "react";
 
 export default function ProductsPage() {
   return (
     <main>
       <h1>Our Products</h1>
-      <Suspense fallback={<div>Loading products...</div>}>
+      <Suspense fallback={<div>Loading...</div>}>
         <ProductList />
       </Suspense>
     </main>
@@ -619,20 +402,14 @@ export default function ProductsPage() {
 }
 ```
 
-This structure maintains the domain-driven organization from the original guideline while combining related server-side code (both queries and mutations) in a single `actions` folder with clear naming conventions.
+## 5. Decoupling
 
-# Coupling
-
-## Reducing Component Coupling with Streaming
-
-**Rule:** Use Suspense boundaries to decouple component loading states.
+### Independent Component Loading
 
 ```tsx
-// app/dashboard/page.tsx
 export default function DashboardPage() {
   return (
     <div className="grid">
-      {/* Each component loads independently */}
       <Suspense fallback={<StatsSkeleton />}>
         <StatsCards />
       </Suspense>
@@ -647,21 +424,13 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-// Each component fetches its own data
-async function StatsCards() {
-  const stats = await fetchStats();
-  return <StatsDisplay stats={stats} />;
-}
 ```
 
-## Using Composition with Parallel and Intercepting Routes
-
-**Rule:** Leverage Next.js routing features to reduce coupling.
+### Intercepting Routes for Modals
 
 ```tsx
-// app/@modal/(.)products/[id]/page.tsx - Intercepting route
-export default function ProductModal({ params }: { params: { id: string } }) {
+// app/@modal/(.)products/[id]/page.tsx
+export default function ProductModal({ params }) {
   return (
     <Modal>
       <ProductQuickView id={params.id} />
@@ -670,13 +439,7 @@ export default function ProductModal({ params }: { params: { id: string } }) {
 }
 
 // app/layout.tsx
-export default function RootLayout({
-  children,
-  modal,
-}: {
-  children: React.ReactNode;
-  modal: React.ReactNode;
-}) {
+export default function RootLayout({ children, modal }) {
   return (
     <html>
       <body>
@@ -688,9 +451,7 @@ export default function RootLayout({
 }
 ```
 
-## Optimistic Updates with Server Actions
-
-**Rule:** Decouple UI updates from server responses using optimistic updates.
+### Optimistic Updates
 
 ```tsx
 "use client";
@@ -698,10 +459,10 @@ export default function RootLayout({
 import { useOptimistic } from "react";
 import { toggleLike } from "@/app/actions/posts";
 
-export function PostLikes({ post }: { post: Post }) {
+export function PostLikes({ post }) {
   const [optimisticLikes, addOptimisticLike] = useOptimistic(
     post.likes,
-    (state, newLike: number) => state + newLike
+    (state, newLike) => state + newLike
   );
 
   async function handleLike() {
@@ -713,11 +474,9 @@ export function PostLikes({ post }: { post: Post }) {
 }
 ```
 
-# Performance Optimization
+## 6. Performance Optimization
 
-## Partial Prerendering (PPR)
-
-**Rule:** Use PPR for optimal performance with dynamic content.
+### Partial Prerendering
 
 ```tsx
 // app/page.tsx
@@ -726,11 +485,11 @@ export const experimental_ppr = true;
 export default async function HomePage() {
   return (
     <>
-      {/* Static content - prerendered */}
+      {/* Static - prerendered */}
       <Header />
       <Hero />
 
-      {/* Dynamic content - streamed */}
+      {/* Dynamic - streamed */}
       <Suspense fallback={<ProductsSkeleton />}>
         <FeaturedProducts />
       </Suspense>
@@ -739,39 +498,32 @@ export default async function HomePage() {
 }
 ```
 
-## Image Optimization
-
-**Rule:** Always use Next.js Image component for optimized loading.
+### Image Optimization
 
 ```tsx
 import Image from "next/image";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product }) {
   return (
-    <div>
-      <Image
-        src={product.image}
-        alt={product.name}
-        width={300}
-        height={200}
-        placeholder="blur"
-        blurDataURL={product.blurDataURL}
-        priority={false}
-        loading="lazy"
-      />
-    </div>
+    <Image
+      src={product.image}
+      alt={product.name}
+      width={300}
+      height={200}
+      placeholder="blur"
+      blurDataURL={product.blurDataURL}
+      loading="lazy"
+    />
   );
 }
 ```
 
-## Route Segment Config
-
-**Rule:** Configure route segments appropriately for caching and revalidation.
+### Route Segment Config
 
 ```tsx
 // app/products/page.tsx
 export const dynamic = "force-static";
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 3600;
 export const fetchCache = "force-cache";
 
 export default async function ProductsPage() {
@@ -780,93 +532,53 @@ export default async function ProductsPage() {
 }
 ```
 
-# Functional Programming Paradigm
-
-**Rule:** Always use functional programming paradigm for Next.js App Router development.
-
-**Reasoning:**
-
-- Next.js App Router is built entirely on functional components and React Server Components
-- Server Components are inherently functional (async functions that return JSX)
-- Functional code aligns with React's unidirectional data flow and immutable state updates
-- Server Actions are pure functions that run on the server
-- Enables better code splitting and tree shaking
-
-## Core Principles to Follow:
-
-- **Functional Components Only**: Never use class components; use function components with hooks
-- **Server Components by Default**: These are async functions that execute on the server
-- **Immutable State Updates**: Always return new objects/arrays in Client Components
-- **Pure Server Actions**: Server Actions should be pure functions with predictable returns
-- **Declarative Data Fetching**: Use RSC's declarative approach over imperative API calls
-- **Function Composition**: Build complex features by composing simple functions
-
-#### Example:
+## 7. Functional Programming
 
 ```typescript
-// ✅ Functional approach - Recommended
-// app/products/page.tsx - Server Component (async function)
+// ✅ Server Component - Async function
 export default async function ProductsPage() {
-  const products = await getProducts(); // Pure data fetching
-
-  return (
-    <div>
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
-    </div>
-  );
+  const products = await getProducts();
+  return products.map((p) => <ProductCard key={p.id} product={p} />);
 }
 
-// app/components/cart.tsx - Client Component with functional updates
+// ✅ Client Component - Functional with hooks
 ("use client");
 
 export function Cart() {
   const [items, setItems] = useState<Item[]>([]);
 
   const addItem = useCallback((item: Item) => {
-    setItems((prev) => [...prev, item]); // Immutable update
+    setItems((prev) => [...prev, item]); // Immutable
   }, []);
 
   const total = useMemo(
-    () => items.reduce((sum, item) => sum + item.price, 0), // Pure computation
+    () => items.reduce((sum, item) => sum + item.price, 0),
     [items]
   );
 
   return <CartDisplay items={items} total={total} />;
 }
 
-// app/actions/user.ts - Pure Server Actions
+// ✅ Server Action - Pure function
 ("use server");
 
 export async function updateUser(id: string, data: UserData) {
-  // Pure function - same input always produces same output
   const validated = validateUserData(data);
   const updated = await db.user.update({ where: { id }, data: validated });
   revalidatePath("/users");
   return { success: true, user: updated };
 }
-
-// ❌ Avoid: Class-based or imperative patterns
-class ProductService {
-  private cache = {};
-
-  async getProducts() {
-    if (this.cache.products) return this.cache.products;
-    // Stateful, imperative approach
-  }
-}
 ```
 
-# Best Practices Summary
+## Best Practices Summary
 
-1. **Server Components First**: Default to Server Components, use Client Components only for interactivity
-2. **Streaming SSR**: Use Suspense boundaries liberally for progressive rendering
-3. **Data Fetching**: Colocate data fetching with components using Server Components
-4. **Mutations**: Use Server Actions for all data mutations
-5. **Caching**: Leverage Next.js caching strategies (ISR, on-demand revalidation)
-6. **Error Handling**: Use error.tsx and loading.tsx for consistent UX
-7. **Route Organization**: Use route groups and parallel routes for better organization
-8. **Performance**: Enable PPR, use Image optimization, and configure route segments
-9. **Type Safety**: Use TypeScript with Zod for runtime validation
-10. **Composition**: Prefer composition over props drilling, leverage RSC boundaries
+1. **Server Components First** - Client only for interactivity
+2. **Streaming SSR** - Liberal use of Suspense boundaries
+3. **Colocated Data Fetching** - Fetch where needed in Server Components
+4. **Server Actions** - All mutations through Server Actions
+5. **Caching Strategy** - ISR, on-demand revalidation, unstable_cache
+6. **Error/Loading States** - error.tsx and loading.tsx files
+7. **Route Organization** - Route groups, parallel/intercepting routes
+8. **Performance** - PPR, Image optimization, route segment config
+9. **Type Safety** - TypeScript + Zod validation
+10. **Composition** - Prefer composition, leverage RSC boundaries
