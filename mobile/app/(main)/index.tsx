@@ -19,6 +19,11 @@ const ProgressDashboard = createLazyComponent(() => import("@/domains/progress/c
 const AICoach = createLazyComponent(() => import("@/domains/ai-coach/components/AICoach"));
 const SettingsOrbital = createLazyComponent(() => import("@/domains/settings/components/SettingsOrbital"));
 
+// Preload functions for each lazy component
+const preloadProgress = () => import("@/domains/progress/components/ProgressDashboard");
+const preloadAICoach = () => import("@/domains/ai-coach/components/AICoach");
+const preloadSettings = () => import("@/domains/settings/components/SettingsOrbital");
+
 // MVP Phase 2: Social features (lazy loaded but currently disabled)
 // const SocialFeed = createLazyComponent(() => import('@/domains/social/components/SocialFeed'));
 // const DiscoverSection = createLazyComponent(() => import('@/domains/discover/components/DiscoverSection'));
@@ -49,48 +54,41 @@ export default function OrbitalNavigation() {
   // Prefetch navigation targets based on current section
   // usePrefetchNavigation(SECTION_PREFETCH_MAP[activeSection] || []);
 
-  // Preload adjacent sections for instant navigation
-  const preloadAdjacentSections = useCallback(
-    async (currentSection: OrbitalSection) => {
-      const sections = Object.values(OrbitalSection);
-      const currentIndex = sections.indexOf(currentSection);
-
-      // Preload next and previous sections
-      const adjacentSections = [sections[currentIndex - 1], sections[currentIndex + 1]].filter(
-        (s): s is OrbitalSection => s !== undefined,
-      );
-
-      adjacentSections.forEach(section => {
-        if (!preloadedSections.has(section)) {
-          // Dynamically import the component to preload it
-          switch (section) {
-            case OrbitalSection.Progress:
-              import("@/domains/progress/components/ProgressDashboard").then(() => {
-                setPreloadedSections(prev => new Set([...prev, section]));
-              });
-              break;
-            case OrbitalSection.AICoach:
-              import("@/domains/ai-coach/components/AICoach").then(() => {
-                setPreloadedSections(prev => new Set([...prev, section]));
-              });
-              break;
-            case OrbitalSection.Settings:
-              import("@/domains/settings/components/SettingsOrbital").then(() => {
-                setPreloadedSections(prev => new Set([...prev, section]));
-              });
-              break;
-          }
+  // Preload all sections after initial render for instant navigation
+  const preloadAllSections = useCallback(async () => {
+    // Small delay to ensure main screen is fully rendered
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Preload all sections in parallel
+    const preloadPromises = [
+      preloadProgress(),
+      preloadAICoach(), 
+      preloadSettings()
+    ];
+    
+    Promise.all(preloadPromises)
+      .then(() => {
+        setPreloadedSections(new Set([
+          OrbitalSection.Progress,
+          OrbitalSection.AICoach,
+          OrbitalSection.Settings
+        ]));
+        if (__DEV__) {
+          console.log('All sections preloaded successfully');
+        }
+      })
+      .catch(error => {
+        if (__DEV__) {
+          console.warn('Failed to preload some sections:', error);
         }
       });
-    },
-    [preloadedSections],
-  );
+  }, []);
 
-  // Prefetch data for all main sections on mount
+  // Prefetch data and preload all sections on mount
   useEffect(() => {
-    const prefetchMainData = async () => {
-      // Wait a bit for initial render
-      await new Promise(resolve => setTimeout(resolve, 1000));
+    const initializeApp = async () => {
+      // Start preloading all sections immediately
+      preloadAllSections();
 
       // Prefetch common data that multiple sections might use
       await prefetchBatch([
@@ -119,13 +117,10 @@ export default function OrbitalNavigation() {
           staleTime: 1000 * 60 * 5, // 5 minutes
         },
       ]);
-
-      // Start preloading adjacent sections
-      preloadAdjacentSections(OrbitalSection.Camera);
     };
 
-    prefetchMainData();
-  }, [preloadAdjacentSections]);
+    initializeApp();
+  }, [preloadAllSections]);
 
   const navigateToSection = useCallback(
     (section: OrbitalSection) => {
@@ -153,11 +148,8 @@ export default function OrbitalNavigation() {
       requestAnimationFrame(() => {
         endNavigation(activeSection, section);
       });
-
-      // Preload adjacent sections for the new active section
-      preloadAdjacentSections(section);
     },
-    [activeSection, preloadAdjacentSections],
+    [activeSection],
   );
 
   const renderActiveSection = () => {
