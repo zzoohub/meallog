@@ -20,77 +20,77 @@ const CHUNK_SIZE = 50;
 
 // Sort metadata for UI display
 const SORT_OPTIONS: SortMetadata[] = [
-    {
-      key: "date-desc",
-      label: "Latest First",
-      icon: "time",
-      description: "Most recent meals first",
-      ascending: false,
-    },
-    {
-      key: "date-asc",
-      label: "Oldest First",
-      icon: "time-outline",
-      description: "Oldest meals first",
-      ascending: true,
-    },
-    {
-      key: "calories-desc",
-      label: "Highest Calories",
-      icon: "flame",
-      description: "Meals with most calories first",
-      ascending: false,
-    },
-    {
-      key: "calories-asc",
-      label: "Lowest Calories",
-      icon: "flame-outline",
-      description: "Meals with least calories first",
-      ascending: true,
-    },
-    {
-      key: "protein-desc",
-      label: "Highest Protein",
-      icon: "fitness",
-      description: "High protein meals first",
-      ascending: false,
-    },
-    {
-      key: "protein-asc",
-      label: "Lowest Protein",
-      icon: "fitness-outline",
-      description: "Low protein meals first",
-      ascending: true,
-    },
-    {
-      key: "health-score-desc",
-      label: "Healthiest First",
-      icon: "heart",
-      description: "Highest health score first",
-      ascending: false,
-    },
-    {
-      key: "health-score-asc",
-      label: "Least Healthy",
-      icon: "heart-outline",
-      description: "Lowest health score first",
-      ascending: true,
-    },
-    {
-      key: "nutrition-density-desc",
-      label: "Most Nutritious",
-      icon: "nutrition",
-      description: "Highest nutrition per calorie",
-      ascending: false,
-    },
-    {
-      key: "nutrition-density-asc",
-      label: "Least Dense",
-      icon: "nutrition-outline",
-      description: "Lowest nutrition density",
-      ascending: true,
-    },
-  ];
+  {
+    key: "date-desc",
+    label: "Latest First",
+    icon: "time",
+    description: "Most recent meals first",
+    ascending: false,
+  },
+  {
+    key: "date-asc",
+    label: "Oldest First",
+    icon: "time-outline",
+    description: "Oldest meals first",
+    ascending: true,
+  },
+  {
+    key: "calories-desc",
+    label: "Highest Calories",
+    icon: "flame",
+    description: "Meals with most calories first",
+    ascending: false,
+  },
+  {
+    key: "calories-asc",
+    label: "Lowest Calories",
+    icon: "flame-outline",
+    description: "Meals with least calories first",
+    ascending: true,
+  },
+  {
+    key: "protein-desc",
+    label: "Highest Protein",
+    icon: "fitness",
+    description: "High protein meals first",
+    ascending: false,
+  },
+  {
+    key: "protein-asc",
+    label: "Lowest Protein",
+    icon: "fitness-outline",
+    description: "Low protein meals first",
+    ascending: true,
+  },
+  {
+    key: "health-score-desc",
+    label: "Healthiest First",
+    icon: "heart",
+    description: "Highest health score first",
+    ascending: false,
+  },
+  {
+    key: "health-score-asc",
+    label: "Least Healthy",
+    icon: "heart-outline",
+    description: "Lowest health score first",
+    ascending: true,
+  },
+  {
+    key: "nutrition-density-desc",
+    label: "Most Nutritious",
+    icon: "nutrition",
+    description: "Highest nutrition per calorie",
+    ascending: false,
+  },
+  {
+    key: "nutrition-density-asc",
+    label: "Least Dense",
+    icon: "nutrition-outline",
+    description: "Lowest nutrition density",
+    ascending: true,
+  },
+];
 
 // Meal sorting utility functions
 export const mealSortingUtils = {
@@ -501,7 +501,7 @@ export const useMealSorting = () => {
   const sortMeals = useCallback(async (meals: Meal[], sortMethod: SortMethod): Promise<SortedSection[]> => {
     setSortingInProgress(true);
     setCurrentSortMethod(sortMethod);
-    
+
     try {
       const result = await mealSortingUtils.sortMeals(meals, sortMethod);
       return result;
@@ -533,16 +533,6 @@ export const useMealSorting = () => {
     // Direct access to utils for advanced usage
     utils: mealSortingUtils,
   };
-};
-
-// Backward compatibility - deprecated, use useMealSorting hook instead
-// @deprecated Use useMealSorting hook for new code
-export const mealSortingService = {
-  getSortOptions: mealSortingUtils.getSortOptions,
-  getSortMetadata: mealSortingUtils.getSortMetadata,
-  sortMeals: mealSortingUtils.sortMeals,
-  getEstimatedSortTime: mealSortingUtils.getEstimatedSortTime,
-  isExpensiveSort: mealSortingUtils.isExpensiveSort,
 };
 
 export default mealSortingUtils;

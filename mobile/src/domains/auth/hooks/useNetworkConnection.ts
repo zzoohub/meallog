@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from "react";
 
 // Network connection state management
 const networkState = {
@@ -25,7 +25,7 @@ export const networkUtils = {
       return true;
     }
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const timeoutId = setTimeout(() => {
         cleanup();
         resolve(false);
@@ -58,24 +58,24 @@ export const networkUtils = {
   retryWithBackoff: async <T>(
     operation: () => Promise<T>,
     maxRetries: number = 3,
-    baseDelay: number = 1000
+    baseDelay: number = 1000,
   ): Promise<T> => {
     let lastError: Error;
-    
+
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         // Wait for connection if offline
         if (!networkState.isConnected) {
           const connected = await networkUtils.waitForConnection(5000);
           if (!connected) {
-            throw new Error('No internet connection');
+            throw new Error("No internet connection");
           }
         }
 
         return await operation();
       } catch (error) {
         lastError = error as Error;
-        
+
         // Don't retry on final attempt
         if (attempt === maxRetries) {
           break;
@@ -109,7 +109,7 @@ export const useNetworkConnection = () => {
     const listener = (connected: boolean) => {
       setIsConnected(connected);
     };
-    
+
     listenerRef.current = listener;
     networkUtils.addListener(listener);
 
@@ -123,15 +123,12 @@ export const useNetworkConnection = () => {
     };
   }, []);
 
-  const waitForConnection = useCallback(
-    (timeout?: number) => networkUtils.waitForConnection(timeout),
-    []
-  );
+  const waitForConnection = useCallback((timeout?: number) => networkUtils.waitForConnection(timeout), []);
 
   const retryWithBackoff = useCallback(
     <T>(operation: () => Promise<T>, maxRetries?: number, baseDelay?: number) =>
       networkUtils.retryWithBackoff(operation, maxRetries, baseDelay),
-    []
+    [],
   );
 
   return {
@@ -139,14 +136,4 @@ export const useNetworkConnection = () => {
     waitForConnection,
     retryWithBackoff,
   };
-};
-
-// Backward compatibility - deprecated, use useNetworkConnection hook instead
-// @deprecated Use useNetworkConnection hook for new code
-export const networkService = {
-  getIsConnected: networkUtils.getIsConnected,
-  waitForConnection: networkUtils.waitForConnection,
-  addListener: networkUtils.addListener,
-  removeListener: networkUtils.removeListener,
-  retryWithBackoff: networkUtils.retryWithBackoff,
 };

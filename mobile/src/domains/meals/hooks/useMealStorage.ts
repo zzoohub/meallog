@@ -241,7 +241,7 @@ export const useMealStorage = () => {
       const loadedMeals = await mealStorageUtils.getAllMeals();
       setMeals(loadedMeals);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load meals');
+      setError(err instanceof Error ? err.message : "Failed to load meals");
     } finally {
       setLoading(false);
     }
@@ -254,7 +254,7 @@ export const useMealStorage = () => {
       setMeals(prev => [newMeal, ...prev]);
       return newMeal;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to save meal';
+      const errorMessage = err instanceof Error ? err.message : "Failed to save meal";
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -264,10 +264,10 @@ export const useMealStorage = () => {
     setError(null);
     try {
       const updatedMeal = await mealStorageUtils.updateMeal(mealId, updates);
-      setMeals(prev => prev.map(meal => meal.id === mealId ? updatedMeal : meal));
+      setMeals(prev => prev.map(meal => (meal.id === mealId ? updatedMeal : meal)));
       return updatedMeal;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update meal';
+      const errorMessage = err instanceof Error ? err.message : "Failed to update meal";
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -279,7 +279,7 @@ export const useMealStorage = () => {
       await mealStorageUtils.deleteMeal(mealId);
       setMeals(prev => prev.filter(meal => meal.id !== mealId));
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete meal';
+      const errorMessage = err instanceof Error ? err.message : "Failed to delete meal";
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -290,7 +290,7 @@ export const useMealStorage = () => {
     try {
       return await mealStorageUtils.getMealsFiltered(filter);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to filter meals';
+      const errorMessage = err instanceof Error ? err.message : "Failed to filter meals";
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -301,7 +301,7 @@ export const useMealStorage = () => {
     try {
       return await mealStorageUtils.getRecentMeals(limit);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to get recent meals';
+      const errorMessage = err instanceof Error ? err.message : "Failed to get recent meals";
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -312,7 +312,7 @@ export const useMealStorage = () => {
     try {
       return await mealStorageUtils.getTodaysMeals();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to get today\'s meals';
+      const errorMessage = err instanceof Error ? err.message : "Failed to get today's meals";
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -323,7 +323,7 @@ export const useMealStorage = () => {
     try {
       return await mealStorageUtils.getNutritionStats(startDate, endDate);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to get nutrition stats';
+      const errorMessage = err instanceof Error ? err.message : "Failed to get nutrition stats";
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -335,7 +335,7 @@ export const useMealStorage = () => {
       await mealStorageUtils.clearAllMeals();
       setMeals([]);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to clear meals';
+      const errorMessage = err instanceof Error ? err.message : "Failed to clear meals";
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -358,21 +358,6 @@ export const useMealStorage = () => {
     utils: mealStorageUtils,
   };
 };
-
-// Backward compatibility - deprecated, use useMealStorage hook instead
-// @deprecated Use useMealStorage hook for new code
-export class MealStorageService {
-  static saveMeal = mealStorageUtils.saveMeal;
-  static updateMeal = mealStorageUtils.updateMeal;
-  static getAllMeals = mealStorageUtils.getAllMeals;
-  static getMealsFiltered = mealStorageUtils.getMealsFiltered;
-  static getRecentMeals = mealStorageUtils.getRecentMeals;
-  static getMealsForDate = mealStorageUtils.getMealsForDate;
-  static getTodaysMeals = mealStorageUtils.getTodaysMeals;
-  static deleteMeal = mealStorageUtils.deleteMeal;
-  static clearAllMeals = mealStorageUtils.clearAllMeals;
-  static getNutritionStats = mealStorageUtils.getNutritionStats;
-}
 
 // Mock data generator for testing
 export function generateMockMeals(): Meal[] {

@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { STORAGE_KEYS, ERROR_MESSAGES } from "@/constants";
 import type { User, PhoneAuthFormData, VerificationFormData, UserPreferences } from "@/types";
-import { networkService } from "../hooks/useNetworkConnection";
+import { networkUtils } from "../hooks/useNetworkConnection";
 import { storage } from "@/lib/storage";
 
 interface AuthState {
@@ -84,7 +84,7 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null });
 
         // Check network connectivity
-        if (!networkService.getIsConnected()) {
+        if (!networkUtils.getIsConnected()) {
           throw new Error(ERROR_MESSAGES.NETWORK_ERROR);
         }
 
@@ -107,7 +107,7 @@ export const useAuthStore = create<AuthStore>()(
         const formattedPhone = formatInternationalPhone(data.countryCode, data.phone);
 
         // Use retry logic for network requests
-        await networkService.retryWithBackoff(async () => {
+        await networkUtils.retryWithBackoff(async () => {
           // TODO: Replace with actual API call
           // Simulate API call for development
           await new Promise(resolve => setTimeout(resolve, 1000));
@@ -149,12 +149,12 @@ export const useAuthStore = create<AuthStore>()(
         set({ isVerifying: true, error: null });
 
         // Check network connectivity
-        if (!networkService.getIsConnected()) {
+        if (!networkUtils.getIsConnected()) {
           throw new Error(ERROR_MESSAGES.NETWORK_ERROR);
         }
 
         // Use retry logic for network requests
-        const verificationResult = await networkService.retryWithBackoff(async () => {
+        const verificationResult = await networkUtils.retryWithBackoff(async () => {
           // TODO: Replace with actual API call
           // Simulate API verification
           await new Promise(resolve => setTimeout(resolve, 1500));
@@ -324,7 +324,7 @@ export const useAuthStore = create<AuthStore>()(
 
         const [userDataItem, authTokenItem, preferencesItem] = storageData;
 
-        if (userDataItem.value && authTokenItem.value) {
+        if (userDataItem?.value && authTokenItem?.value) {
           const user = userDataItem.value as User;
           // Convert date strings back to Date objects
           user.createdAt = new Date(user.createdAt);
@@ -333,7 +333,7 @@ export const useAuthStore = create<AuthStore>()(
         }
 
         // Load preferences
-        if (preferencesItem.value) {
+        if (preferencesItem?.value) {
           set({ preferences: preferencesItem.value as UserPreferences });
         }
 
