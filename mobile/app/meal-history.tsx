@@ -20,7 +20,7 @@ import { mealStorageUtils, generateMockMeals } from "@/domains/meals/hooks/useMe
 import { useTimelineI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 import { useAnalyticsStore as useTimeContext, SortMethod } from "@/domains/analytics";
-import { mealSortingService } from "@/domains/meals/hooks/useMealSorting";
+import { mealSortingUtils } from "@/domains/meals/hooks/useMealSorting";
 import { processInChunks, shouldUseVirtualization, getVirtualizationConfig, getCachedData } from "@/lib/performance";
 
 interface MealSection {
@@ -78,14 +78,14 @@ export default function MealHistory() {
       try {
         const sections = await getCachedData(
           `meal-sections-${sortMethod}-${meals.length}-${searchQuery}`,
-          () => mealSortingService.sortMeals(meals, sortMethod),
+          () => mealSortingUtils.sortMeals(meals, sortMethod),
           { ttl: 1 * 60 * 1000 }, // 1 minute cache
         );
         setSortedSections(sections);
       } catch (error) {
         console.error("Error sorting meals:", error);
         // Fallback to basic date sorting
-        const fallbackSections = await mealSortingService.sortMeals(meals, "date-desc");
+        const fallbackSections = await mealSortingUtils.sortMeals(meals, "date-desc");
         setSortedSections(fallbackSections);
       } finally {
         setIsSorting(false);
@@ -96,7 +96,7 @@ export default function MealHistory() {
   }, [meals, sortMethod, searchQuery]);
 
   // Get sort options for UI
-  const sortOptions = mealSortingService.getSortOptions();
+  const sortOptions = mealSortingUtils.getSortOptions();
 
   useEffect(() => {
     const loadData = async () => {
@@ -510,12 +510,12 @@ export default function MealHistory() {
           onPress={() => setShowSortModal(true)}
         >
           <Ionicons
-            name={mealSortingService.getSortMetadata(sortMethod).icon as any}
+            name={mealSortingUtils.getSortMetadata(sortMethod).icon as any}
             size={16}
             color={theme.colors.primary}
           />
           <Text style={[styles.filterText, { color: theme.colors.text }]}>
-            {mealSortingService.getSortMetadata(sortMethod).label}
+            {mealSortingUtils.getSortMetadata(sortMethod).label}
           </Text>
         </TouchableOpacity>
 

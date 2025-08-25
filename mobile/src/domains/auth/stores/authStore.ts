@@ -9,7 +9,7 @@ interface AuthState {
   // User data
   user: User | null;
   preferences: UserPreferences;
-  
+
   // Auth flow state
   isLoading: boolean;
   isVerifying: boolean;
@@ -23,17 +23,17 @@ interface AuthActions {
   sendVerificationCode: (data: PhoneAuthFormData) => Promise<void>;
   verifyCode: (data: VerificationFormData) => Promise<void>;
   resendCode: () => Promise<void>;
-  
+
   // User management
   setUser: (user: Partial<User>) => void;
   updateUser: (updates: Partial<User>) => Promise<void>;
   login: (user: Pick<User, "id" | "username" | "phone">) => Promise<void>;
   logout: () => Promise<void>;
   loadUserFromStorage: () => Promise<void>;
-  
+
   // Preferences
   setPreferences: (preferences: Partial<UserPreferences>) => Promise<void>;
-  
+
   // Utility
   clearError: () => void;
   clearPendingAuth: () => void;
@@ -91,47 +91,47 @@ export const useAuthStore = create<AuthStore>()(
         // Format the phone number for international format
         const formatInternationalPhone = (countryCode: string, phoneNumber: string) => {
           // Remove all non-digits
-          const digits = phoneNumber.replace(/\D/g, '');
-          
+          const digits = phoneNumber.replace(/\D/g, "");
+
           // For certain countries, remove leading 0 when converting to international format
-          if (countryCode === '+82' || countryCode === '+81' || countryCode === '+33' || countryCode === '+49') {
+          if (countryCode === "+82" || countryCode === "+81" || countryCode === "+33" || countryCode === "+49") {
             // Remove leading 0 for Korea, Japan, France, Germany
-            const cleanDigits = digits.replace(/^0+/, '');
+            const cleanDigits = digits.replace(/^0+/, "");
             return `${countryCode}${cleanDigits}`;
           }
-          
+
           // For other countries (like US), keep the digits as is
           return `${countryCode}${digits}`;
         };
-        
+
         const formattedPhone = formatInternationalPhone(data.countryCode, data.phone);
-        
+
         // Use retry logic for network requests
         await networkService.retryWithBackoff(async () => {
           // TODO: Replace with actual API call
           // Simulate API call for development
           await new Promise(resolve => setTimeout(resolve, 1000));
-          
+
           // Simulate potential network failure in development
-          if (Math.random() < 0.1) { // 10% chance of simulated failure
-            throw new Error('Simulated network failure');
+          if (Math.random() < 0.1) {
+            // 10% chance of simulated failure
+            throw new Error("Simulated network failure");
           }
         });
-        
+
         // For now, we'll simulate a successful SMS send
         console.log(`[DEV] SMS sent to ${formattedPhone}`);
-        
+
         // Store the phone number for verification
         await storage.set(STORAGE_KEYS.LAST_PHONE_NUMBER, formattedPhone);
-        
-        set({ 
-          pendingPhone: formattedPhone, 
+
+        set({
+          pendingPhone: formattedPhone,
           isLoading: false,
         });
 
         // Start cooldown timer
         get().startResendCooldown();
-        
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.SMS_SEND_FAILED;
         set({ error: errorMessage, isLoading: false });
@@ -158,14 +158,14 @@ export const useAuthStore = create<AuthStore>()(
           // TODO: Replace with actual API call
           // Simulate API verification
           await new Promise(resolve => setTimeout(resolve, 1500));
-          
+
           // For development, we'll accept any 6-digit code
           if (data.code.length !== 6) {
             throw new Error(ERROR_MESSAGES.INVALID_VERIFICATION_CODE);
           }
 
           // Simulate potential verification failures
-          if (data.code === '000000') {
+          if (data.code === "000000") {
             throw new Error(ERROR_MESSAGES.SMS_VERIFICATION_FAILED);
           }
 
@@ -176,7 +176,7 @@ export const useAuthStore = create<AuthStore>()(
               username: `user_${pendingPhone.slice(-4)}`,
               phone: pendingPhone,
             },
-            token: `token_${Date.now()}` // In real app, this comes from backend
+            token: `token_${Date.now()}`, // In real app, this comes from backend
           };
         });
 
@@ -191,16 +191,15 @@ export const useAuthStore = create<AuthStore>()(
         // Save auth token and user data
         await Promise.all([
           storage.set(STORAGE_KEYS.PHONE_AUTH_TOKEN, verificationResult.token),
-          storage.set(STORAGE_KEYS.USER_DATA, user)
+          storage.set(STORAGE_KEYS.USER_DATA, user),
         ]);
 
-        set({ 
-          user, 
-          isVerifying: false, 
+        set({
+          user,
+          isVerifying: false,
           pendingPhone: null,
-          error: null 
+          error: null,
         });
-
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.SMS_VERIFICATION_FAILED;
         set({ error: errorMessage, isVerifying: false });
@@ -211,7 +210,7 @@ export const useAuthStore = create<AuthStore>()(
     resendCode: async () => {
       try {
         const { pendingPhone, resendCooldown } = get();
-        
+
         if (!pendingPhone) {
           throw new Error("No phone number to resend to");
         }
@@ -224,12 +223,11 @@ export const useAuthStore = create<AuthStore>()(
 
         // TODO: Replace with actual API call
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         console.log(`[DEV] SMS resent to ${pendingPhone}`);
-        
+
         set({ isLoading: false });
         get().startResendCooldown();
-        
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.SMS_SEND_FAILED;
         set({ error: errorMessage, isLoading: false });
@@ -304,9 +302,9 @@ export const useAuthStore = create<AuthStore>()(
           STORAGE_KEYS.LAST_PHONE_NUMBER,
         ]);
 
-        set({ 
+        set({
           ...initialState,
-          isLoading: false 
+          isLoading: false,
         });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Logout failed";
@@ -361,15 +359,16 @@ export const useAuthStore = create<AuthStore>()(
       }
     },
 
-    clearPendingAuth: () => set({ 
-      pendingPhone: null, 
-      error: null,
-      resendCooldown: 0 
-    }),
+    clearPendingAuth: () =>
+      set({
+        pendingPhone: null,
+        error: null,
+        resendCooldown: 0,
+      }),
 
     startResendCooldown: () => {
       set({ resendCooldown: 30 });
-      
+
       const countdown = setInterval(() => {
         const current = get().resendCooldown;
         if (current <= 1) {
@@ -389,9 +388,7 @@ useAuthStore.subscribe(
   user => {
     if (user) {
       // Auto-save user data when it changes
-      storage.set(STORAGE_KEYS.USER_DATA, user).catch(error =>
-        console.error("Failed to auto-save user data:", error),
-      );
+      storage.set(STORAGE_KEYS.USER_DATA, user).catch(error => console.error("Failed to auto-save user data:", error));
     }
   },
 );
