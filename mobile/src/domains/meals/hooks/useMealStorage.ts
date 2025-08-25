@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Meal, MealHistoryFilter } from "../types";
 import { MealType } from "../../../types";
 import type { NutritionInfo } from "../../../types";
+import { storage } from "@/lib/storage";
 
 const MEALS_STORAGE_KEY = "@meal_log_meals";
 
@@ -26,7 +26,7 @@ export const mealStorageUtils = {
       const existingMeals = await mealStorageUtils.getAllMeals();
       const updatedMeals = [newMeal, ...existingMeals];
 
-      await AsyncStorage.setItem(MEALS_STORAGE_KEY, JSON.stringify(updatedMeals));
+      await storage.set(MEALS_STORAGE_KEY, updatedMeals);
       return newMeal;
     } catch (error) {
       console.error("Error saving meal:", error);
@@ -63,7 +63,7 @@ export const mealStorageUtils = {
       };
 
       meals[mealIndex] = updatedMeal;
-      await AsyncStorage.setItem(MEALS_STORAGE_KEY, JSON.stringify(meals));
+      await storage.set(MEALS_STORAGE_KEY, meals);
 
       return updatedMeal;
     } catch (error) {
@@ -75,10 +75,8 @@ export const mealStorageUtils = {
   // Get all meals
   getAllMeals: async (): Promise<Meal[]> => {
     try {
-      const mealsJson = await AsyncStorage.getItem(MEALS_STORAGE_KEY);
-      if (!mealsJson) return [];
-
-      const meals = JSON.parse(mealsJson);
+      const meals = await storage.get<Meal[]>(MEALS_STORAGE_KEY, []);
+      if (!meals || meals.length === 0) return [];
       // Convert date strings back to Date objects
       return meals.map((meal: any) => ({
         ...meal,
@@ -161,7 +159,7 @@ export const mealStorageUtils = {
     try {
       const meals = await mealStorageUtils.getAllMeals();
       const filteredMeals = meals.filter(meal => meal.id !== mealId);
-      await AsyncStorage.setItem(MEALS_STORAGE_KEY, JSON.stringify(filteredMeals));
+      await storage.set(MEALS_STORAGE_KEY, filteredMeals);
     } catch (error) {
       console.error("Error deleting meal:", error);
       throw new Error("Failed to delete meal");
@@ -171,7 +169,7 @@ export const mealStorageUtils = {
   // Clear all meals (for testing/reset)
   clearAllMeals: async (): Promise<void> => {
     try {
-      await AsyncStorage.removeItem(MEALS_STORAGE_KEY);
+      await storage.remove(MEALS_STORAGE_KEY);
     } catch (error) {
       console.error("Error clearing meals:", error);
       throw new Error("Failed to clear meals");

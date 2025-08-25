@@ -1,7 +1,7 @@
 import i18n, { InitOptions, Resource } from "i18next";
 import { initReactI18next } from "react-i18next";
 import * as Localization from "expo-localization";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storage } from "@/lib/storage";
 import type { TranslationResources } from "./types";
 
 // Dynamic imports for better code splitting
@@ -54,8 +54,11 @@ const languageDetector = {
   detect: async (callback: (language: string) => void) => {
     try {
       // Try stored language first
-      const storedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+      const storedLanguage = await storage.get<string>(LANGUAGE_STORAGE_KEY, null);
       if (storedLanguage && SUPPORTED_LANGUAGES.some(lang => lang.code === storedLanguage)) {
+        if (__DEV__) {
+          console.log(`Using stored language: ${storedLanguage}`);
+        }
         callback(storedLanguage);
         return;
       }
@@ -64,6 +67,9 @@ const languageDetector = {
       const deviceLocale = Localization.getLocales()[0];
       const detectedLanguage = deviceLocale?.languageCode === "ko" ? "ko" : "en";
 
+      if (__DEV__) {
+        console.log(`Using device language: ${detectedLanguage}`);
+      }
       callback(detectedLanguage);
     } catch (error) {
       console.warn("Language detection failed:", error);
@@ -73,7 +79,7 @@ const languageDetector = {
   init: () => {},
   cacheUserLanguage: async (language: string) => {
     try {
-      await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+      await storage.set(LANGUAGE_STORAGE_KEY, language);
     } catch (error) {
       console.warn("Failed to cache language:", error);
     }
@@ -213,7 +219,7 @@ export const changeLanguage = async (language: SupportedLanguage) => {
     });
 
     await i18n.changeLanguage(language);
-    await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+    await storage.set(LANGUAGE_STORAGE_KEY, language);
   } catch (error) {
     console.error("Failed to change language:", error);
     console.error("Error details:", error);

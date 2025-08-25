@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { STORAGE_KEYS, ERROR_MESSAGES } from "@/constants";
 import type { User, PhoneAuthFormData, VerificationFormData, UserPreferences } from "@/types";
 import { networkService } from "../hooks/useNetworkConnection";
+import { storage } from "@/lib/storage";
 
 interface AuthState {
   // User data
@@ -122,7 +122,7 @@ export const useAuthStore = create<AuthStore>()(
         console.log(`[DEV] SMS sent to ${formattedPhone}`);
         
         // Store the phone number for verification
-        await AsyncStorage.setItem(STORAGE_KEYS.LAST_PHONE_NUMBER, formattedPhone);
+        await storage.set(STORAGE_KEYS.LAST_PHONE_NUMBER, formattedPhone);
         
         set({ 
           pendingPhone: formattedPhone, 
@@ -190,8 +190,8 @@ export const useAuthStore = create<AuthStore>()(
 
         // Save auth token and user data
         await Promise.all([
-          AsyncStorage.setItem(STORAGE_KEYS.PHONE_AUTH_TOKEN, verificationResult.token),
-          AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user))
+          storage.set(STORAGE_KEYS.PHONE_AUTH_TOKEN, verificationResult.token),
+          storage.set(STORAGE_KEYS.USER_DATA, user)
         ]);
 
         set({ 
@@ -256,7 +256,7 @@ export const useAuthStore = create<AuthStore>()(
         };
 
         // Save to storage
-        await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+        await storage.set(STORAGE_KEYS.USER_DATA, user);
 
         set({ user, isLoading: false });
       } catch (error) {
@@ -282,7 +282,7 @@ export const useAuthStore = create<AuthStore>()(
         };
 
         // Save to storage
-        await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(updatedUser));
+        await storage.set(STORAGE_KEYS.USER_DATA, updatedUser);
 
         set({ user: updatedUser, isLoading: false });
       } catch (error) {
@@ -297,11 +297,11 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null });
 
         // Clear all auth-related storage
-        await Promise.all([
-          AsyncStorage.removeItem(STORAGE_KEYS.USER_DATA),
-          AsyncStorage.removeItem(STORAGE_KEYS.PHONE_AUTH_TOKEN),
-          AsyncStorage.removeItem(STORAGE_KEYS.USER_TOKEN),
-          AsyncStorage.removeItem(STORAGE_KEYS.LAST_PHONE_NUMBER),
+        await storage.removeMultiple([
+          STORAGE_KEYS.USER_DATA,
+          STORAGE_KEYS.PHONE_AUTH_TOKEN,
+          STORAGE_KEYS.USER_TOKEN,
+          STORAGE_KEYS.LAST_PHONE_NUMBER,
         ]);
 
         set({ 
@@ -318,14 +318,16 @@ export const useAuthStore = create<AuthStore>()(
       try {
         set({ isLoading: true, error: null });
 
-        const [userData, authToken, preferencesData] = await Promise.all([
-          AsyncStorage.getItem(STORAGE_KEYS.USER_DATA),
-          AsyncStorage.getItem(STORAGE_KEYS.PHONE_AUTH_TOKEN),
-          AsyncStorage.getItem(STORAGE_KEYS.APP_SETTINGS),
+        const storageData = await storage.getMultiple([
+          STORAGE_KEYS.USER_DATA,
+          STORAGE_KEYS.PHONE_AUTH_TOKEN,
+          STORAGE_KEYS.APP_SETTINGS,
         ]);
 
-        if (userData && authToken) {
-          const user = JSON.parse(userData) as User;
+        const [userDataItem, authTokenItem, preferencesItem] = storageData;
+
+        if (userDataItem.value && authTokenItem.value) {
+          const user = userDataItem.value as User;
           // Convert date strings back to Date objects
           user.createdAt = new Date(user.createdAt);
           user.updatedAt = new Date(user.updatedAt);
@@ -333,9 +335,8 @@ export const useAuthStore = create<AuthStore>()(
         }
 
         // Load preferences
-        if (preferencesData) {
-          const preferences = JSON.parse(preferencesData) as UserPreferences;
-          set({ preferences });
+        if (preferencesItem.value) {
+          set({ preferences: preferencesItem.value as UserPreferences });
         }
 
         set({ isLoading: false });
@@ -351,7 +352,7 @@ export const useAuthStore = create<AuthStore>()(
       try {
         const newPreferences = { ...get().preferences, ...updates };
 
-        await AsyncStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(newPreferences));
+        await storage.set(STORAGE_KEYS.APP_SETTINGS, newPreferences);
 
         set({ preferences: newPreferences });
       } catch (error) {
@@ -388,7 +389,7 @@ useAuthStore.subscribe(
   user => {
     if (user) {
       // Auto-save user data when it changes
-      AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user)).catch(error =>
+      storage.set(STORAGE_KEYS.USER_DATA, user).catch(error =>
         console.error("Failed to auto-save user data:", error),
       );
     }

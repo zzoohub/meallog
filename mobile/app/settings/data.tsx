@@ -3,7 +3,7 @@ import { Alert } from "react-native";
 import { useTheme } from "@/lib/theme";
 import { SettingsItem, SettingsSection, SettingsLayout } from "@/domains/settings/components";
 import { useSettingsStore } from "@/domains/settings/stores/settingsStore";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storage } from "@/lib/storage";
 
 export default function DataManagementSettings() {
   const { exportUserData, resetToDefaults, isLoading } = useSettingsStore();
@@ -74,7 +74,7 @@ export default function DataManagementSettings() {
           onPress: async () => {
             try {
               // Clear various cache items
-              await AsyncStorage.multiRemove(["temp_photos", "api_cache", "image_cache"]);
+              await storage.removeMultiple(["temp_photos", "api_cache", "image_cache"]);
 
               Alert.alert("Success", "Cache cleared successfully");
               await calculateStorageUsage();
@@ -127,7 +127,7 @@ export default function DataManagementSettings() {
                 onPress: async () => {
                   try {
                     // In a real app, this would delete all user data
-                    await AsyncStorage.clear();
+                    await storage.clear();
                     Alert.alert("Data Deleted", "All data has been deleted. The app will now restart.", [
                       { text: "OK" },
                     ]);

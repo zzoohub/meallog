@@ -12,7 +12,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storage } from '@/lib/storage';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/lib/theme';
 import { Button } from '@/components/ui/Button';
@@ -40,7 +40,7 @@ export function PhoneAuthScreen({ onSuccess, onCancel }: PhoneAuthScreenProps) {
 
   const loadLastPhoneNumber = async () => {
     try {
-      const lastPhone = await AsyncStorage.getItem(STORAGE_KEYS.LAST_PHONE_NUMBER);
+      const lastPhone = await storage.get<string>(STORAGE_KEYS.LAST_PHONE_NUMBER);
       if (lastPhone) {
         // Extract country code and phone number
         const match = lastPhone.match(/^(\+\d{1,3})(.*)$/);

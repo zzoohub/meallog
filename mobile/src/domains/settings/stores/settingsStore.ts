@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '@/constants';
-import { optimizedStorage } from '@/lib/storage';
+import { storage, createDebouncedSetter } from '@/lib/storage';
 
 export interface NotificationSettings {
   mealReminders: boolean;
@@ -156,10 +155,7 @@ export const useSettingsStore = create<SettingsState>()(
       
       try {
         // Save to storage in background
-        await AsyncStorage.setItem(
-          STORAGE_KEYS.NOTIFICATION_SETTINGS,
-          JSON.stringify(newSettings)
-        );
+        await storage.set(STORAGE_KEYS.NOTIFICATION_SETTINGS, newSettings);
       } catch (error) {
         // Revert on error
         set({ notifications: currentState.notifications });
@@ -175,10 +171,7 @@ export const useSettingsStore = create<SettingsState>()(
         
         const newSettings = { ...get().privacy, ...updates };
         
-        await AsyncStorage.setItem(
-          STORAGE_KEYS.PRIVACY_SETTINGS,
-          JSON.stringify(newSettings)
-        );
+        await storage.set(STORAGE_KEYS.PRIVACY_SETTINGS, newSettings);
         
         set({ privacy: newSettings, isLoading: false });
       } catch (error) {
@@ -194,10 +187,7 @@ export const useSettingsStore = create<SettingsState>()(
         
         const newSettings = { ...get().display, ...updates };
         
-        await AsyncStorage.setItem(
-          STORAGE_KEYS.DISPLAY_SETTINGS,
-          JSON.stringify(newSettings)
-        );
+        await storage.set(STORAGE_KEYS.DISPLAY_SETTINGS, newSettings);
         
         set({ display: newSettings, isLoading: false });
       } catch (error) {
@@ -213,10 +203,7 @@ export const useSettingsStore = create<SettingsState>()(
         
         const newSettings = { ...get().goals, ...updates };
         
-        await AsyncStorage.setItem(
-          STORAGE_KEYS.GOAL_SETTINGS,
-          JSON.stringify(newSettings)
-        );
+        await storage.set(STORAGE_KEYS.GOAL_SETTINGS, newSettings);
         
         set({ goals: newSettings, isLoading: false });
       } catch (error) {
@@ -232,10 +219,7 @@ export const useSettingsStore = create<SettingsState>()(
         
         const newSettings = { ...get().camera, ...updates };
         
-        await AsyncStorage.setItem(
-          STORAGE_KEYS.CAMERA_SETTINGS,
-          JSON.stringify(newSettings)
-        );
+        await storage.set(STORAGE_KEYS.CAMERA_SETTINGS, newSettings);
         
         set({ camera: newSettings, isLoading: false });
       } catch (error) {
@@ -249,30 +233,32 @@ export const useSettingsStore = create<SettingsState>()(
       try {
         set({ isLoading: true, error: null });
         
-        const [notifications, privacy, display, goals, camera] = await Promise.all([
-          AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATION_SETTINGS),
-          AsyncStorage.getItem(STORAGE_KEYS.PRIVACY_SETTINGS),
-          AsyncStorage.getItem(STORAGE_KEYS.DISPLAY_SETTINGS),
-          AsyncStorage.getItem(STORAGE_KEYS.GOAL_SETTINGS),
-          AsyncStorage.getItem(STORAGE_KEYS.CAMERA_SETTINGS),
+        const settingsData = await storage.getMultiple([
+          STORAGE_KEYS.NOTIFICATION_SETTINGS,
+          STORAGE_KEYS.PRIVACY_SETTINGS,
+          STORAGE_KEYS.DISPLAY_SETTINGS,
+          STORAGE_KEYS.GOAL_SETTINGS,
+          STORAGE_KEYS.CAMERA_SETTINGS,
         ]);
 
         const updates: Partial<SettingsState> = { isLoading: false };
 
-        if (notifications) {
-          updates.notifications = { ...defaultNotifications, ...JSON.parse(notifications) };
+        const [notificationsItem, privacyItem, displayItem, goalsItem, cameraItem] = settingsData;
+        
+        if (notificationsItem.value) {
+          updates.notifications = { ...defaultNotifications, ...notificationsItem.value };
         }
-        if (privacy) {
-          updates.privacy = { ...defaultPrivacy, ...JSON.parse(privacy) };
+        if (privacyItem.value) {
+          updates.privacy = { ...defaultPrivacy, ...privacyItem.value };
         }
-        if (display) {
-          updates.display = { ...defaultDisplay, ...JSON.parse(display) };
+        if (displayItem.value) {
+          updates.display = { ...defaultDisplay, ...displayItem.value };
         }
-        if (goals) {
-          updates.goals = { ...defaultGoals, ...JSON.parse(goals) };
+        if (goalsItem.value) {
+          updates.goals = { ...defaultGoals, ...goalsItem.value };
         }
-        if (camera) {
-          updates.camera = { ...defaultCamera, ...JSON.parse(camera) };
+        if (cameraItem.value) {
+          updates.camera = { ...defaultCamera, ...cameraItem.value };
         }
 
         set(updates);
@@ -287,12 +273,12 @@ export const useSettingsStore = create<SettingsState>()(
         set({ isLoading: true, error: null });
         
         // Clear all settings from storage
-        await Promise.all([
-          AsyncStorage.removeItem(STORAGE_KEYS.NOTIFICATION_SETTINGS),
-          AsyncStorage.removeItem(STORAGE_KEYS.PRIVACY_SETTINGS),
-          AsyncStorage.removeItem(STORAGE_KEYS.DISPLAY_SETTINGS),
-          AsyncStorage.removeItem(STORAGE_KEYS.GOAL_SETTINGS),
-          AsyncStorage.removeItem(STORAGE_KEYS.CAMERA_SETTINGS),
+        await storage.removeMultiple([
+          STORAGE_KEYS.NOTIFICATION_SETTINGS,
+          STORAGE_KEYS.PRIVACY_SETTINGS,
+          STORAGE_KEYS.DISPLAY_SETTINGS,
+          STORAGE_KEYS.GOAL_SETTINGS,
+          STORAGE_KEYS.CAMERA_SETTINGS,
         ]);
         
         // Reset to defaults
@@ -333,46 +319,38 @@ export const useSettingsStore = create<SettingsState>()(
 );
 
 // Auto-save settings changes using debounced storage for better performance
-const debouncedPrivacySave = optimizedStorage.createDebouncedSetter<PrivacySettings>(STORAGE_KEYS.PRIVACY_SETTINGS);
-const debouncedDisplaySave = optimizedStorage.createDebouncedSetter<DisplaySettings>(STORAGE_KEYS.DISPLAY_SETTINGS);
-const debouncedGoalsSave = optimizedStorage.createDebouncedSetter<GoalSettings>(STORAGE_KEYS.GOAL_SETTINGS);
-const debouncedCameraSave = optimizedStorage.createDebouncedSetter<CameraSettings>(STORAGE_KEYS.CAMERA_SETTINGS);
+const debouncedPrivacySave = createDebouncedSetter<PrivacySettings>(STORAGE_KEYS.PRIVACY_SETTINGS);
+const debouncedDisplaySave = createDebouncedSetter<DisplaySettings>(STORAGE_KEYS.DISPLAY_SETTINGS);
+const debouncedGoalsSave = createDebouncedSetter<GoalSettings>(STORAGE_KEYS.GOAL_SETTINGS);
+const debouncedCameraSave = createDebouncedSetter<CameraSettings>(STORAGE_KEYS.CAMERA_SETTINGS);
 
 useSettingsStore.subscribe(
   (state) => state.privacy,
   (privacy) => {
-    debouncedPrivacySave(privacy).catch((error: any) => 
-      console.error('Failed to auto-save privacy settings:', error)
-    );
+    debouncedPrivacySave(privacy);
   }
 );
 
 useSettingsStore.subscribe(
   (state) => state.display,
   (display) => {
-    debouncedDisplaySave(display).catch((error: any) => 
-      console.error('Failed to auto-save display settings:', error)
-    );
+    debouncedDisplaySave(display);
   }
 );
 
 useSettingsStore.subscribe(
   (state) => state.goals,
   (goals) => {
-    debouncedGoalsSave(goals).catch((error: any) => 
-      console.error('Failed to auto-save goal settings:', error)
-    );
+    debouncedGoalsSave(goals);
   }
 );
 
 useSettingsStore.subscribe(
   (state) => state.camera,
   (camera) => {
-    debouncedCameraSave(camera).catch((error: any) => 
-      console.error('Failed to auto-save camera settings:', error)
-    );
+    debouncedCameraSave(camera);
   }
 );
 
 // Cleanup function to flush any pending saves when app is backgrounded
-export const flushSettingsStorage = () => optimizedStorage.flush();
+export const flushSettingsStorage = () => storage.flush();
