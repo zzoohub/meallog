@@ -16,7 +16,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Meal } from "@/domains/meals/types";
-import { MealStorageService } from "@/domains/meals/services/mealStorage";
+import { MealStorageService } from "@/domains/meals/hooks/useMealStorage";
 import { MealType } from "@/types";
 import { useMealDetailI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
@@ -26,7 +26,7 @@ interface NutritionInfo {
   protein: number;
   carbs: number;
   fat: number;
-  fiber: number;
+  fiber?: number; // Made optional to match global type
 }
 
 interface MealData {
@@ -180,8 +180,13 @@ export default function MealDetail() {
       const nutritionField = editingField.split(".")[1] as keyof NutritionInfo;
       newData.nutrition[nutritionField] = parseFloat(editedValue) || 0;
     } else if (editingField.startsWith("ingredient.")) {
-      const index = parseInt(editingField.split(".")[1]);
-      newData.ingredients[index] = editedValue;
+      const indexStr = editingField.split(".")[1];
+      if (indexStr) {
+        const index = parseInt(indexStr);
+        if (!isNaN(index) && index >= 0 && index < newData.ingredients.length) {
+          newData.ingredients[index] = editedValue;
+        }
+      }
     }
 
     setMealData(newData);
@@ -227,6 +232,8 @@ export default function MealDetail() {
             mealCategory: determineMealType(),
             ingredients: mealData.ingredients,
           },
+          location: { latitude: 0, longitude: 0 }, // Default location if not available
+          notes: "", // Default empty notes
           isVerified: true, // User has reviewed/edited
         });
       } else if (existingMeal) {

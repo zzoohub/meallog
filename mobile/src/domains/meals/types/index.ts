@@ -23,6 +23,7 @@ export interface NutritionInfo {
   fiber?: number;
   sugar?: number;
   sodium?: number;
+  water?: number; // Added for compatibility with stats aggregation
 }
 
 export interface AIAnalysis {

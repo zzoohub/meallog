@@ -1,12 +1,20 @@
+import { useState, useCallback, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Meal, MealHistoryFilter } from "../types";
-import { MealType, NutritionInfo } from "@/types";
+import { MealType } from "../../../types";
+import type { NutritionInfo } from "../../../types";
 
 const MEALS_STORAGE_KEY = "@meal_log_meals";
 
-export class MealStorageService {
+// Helper function to generate unique meal IDs
+const generateMealId = (): string => {
+  return `meal_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+};
+
+// Meal storage utility functions
+export const mealStorageUtils = {
   // Save a new meal
-  static async saveMeal(meal: Omit<Meal, "id" | "createdAt" | "updatedAt">): Promise<Meal> {
+  saveMeal: async (meal: Omit<Meal, "id" | "createdAt" | "updatedAt">): Promise<Meal> => {
     try {
       const newMeal: Meal = {
         ...meal,
@@ -15,7 +23,7 @@ export class MealStorageService {
         updatedAt: new Date(),
       };
 
-      const existingMeals = await this.getAllMeals();
+      const existingMeals = await mealStorageUtils.getAllMeals();
       const updatedMeals = [newMeal, ...existingMeals];
 
       await AsyncStorage.setItem(MEALS_STORAGE_KEY, JSON.stringify(updatedMeals));
@@ -24,12 +32,12 @@ export class MealStorageService {
       console.error("Error saving meal:", error);
       throw new Error("Failed to save meal");
     }
-  }
+  },
 
   // Update an existing meal
-  static async updateMeal(mealId: string, updates: Partial<Omit<Meal, "id" | "createdAt">>): Promise<Meal> {
+  updateMeal: async (mealId: string, updates: Partial<Omit<Meal, "id" | "createdAt">>): Promise<Meal> => {
     try {
-      const meals = await this.getAllMeals();
+      const meals = await mealStorageUtils.getAllMeals();
       const mealIndex = meals.findIndex(meal => meal.id === mealId);
 
       if (mealIndex === -1) {
@@ -62,10 +70,10 @@ export class MealStorageService {
       console.error("Error updating meal:", error);
       throw new Error("Failed to update meal");
     }
-  }
+  },
 
   // Get all meals
-  static async getAllMeals(): Promise<Meal[]> {
+  getAllMeals: async (): Promise<Meal[]> => {
     try {
       const mealsJson = await AsyncStorage.getItem(MEALS_STORAGE_KEY);
       if (!mealsJson) return [];
@@ -82,12 +90,12 @@ export class MealStorageService {
       console.error("Error getting meals:", error);
       return [];
     }
-  }
+  },
 
   // Get meals with filtering
-  static async getMealsFiltered(filter: MealHistoryFilter = {}): Promise<Meal[]> {
+  getMealsFiltered: async (filter: MealHistoryFilter = {}): Promise<Meal[]> => {
     try {
-      let meals = await this.getAllMeals();
+      let meals = await mealStorageUtils.getAllMeals();
 
       // Sort by timestamp (newest first)
       meals = meals.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
@@ -119,68 +127,68 @@ export class MealStorageService {
       console.error("Error filtering meals:", error);
       return [];
     }
-  }
+  },
 
   // Get recent meals (for dashboard)
-  static async getRecentMeals(limit: number = 8): Promise<Meal[]> {
+  getRecentMeals: async (limit: number = 8): Promise<Meal[]> => {
     try {
-      const meals = await this.getAllMeals();
+      const meals = await mealStorageUtils.getAllMeals();
       return meals.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, limit);
     } catch (error) {
       console.error("Error getting recent meals:", error);
       return [];
     }
-  }
+  },
 
   // Get meals for a specific date
-  static async getMealsForDate(date: Date): Promise<Meal[]> {
+  getMealsForDate: async (date: Date): Promise<Meal[]> => {
     const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
 
-    return this.getMealsFiltered({
+    return mealStorageUtils.getMealsFiltered({
       startDate: startOfDay,
       endDate: endOfDay,
     });
-  }
+  },
 
   // Get meals for today
-  static async getTodaysMeals(): Promise<Meal[]> {
-    return this.getMealsForDate(new Date());
-  }
+  getTodaysMeals: async (): Promise<Meal[]> => {
+    return mealStorageUtils.getMealsForDate(new Date());
+  },
 
   // Delete a meal
-  static async deleteMeal(mealId: string): Promise<void> {
+  deleteMeal: async (mealId: string): Promise<void> => {
     try {
-      const meals = await this.getAllMeals();
+      const meals = await mealStorageUtils.getAllMeals();
       const filteredMeals = meals.filter(meal => meal.id !== mealId);
       await AsyncStorage.setItem(MEALS_STORAGE_KEY, JSON.stringify(filteredMeals));
     } catch (error) {
       console.error("Error deleting meal:", error);
       throw new Error("Failed to delete meal");
     }
-  }
+  },
 
   // Clear all meals (for testing/reset)
-  static async clearAllMeals(): Promise<void> {
+  clearAllMeals: async (): Promise<void> => {
     try {
       await AsyncStorage.removeItem(MEALS_STORAGE_KEY);
     } catch (error) {
       console.error("Error clearing meals:", error);
       throw new Error("Failed to clear meals");
     }
-  }
+  },
 
   // Get nutrition statistics for a date range
-  static async getNutritionStats(
+  getNutritionStats: async (
     startDate: Date,
     endDate: Date,
   ): Promise<{
     totalMeals: number;
     averageCalories: number;
     totalNutrition: NutritionInfo;
-  }> {
+  }> => {
     try {
-      const meals = await this.getMealsFiltered({ startDate, endDate });
+      const meals = await mealStorageUtils.getMealsFiltered({ startDate, endDate });
 
       if (meals.length === 0) {
         return {
@@ -214,12 +222,158 @@ export class MealStorageService {
         totalNutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 },
       };
     }
-  }
-}
+  },
+};
 
-// Helper function to generate unique meal IDs
-function generateMealId(): string {
-  return `meal_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+// Custom hook for meal storage functionality
+export const useMealStorage = () => {
+  const [meals, setMeals] = useState<Meal[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load all meals on mount
+  useEffect(() => {
+    loadMeals();
+  }, []);
+
+  const loadMeals = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const loadedMeals = await mealStorageUtils.getAllMeals();
+      setMeals(loadedMeals);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load meals');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const saveMeal = useCallback(async (meal: Omit<Meal, "id" | "createdAt" | "updatedAt">) => {
+    setError(null);
+    try {
+      const newMeal = await mealStorageUtils.saveMeal(meal);
+      setMeals(prev => [newMeal, ...prev]);
+      return newMeal;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save meal';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }, []);
+
+  const updateMeal = useCallback(async (mealId: string, updates: Partial<Omit<Meal, "id" | "createdAt">>) => {
+    setError(null);
+    try {
+      const updatedMeal = await mealStorageUtils.updateMeal(mealId, updates);
+      setMeals(prev => prev.map(meal => meal.id === mealId ? updatedMeal : meal));
+      return updatedMeal;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update meal';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }, []);
+
+  const deleteMeal = useCallback(async (mealId: string) => {
+    setError(null);
+    try {
+      await mealStorageUtils.deleteMeal(mealId);
+      setMeals(prev => prev.filter(meal => meal.id !== mealId));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete meal';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }, []);
+
+  const getMealsFiltered = useCallback(async (filter: MealHistoryFilter = {}) => {
+    setError(null);
+    try {
+      return await mealStorageUtils.getMealsFiltered(filter);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to filter meals';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }, []);
+
+  const getRecentMeals = useCallback(async (limit: number = 8) => {
+    setError(null);
+    try {
+      return await mealStorageUtils.getRecentMeals(limit);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to get recent meals';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }, []);
+
+  const getTodaysMeals = useCallback(async () => {
+    setError(null);
+    try {
+      return await mealStorageUtils.getTodaysMeals();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to get today\'s meals';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }, []);
+
+  const getNutritionStats = useCallback(async (startDate: Date, endDate: Date) => {
+    setError(null);
+    try {
+      return await mealStorageUtils.getNutritionStats(startDate, endDate);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to get nutrition stats';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }, []);
+
+  const clearAllMeals = useCallback(async () => {
+    setError(null);
+    try {
+      await mealStorageUtils.clearAllMeals();
+      setMeals([]);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to clear meals';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }, []);
+
+  return {
+    meals,
+    loading,
+    error,
+    loadMeals,
+    saveMeal,
+    updateMeal,
+    deleteMeal,
+    getMealsFiltered,
+    getRecentMeals,
+    getTodaysMeals,
+    getNutritionStats,
+    clearAllMeals,
+    // Direct access to utils for advanced usage
+    utils: mealStorageUtils,
+  };
+};
+
+// Backward compatibility - deprecated, use useMealStorage hook instead
+// @deprecated Use useMealStorage hook for new code
+export class MealStorageService {
+  static saveMeal = mealStorageUtils.saveMeal;
+  static updateMeal = mealStorageUtils.updateMeal;
+  static getAllMeals = mealStorageUtils.getAllMeals;
+  static getMealsFiltered = mealStorageUtils.getMealsFiltered;
+  static getRecentMeals = mealStorageUtils.getRecentMeals;
+  static getMealsForDate = mealStorageUtils.getMealsForDate;
+  static getTodaysMeals = mealStorageUtils.getTodaysMeals;
+  static deleteMeal = mealStorageUtils.deleteMeal;
+  static clearAllMeals = mealStorageUtils.clearAllMeals;
+  static getNutritionStats = mealStorageUtils.getNutritionStats;
 }
 
 // Mock data generator for testing

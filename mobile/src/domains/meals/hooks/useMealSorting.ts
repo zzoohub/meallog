@@ -1,7 +1,8 @@
-import { Meal } from "@/domains/meals/types";
-import { SortMethod } from "@/domains/analytics";
+import { useState, useCallback, useMemo } from "react";
+import { Meal } from "../types";
+import { SortMethod } from "../../analytics";
 
-interface SortMetadata {
+export interface SortMetadata {
   key: SortMethod;
   label: string;
   icon: string;
@@ -9,16 +10,16 @@ interface SortMetadata {
   ascending: boolean;
 }
 
-interface SortedSection {
+export interface SortedSection {
   title: string;
   data: Meal[];
 }
 
-class MealSortingService {
-  private readonly CHUNK_SIZE = 50;
+// Constants
+const CHUNK_SIZE = 50;
 
-  // Sort metadata for UI display
-  private readonly sortOptions: SortMetadata[] = [
+// Sort metadata for UI display
+const SORT_OPTIONS: SortMetadata[] = [
     {
       key: "date-desc",
       label: "Latest First",
@@ -91,36 +92,43 @@ class MealSortingService {
     },
   ];
 
+// Meal sorting utility functions
+export const mealSortingUtils = {
   /**
    * Gets all available sort options with metadata
    */
-  getSortOptions(): SortMetadata[] {
-    return [...this.sortOptions];
-  }
+  getSortOptions: (): SortMetadata[] => {
+    return [...SORT_OPTIONS];
+  },
 
   /**
    * Gets metadata for a specific sort method
    */
-  getSortMetadata(sortMethod: SortMethod): SortMetadata {
-    return this.sortOptions.find(option => option.key === sortMethod) || this.sortOptions[0];
-  }
+  getSortMetadata: (sortMethod: SortMethod): SortMetadata => {
+    const metadata = SORT_OPTIONS.find(option => option.key === sortMethod);
+    if (!metadata) {
+      // Fallback to first option if not found
+      return SORT_OPTIONS[0]!;
+    }
+    return metadata;
+  },
 
   /**
    * Calculates nutrition density score (protein + fiber) per 100 calories
    */
-  private calculateNutritionDensity(meal: Meal): number {
+  calculateNutritionDensity: (meal: Meal): number => {
     const calories = meal.nutrition.calories || 1; // Prevent division by zero
     const protein = meal.nutrition.protein || 0;
     const fiber = meal.nutrition.fiber || 0;
 
     // Calculate density as (protein + fiber) per 100 calories
     return ((protein + fiber) / calories) * 100;
-  }
+  },
 
   /**
    * Gets health score from AI analysis or calculates a basic one
    */
-  private getHealthScore(meal: Meal): number {
+  getHealthScore: (meal: Meal): number => {
     if (meal.aiAnalysis?.insights?.healthScore) {
       return meal.aiAnalysis.insights.healthScore;
     }
@@ -149,12 +157,12 @@ class MealSortingService {
     else if (fatRatio > 30) score -= 10;
 
     return Math.max(0, Math.min(100, score));
-  }
+  },
 
   /**
    * Gets sort value for comparison
    */
-  private getSortValue(meal: Meal, sortMethod: SortMethod): number {
+  getSortValue: (meal: Meal, sortMethod: SortMethod): number => {
     switch (sortMethod) {
       case "date-desc":
       case "date-asc":
@@ -170,71 +178,88 @@ class MealSortingService {
 
       case "health-score-desc":
       case "health-score-asc":
-        return this.getHealthScore(meal);
+        return mealSortingUtils.getHealthScore(meal);
 
       case "nutrition-density-desc":
       case "nutrition-density-asc":
-        return this.calculateNutritionDensity(meal);
+        return mealSortingUtils.calculateNutritionDensity(meal);
 
       default:
         return meal.timestamp.getTime();
     }
-  }
+  },
 
   /**
    * Compares two meals based on sort method
    */
-  private compareMeals(a: Meal, b: Meal, sortMethod: SortMethod): number {
-    const metadata = this.getSortMetadata(sortMethod);
-    const valueA = this.getSortValue(a, sortMethod);
-    const valueB = this.getSortValue(b, sortMethod);
+  compareMeals: (a: Meal, b: Meal, sortMethod: SortMethod): number => {
+    const metadata = mealSortingUtils.getSortMetadata(sortMethod);
+    const valueA = mealSortingUtils.getSortValue(a, sortMethod);
+    const valueB = mealSortingUtils.getSortValue(b, sortMethod);
 
     const comparison = valueA - valueB;
     return metadata.ascending ? comparison : -comparison;
-  }
+  },
 
   /**
    * Sorts meals in chunks for better performance with large datasets
    */
-  private async sortMealsInChunks(meals: Meal[], sortMethod: SortMethod): Promise<Meal[]> {
-    if (meals.length <= this.CHUNK_SIZE) {
-      return meals.sort((a, b) => this.compareMeals(a, b, sortMethod));
+  sortMealsInChunks: async (meals: Meal[], sortMethod: SortMethod): Promise<Meal[]> => {
+    if (meals.length <= CHUNK_SIZE) {
+      return meals.sort((a, b) => mealSortingUtils.compareMeals(a, b, sortMethod));
     }
 
     // Split into chunks
     const chunks: Meal[][] = [];
-    for (let i = 0; i < meals.length; i += this.CHUNK_SIZE) {
-      chunks.push(meals.slice(i, i + this.CHUNK_SIZE));
+    for (let i = 0; i < meals.length; i += CHUNK_SIZE) {
+      chunks.push(meals.slice(i, i + CHUNK_SIZE));
     }
 
     // Sort each chunk
     const sortedChunks = await Promise.all(
-      chunks.map(chunk => Promise.resolve(chunk.sort((a, b) => this.compareMeals(a, b, sortMethod)))),
+      chunks.map(chunk => Promise.resolve(chunk.sort((a, b) => mealSortingUtils.compareMeals(a, b, sortMethod)))),
     );
 
     // Merge sorted chunks
     let result = sortedChunks[0] || [];
     for (let i = 1; i < sortedChunks.length; i++) {
-      result = this.mergeSortedArrays(result, sortedChunks[i], sortMethod);
+      const chunk = sortedChunks[i];
+      if (chunk) {
+        result = mealSortingUtils.mergeSortedArrays(result, chunk, sortMethod);
+      }
     }
 
     return result;
-  }
+  },
 
   /**
    * Merges two sorted arrays
    */
-  private mergeSortedArrays(arr1: Meal[], arr2: Meal[], sortMethod: SortMethod): Meal[] {
+  mergeSortedArrays: (arr1: Meal[], arr2: Meal[], sortMethod: SortMethod): Meal[] => {
     const result: Meal[] = [];
     let i = 0,
       j = 0;
 
     while (i < arr1.length && j < arr2.length) {
-      if (this.compareMeals(arr1[i], arr2[j], sortMethod) <= 0) {
-        result.push(arr1[i]);
-        i++;
+      const meal1 = arr1[i];
+      const meal2 = arr2[j];
+      if (meal1 && meal2) {
+        if (mealSortingUtils.compareMeals(meal1, meal2, sortMethod) <= 0) {
+          result.push(meal1);
+          i++;
+        } else {
+          result.push(meal2);
+          j++;
+        }
       } else {
-        result.push(arr2[j]);
+        // Handle edge case where array contains undefined
+        if (meal1) {
+          result.push(meal1);
+        }
+        if (meal2) {
+          result.push(meal2);
+        }
+        i++;
         j++;
       }
     }
@@ -242,27 +267,27 @@ class MealSortingService {
     // Add remaining elements
     result.push(...arr1.slice(i), ...arr2.slice(j));
     return result;
-  }
+  },
 
   /**
    * Groups sorted meals into sections
    */
-  private groupMealsIntoSections(sortedMeals: Meal[], sortMethod: SortMethod): SortedSection[] {
+  groupMealsIntoSections: (sortedMeals: Meal[], sortMethod: SortMethod): SortedSection[] => {
     if (sortedMeals.length === 0) return [];
 
     // For date-based sorting, group by date
     if (sortMethod === "date-desc" || sortMethod === "date-asc") {
-      return this.groupByDate(sortedMeals);
+      return mealSortingUtils.groupByDate(sortedMeals);
     }
 
     // For other sorting methods, group by ranges
-    return this.groupByValueRange(sortedMeals, sortMethod);
-  }
+    return mealSortingUtils.groupByValueRange(sortedMeals, sortMethod);
+  },
 
   /**
    * Groups meals by date
    */
-  private groupByDate(meals: Meal[]): SortedSection[] {
+  groupByDate: (meals: Meal[]): SortedSection[] => {
     const grouped = meals.reduce((acc, meal) => {
       const date = meal.timestamp.toDateString();
       if (!acc[date]) {
@@ -295,37 +320,37 @@ class MealSortingService {
         return {
           title,
           data: meals,
-        };
+        } as SortedSection;
       })
       .sort((a, b) => {
-        const dateA = new Date(a.data[0]?.timestamp || 0);
-        const dateB = new Date(b.data[0]?.timestamp || 0);
+        const dateA = new Date(a.data[0]?.timestamp ?? 0);
+        const dateB = new Date(b.data[0]?.timestamp ?? 0);
         return dateB.getTime() - dateA.getTime();
       });
-  }
+  },
 
   /**
    * Groups meals by value ranges for non-date sorting
    */
-  private groupByValueRange(meals: Meal[], sortMethod: SortMethod): SortedSection[] {
-    const metadata = this.getSortMetadata(sortMethod);
+  groupByValueRange: (meals: Meal[], sortMethod: SortMethod): SortedSection[] => {
+    const metadata = mealSortingUtils.getSortMetadata(sortMethod);
 
     switch (sortMethod) {
       case "calories-desc":
       case "calories-asc":
-        return this.groupByCalorieRanges(meals);
+        return mealSortingUtils.groupByCalorieRanges(meals);
 
       case "protein-desc":
       case "protein-asc":
-        return this.groupByProteinRanges(meals);
+        return mealSortingUtils.groupByProteinRanges(meals);
 
       case "health-score-desc":
       case "health-score-asc":
-        return this.groupByHealthScore(meals);
+        return mealSortingUtils.groupByHealthScore(meals);
 
       case "nutrition-density-desc":
       case "nutrition-density-asc":
-        return this.groupByDensityRanges(meals);
+        return mealSortingUtils.groupByDensityRanges(meals);
 
       default:
         // Single section for unsupported groupings
@@ -336,12 +361,12 @@ class MealSortingService {
           },
         ];
     }
-  }
+  },
 
   /**
    * Groups meals by calorie ranges
    */
-  private groupByCalorieRanges(meals: Meal[]): SortedSection[] {
+  groupByCalorieRanges: (meals: Meal[]): SortedSection[] => {
     const ranges = [
       { min: 0, max: 200, label: "Light (0-200 cal)" },
       { min: 200, max: 400, label: "Moderate (200-400 cal)" },
@@ -350,13 +375,13 @@ class MealSortingService {
       { min: 800, max: Infinity, label: "Very Large (800+ cal)" },
     ];
 
-    return this.groupByRanges(meals, ranges, meal => meal.nutrition.calories || 0);
-  }
+    return mealSortingUtils.groupByRanges(meals, ranges, meal => meal.nutrition.calories || 0);
+  },
 
   /**
    * Groups meals by protein ranges
    */
-  private groupByProteinRanges(meals: Meal[]): SortedSection[] {
+  groupByProteinRanges: (meals: Meal[]): SortedSection[] => {
     const ranges = [
       { min: 0, max: 10, label: "Low Protein (0-10g)" },
       { min: 10, max: 20, label: "Moderate Protein (10-20g)" },
@@ -364,13 +389,13 @@ class MealSortingService {
       { min: 30, max: Infinity, label: "Very High Protein (30g+)" },
     ];
 
-    return this.groupByRanges(meals, ranges, meal => meal.nutrition.protein || 0);
-  }
+    return mealSortingUtils.groupByRanges(meals, ranges, meal => meal.nutrition.protein || 0);
+  },
 
   /**
    * Groups meals by health score
    */
-  private groupByHealthScore(meals: Meal[]): SortedSection[] {
+  groupByHealthScore: (meals: Meal[]): SortedSection[] => {
     const ranges = [
       { min: 80, max: 100, label: "Excellent (80-100)" },
       { min: 60, max: 80, label: "Good (60-80)" },
@@ -378,13 +403,13 @@ class MealSortingService {
       { min: 0, max: 40, label: "Poor (0-40)" },
     ];
 
-    return this.groupByRanges(meals, ranges, meal => this.getHealthScore(meal));
-  }
+    return mealSortingUtils.groupByRanges(meals, ranges, meal => mealSortingUtils.getHealthScore(meal));
+  },
 
   /**
    * Groups meals by nutrition density
    */
-  private groupByDensityRanges(meals: Meal[]): SortedSection[] {
+  groupByDensityRanges: (meals: Meal[]): SortedSection[] => {
     const ranges = [
       { min: 10, max: Infinity, label: "Very Dense (10+)" },
       { min: 5, max: 10, label: "Dense (5-10)" },
@@ -392,17 +417,17 @@ class MealSortingService {
       { min: 0, max: 2, label: "Low (0-2)" },
     ];
 
-    return this.groupByRanges(meals, ranges, meal => this.calculateNutritionDensity(meal));
-  }
+    return mealSortingUtils.groupByRanges(meals, ranges, meal => mealSortingUtils.calculateNutritionDensity(meal));
+  },
 
   /**
    * Generic function to group meals by ranges
    */
-  private groupByRanges(
+  groupByRanges: (
     meals: Meal[],
     ranges: { min: number; max: number; label: string }[],
     valueExtractor: (meal: Meal) => number,
-  ): SortedSection[] {
+  ): SortedSection[] => {
     const sections: SortedSection[] = [];
 
     ranges.forEach(range => {
@@ -420,51 +445,104 @@ class MealSortingService {
     });
 
     return sections;
-  }
+  },
 
   /**
    * Main sorting function that handles large datasets efficiently
    */
-  async sortMeals(meals: Meal[], sortMethod: SortMethod): Promise<SortedSection[]> {
+  sortMeals: async (meals: Meal[], sortMethod: SortMethod): Promise<SortedSection[]> => {
     try {
       if (meals.length === 0) {
         return [];
       }
 
       // Sort meals
-      const sortedMeals = await this.sortMealsInChunks(meals, sortMethod);
+      const sortedMeals = await mealSortingUtils.sortMealsInChunks(meals, sortMethod);
 
       // Group into sections
-      return this.groupMealsIntoSections(sortedMeals, sortMethod);
+      return mealSortingUtils.groupMealsIntoSections(sortedMeals, sortMethod);
     } catch (error) {
       console.error("Error sorting meals:", error);
 
       // Fallback to simple date-based grouping
-      return this.groupByDate(meals.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()));
+      return mealSortingUtils.groupByDate(meals.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()));
     }
-  }
+  },
 
   /**
    * Gets estimated sort time for UI feedback
    */
-  getEstimatedSortTime(mealCount: number): number {
+  getEstimatedSortTime: (mealCount: number): number => {
     // Rough estimates in milliseconds
     if (mealCount < 50) return 10;
     if (mealCount < 200) return 50;
     if (mealCount < 500) return 150;
     if (mealCount < 1000) return 300;
     return 500;
-  }
+  },
 
   /**
    * Checks if sorting method requires expensive calculations
    */
-  isExpensiveSort(sortMethod: SortMethod): boolean {
+  isExpensiveSort: (sortMethod: SortMethod): boolean => {
     return ["health-score-desc", "health-score-asc", "nutrition-density-desc", "nutrition-density-asc"].includes(
       sortMethod,
     );
-  }
-}
+  },
+};
 
-export const mealSortingService = new MealSortingService();
-export default MealSortingService;
+// Custom hook for meal sorting functionality
+export const useMealSorting = () => {
+  const [sortingInProgress, setSortingInProgress] = useState(false);
+  const [currentSortMethod, setCurrentSortMethod] = useState<SortMethod>("date-desc");
+
+  const sortOptions = useMemo(() => mealSortingUtils.getSortOptions(), []);
+
+  const sortMeals = useCallback(async (meals: Meal[], sortMethod: SortMethod): Promise<SortedSection[]> => {
+    setSortingInProgress(true);
+    setCurrentSortMethod(sortMethod);
+    
+    try {
+      const result = await mealSortingUtils.sortMeals(meals, sortMethod);
+      return result;
+    } finally {
+      setSortingInProgress(false);
+    }
+  }, []);
+
+  const getSortMetadata = useCallback((sortMethod: SortMethod) => {
+    return mealSortingUtils.getSortMetadata(sortMethod);
+  }, []);
+
+  const getEstimatedSortTime = useCallback((mealCount: number) => {
+    return mealSortingUtils.getEstimatedSortTime(mealCount);
+  }, []);
+
+  const isExpensiveSort = useCallback((sortMethod: SortMethod) => {
+    return mealSortingUtils.isExpensiveSort(sortMethod);
+  }, []);
+
+  return {
+    sortingInProgress,
+    currentSortMethod,
+    sortOptions,
+    sortMeals,
+    getSortMetadata,
+    getEstimatedSortTime,
+    isExpensiveSort,
+    // Direct access to utils for advanced usage
+    utils: mealSortingUtils,
+  };
+};
+
+// Backward compatibility - deprecated, use useMealSorting hook instead
+// @deprecated Use useMealSorting hook for new code
+export const mealSortingService = {
+  getSortOptions: mealSortingUtils.getSortOptions,
+  getSortMetadata: mealSortingUtils.getSortMetadata,
+  sortMeals: mealSortingUtils.sortMeals,
+  getEstimatedSortTime: mealSortingUtils.getEstimatedSortTime,
+  isExpensiveSort: mealSortingUtils.isExpensiveSort,
+};
+
+export default mealSortingUtils;

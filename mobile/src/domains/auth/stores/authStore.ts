@@ -3,7 +3,7 @@ import { subscribeWithSelector } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { STORAGE_KEYS, ERROR_MESSAGES } from "@/constants";
 import type { User, PhoneAuthFormData, VerificationFormData, UserPreferences } from "@/types";
-import { networkService } from "../services/networkService";
+import { networkService } from "../hooks/useNetworkConnection";
 
 interface AuthState {
   // User data

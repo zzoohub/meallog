@@ -1,7 +1,7 @@
 import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { TimePeriod, PeriodStats, MetricsDisplayType } from "@/domains/analytics";
-import { statsAggregationService } from "@/domains/progress/services/statsAggregationService";
-import { MealStorageService } from "@/domains/meals/services/mealStorage";
+import { statsAggregationService } from "@/domains/progress/hooks/useStatsAggregation";
+import { MealStorageService } from "@/domains/meals/hooks/useMealStorage";
 
 export const useStatsQuery = (period: TimePeriod, metricsType: MetricsDisplayType) => {
   const generateQueryKey = (period: TimePeriod, metricsType: MetricsDisplayType) => [

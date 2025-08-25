@@ -1,5 +1,6 @@
-import { Meal } from "@/domains/meals/types";
-import { TimePeriod, PeriodStats } from "@/domains/analytics";
+import { useState, useCallback, useRef, useMemo } from "react";
+import { Meal } from "../../meals/types";
+import { TimePeriod, PeriodStats } from "../../analytics";
 
 interface CacheEntry {
   stats: PeriodStats;
@@ -21,57 +22,64 @@ interface AggregationContext {
   };
 }
 
-class StatsAggregationService {
-  private cache = new Map<string, CacheEntry>();
-  private readonly TTL = 5 * 60 * 1000; // 5 minutes
-  private readonly MAX_CACHE_SIZE = 100;
+// Constants
+const TTL = 5 * 60 * 1000; // 5 minutes
+const MAX_CACHE_SIZE = 100;
 
-  // Default daily targets
-  private readonly dailyTargets = {
-    calories: 2000,
-    protein: 120,
-    carbs: 250,
-    fat: 80,
-    water: 8,
-    fiber: 25,
-  };
+// Default daily targets
+const DAILY_TARGETS = {
+  calories: 2000,
+  protein: 120,
+  carbs: 250,
+  fat: 80,
+  water: 8,
+  fiber: 25,
+};
 
-  private generateCacheKey(period: TimePeriod, mealsCount: number): string {
+// Global cache for stats (in a real app, consider using a more sophisticated cache)
+const statsCache = new Map<string, CacheEntry>();
+
+// Stats aggregation utility functions
+export const statsAggregationUtils = {
+  generateCacheKey: (period: TimePeriod, mealsCount: number): string => {
     const { type, startDate, endDate } = period;
     const start = startDate ? startDate.toISOString().split("T")[0] : "none";
     const end = endDate ? endDate.toISOString().split("T")[0] : "none";
     return `${type}-${start}-${end}-${mealsCount}`;
-  }
+  },
 
-  private isValidCacheEntry(entry: CacheEntry): boolean {
-    return Date.now() - entry.timestamp < this.TTL;
-  }
+  isValidCacheEntry: (entry: CacheEntry): boolean => {
+    return Date.now() - entry.timestamp < TTL;
+  },
 
-  private cleanupCache(): void {
+  cleanupCache: (): void => {
     const now = Date.now();
-    const entries = Array.from(this.cache.entries());
+    const entries = Array.from(statsCache.entries());
 
     // Remove expired entries
     entries.forEach(([key, entry]) => {
-      if (now - entry.timestamp >= this.TTL) {
-        this.cache.delete(key);
+      if (now - entry.timestamp >= TTL) {
+        statsCache.delete(key);
       }
     });
 
     // If still over limit, remove oldest entries
-    if (this.cache.size > this.MAX_CACHE_SIZE) {
+    if (statsCache.size > MAX_CACHE_SIZE) {
       const sortedEntries = entries
-        .filter(([key]) => this.cache.has(key)) // Still exists after cleanup
+        .filter(([key]) => statsCache.has(key)) // Still exists after cleanup
         .sort(([, a], [, b]) => a.timestamp - b.timestamp);
 
-      const toDelete = sortedEntries.length - this.MAX_CACHE_SIZE;
+      const toDelete = sortedEntries.length - MAX_CACHE_SIZE;
       for (let i = 0; i < toDelete; i++) {
-        this.cache.delete(sortedEntries[i][0]);
+        const entry = sortedEntries[i];
+        if (entry) {
+          statsCache.delete(entry[0]);
+        }
       }
     }
-  }
+  },
 
-  private getPeriodDateRange(period: TimePeriod): { start: Date; end: Date } {
+  getPeriodDateRange: (period: TimePeriod): { start: Date; end: Date } => {
     const now = new Date();
 
     switch (period.type) {
@@ -110,20 +118,20 @@ class StatsAggregationService {
         return { start, end };
 
       default:
-        return this.getPeriodDateRange({ type: "day" });
+        return statsAggregationUtils.getPeriodDateRange({ type: "day" });
     }
-  }
+  },
 
-  private filterMealsByPeriod(meals: Meal[], period: TimePeriod): Meal[] {
-    const { start, end } = this.getPeriodDateRange(period);
+  filterMealsByPeriod: (meals: Meal[], period: TimePeriod): Meal[] => {
+    const { start, end } = statsAggregationUtils.getPeriodDateRange(period);
 
     return meals.filter(meal => {
       const mealTime = meal.timestamp.getTime();
       return mealTime >= start.getTime() && mealTime <= end.getTime();
     });
-  }
+  },
 
-  private buildAggregationContext(meals: Meal[]): AggregationContext {
+  buildAggregationContext: (meals: Meal[]): AggregationContext => {
     const uniqueDays = new Set<string>();
     const nutritionTotals = {
       calories: 0,
@@ -154,35 +162,35 @@ class StatsAggregationService {
       uniqueDays,
       nutritionTotals,
     };
-  }
+  },
 
-  private calculateTargetsForPeriod(period: TimePeriod, totalDays: number): typeof this.dailyTargets {
+  calculateTargetsForPeriod: (period: TimePeriod, totalDays: number): typeof DAILY_TARGETS => {
     switch (period.type) {
       case "day":
-        return { ...this.dailyTargets };
+        return { ...DAILY_TARGETS };
 
       case "week":
       case "custom":
         // For week and custom ranges, multiply by total days
         return {
-          calories: this.dailyTargets.calories * totalDays,
-          protein: this.dailyTargets.protein * totalDays,
-          carbs: this.dailyTargets.carbs * totalDays,
-          fat: this.dailyTargets.fat * totalDays,
-          water: this.dailyTargets.water * totalDays,
-          fiber: this.dailyTargets.fiber * totalDays,
+          calories: DAILY_TARGETS.calories * totalDays,
+          protein: DAILY_TARGETS.protein * totalDays,
+          carbs: DAILY_TARGETS.carbs * totalDays,
+          fat: DAILY_TARGETS.fat * totalDays,
+          water: DAILY_TARGETS.water * totalDays,
+          fiber: DAILY_TARGETS.fiber * totalDays,
         };
 
       case "month":
         // For month, we show daily averages, so keep daily targets
-        return { ...this.dailyTargets };
+        return { ...DAILY_TARGETS };
 
       default:
-        return { ...this.dailyTargets };
+        return { ...DAILY_TARGETS };
     }
-  }
+  },
 
-  private getPeriodLabel(period: TimePeriod): string {
+  getPeriodLabel: (period: TimePeriod): string => {
     const now = new Date();
 
     switch (period.type) {
@@ -194,7 +202,7 @@ class StatsAggregationService {
         });
 
       case "week":
-        const { start, end } = this.getPeriodDateRange(period);
+        const { start, end } = statsAggregationUtils.getPeriodDateRange(period);
         return `${start.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${end.toLocaleDateString(
           "en-US",
           { month: "short", day: "numeric" },
@@ -224,9 +232,9 @@ class StatsAggregationService {
       default:
         return "Today";
     }
-  }
+  },
 
-  private getMetricsType(period: TimePeriod, totalDays: number): "total" | "average" | "dailyAverage" {
+  getMetricsType: (period: TimePeriod, totalDays: number): "total" | "average" | "dailyAverage" => {
     switch (period.type) {
       case "day":
         return "total";
@@ -241,41 +249,41 @@ class StatsAggregationService {
       default:
         return "total";
     }
-  }
+  },
 
   /**
    * Aggregates meal statistics for a given period with caching and performance optimization
    */
-  async calculatePeriodStats(
+  calculatePeriodStats: async (
     meals: Meal[],
     period: TimePeriod,
     userMetricsType?: "total" | "dailyAverage",
-  ): Promise<PeriodStats> {
+  ): Promise<PeriodStats> => {
     // Check cache first
-    const cacheKey = this.generateCacheKey(period, meals.length) + `-${userMetricsType || "auto"}`;
-    const cachedEntry = this.cache.get(cacheKey);
+    const cacheKey = statsAggregationUtils.generateCacheKey(period, meals.length) + `-${userMetricsType || "auto"}`;
+    const cachedEntry = statsCache.get(cacheKey);
 
-    if (cachedEntry && this.isValidCacheEntry(cachedEntry)) {
+    if (cachedEntry && statsAggregationUtils.isValidCacheEntry(cachedEntry)) {
       return cachedEntry.stats;
     }
 
     // Clean up cache periodically
-    if (this.cache.size > this.MAX_CACHE_SIZE * 0.8) {
-      this.cleanupCache();
+    if (statsCache.size > MAX_CACHE_SIZE * 0.8) {
+      statsAggregationUtils.cleanupCache();
     }
 
     try {
       // Filter meals for the period
-      const periodMeals = this.filterMealsByPeriod(meals, period);
+      const periodMeals = statsAggregationUtils.filterMealsByPeriod(meals, period);
 
       // Build aggregation context
-      const context = this.buildAggregationContext(periodMeals);
+      const context = statsAggregationUtils.buildAggregationContext(periodMeals);
 
       // Calculate targets based on period
-      const targets = this.calculateTargetsForPeriod(period, context.totalDays);
+      const targets = statsAggregationUtils.calculateTargetsForPeriod(period, context.totalDays);
 
       // Determine metrics type - use user preference if provided, otherwise fall back to automatic logic
-      const metricsType = userMetricsType || this.getMetricsType(period, context.totalDays);
+      const metricsType = userMetricsType || statsAggregationUtils.getMetricsType(period, context.totalDays);
 
       // Calculate current values based on metrics type
       let currentValues = { ...context.nutritionTotals };
@@ -317,7 +325,7 @@ class StatsAggregationService {
           target: targets.fiber,
         },
         periodType: period.type,
-        periodLabel: this.getPeriodLabel(period),
+        periodLabel: statsAggregationUtils.getPeriodLabel(period),
         metricsType,
       };
 
@@ -328,68 +336,135 @@ class StatsAggregationService {
         key: cacheKey,
       };
 
-      this.cache.set(cacheKey, cacheEntry);
+      statsCache.set(cacheKey, cacheEntry);
 
       return stats;
     } catch (error) {
       console.error("Error calculating period stats:", error);
 
       // Return fallback stats
-      return this.getFallbackStats(period);
+      return statsAggregationUtils.getFallbackStats(period);
     }
-  }
+  },
 
-  private getFallbackStats(period: TimePeriod): PeriodStats {
+  getFallbackStats: (period: TimePeriod): PeriodStats => {
     return {
-      calories: { current: 0, target: this.dailyTargets.calories },
-      protein: { current: 0, target: this.dailyTargets.protein },
-      carbs: { current: 0, target: this.dailyTargets.carbs },
-      fat: { current: 0, target: this.dailyTargets.fat },
-      water: { current: 0, target: this.dailyTargets.water },
-      fiber: { current: 0, target: this.dailyTargets.fiber },
+      calories: { current: 0, target: DAILY_TARGETS.calories },
+      protein: { current: 0, target: DAILY_TARGETS.protein },
+      carbs: { current: 0, target: DAILY_TARGETS.carbs },
+      fat: { current: 0, target: DAILY_TARGETS.fat },
+      water: { current: 0, target: DAILY_TARGETS.water },
+      fiber: { current: 0, target: DAILY_TARGETS.fiber },
       periodType: period.type,
-      periodLabel: this.getPeriodLabel(period),
+      periodLabel: statsAggregationUtils.getPeriodLabel(period),
       metricsType: "total",
     };
-  }
+  },
 
   /**
    * Clears all cached statistics
    */
-  clearCache(): void {
-    this.cache.clear();
-  }
+  clearCache: (): void => {
+    statsCache.clear();
+  },
 
   /**
    * Gets current cache statistics
    */
-  getCacheStats(): { size: number; hitRate: number } {
+  getCacheStats: (): { size: number; hitRate: number } => {
     // This is a simplified hit rate calculation
     // In a real implementation, you'd track hits vs misses
     return {
-      size: this.cache.size,
+      size: statsCache.size,
       hitRate: 0.75, // Placeholder value
     };
-  }
+  },
 
   /**
    * Pre-calculates stats for common periods to improve performance
    */
-  async preloadCommonPeriods(meals: Meal[]): Promise<void> {
+  preloadCommonPeriods: async (meals: Meal[]): Promise<void> => {
     const commonPeriods: TimePeriod[] = [{ type: "day" }, { type: "week" }, { type: "month" }];
 
     // Calculate in parallel but don't wait for completion
     Promise.all(
       commonPeriods.map(period =>
-        this.calculatePeriodStats(meals, period).catch(error => {
+        statsAggregationUtils.calculatePeriodStats(meals, period).catch(error => {
           console.warn("Failed to preload period stats:", period.type, error);
         }),
       ),
     ).catch(() => {
       // Ignore preload failures
     });
-  }
-}
+  },
+};
 
-export const statsAggregationService = new StatsAggregationService();
-export default StatsAggregationService;
+// Custom hook for stats aggregation functionality
+export const useStatsAggregation = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const cacheRef = useRef(statsCache);
+
+  const calculatePeriodStats = useCallback(async (
+    meals: Meal[],
+    period: TimePeriod,
+    userMetricsType?: "total" | "dailyAverage"
+  ) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await statsAggregationUtils.calculatePeriodStats(meals, period, userMetricsType);
+      return result;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to calculate stats';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const preloadCommonPeriods = useCallback(async (meals: Meal[]) => {
+    try {
+      await statsAggregationUtils.preloadCommonPeriods(meals);
+    } catch (err) {
+      console.warn("Failed to preload common periods:", err);
+    }
+  }, []);
+
+  const clearCache = useCallback(() => {
+    statsAggregationUtils.clearCache();
+  }, []);
+
+  const getCacheStats = useCallback(() => {
+    return statsAggregationUtils.getCacheStats();
+  }, []);
+
+  const getPeriodLabel = useCallback((period: TimePeriod) => {
+    return statsAggregationUtils.getPeriodLabel(period);
+  }, []);
+
+  return {
+    loading,
+    error,
+    calculatePeriodStats,
+    preloadCommonPeriods,
+    clearCache,
+    getCacheStats,
+    getPeriodLabel,
+    // Direct access to utils for advanced usage
+    utils: statsAggregationUtils,
+  };
+};
+
+// Backward compatibility - deprecated, use useStatsAggregation hook instead
+// @deprecated Use useStatsAggregation hook for new code
+export const statsAggregationService = {
+  calculatePeriodStats: statsAggregationUtils.calculatePeriodStats,
+  clearCache: statsAggregationUtils.clearCache,
+  getCacheStats: statsAggregationUtils.getCacheStats,
+  preloadCommonPeriods: statsAggregationUtils.preloadCommonPeriods,
+};
+
+export default statsAggregationUtils;

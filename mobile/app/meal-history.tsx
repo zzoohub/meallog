@@ -16,11 +16,11 @@ import { Calendar } from "react-native-calendars";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Meal, MealHistoryFilter } from "@/domains/meals/types";
-import { MealStorageService, generateMockMeals } from "@/domains/meals/services/mealStorage";
+import { MealStorageService, generateMockMeals } from "@/domains/meals/hooks/useMealStorage";
 import { useTimelineI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 import { useAnalyticsStore as useTimeContext, SortMethod } from "@/domains/analytics";
-import { mealSortingService } from "@/domains/meals/services/mealSortingService";
+import { mealSortingService } from "@/domains/meals/hooks/useMealSorting";
 import { processInChunks, shouldUseVirtualization, getVirtualizationConfig, getCachedData } from "@/lib/performance";
 
 interface MealSection {

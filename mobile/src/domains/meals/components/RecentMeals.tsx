@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import { useTheme } from "@/lib/theme";
 import { createElevation } from "@/styles/tokens";
 import type { Meal } from "../types";
-import { MealStorageService, generateMockMeals } from "../services/mealStorage";
+import { MealStorageService, generateMockMeals } from "../hooks/useMealStorage";
 
 interface RecentMealsProps {
   onSeeAll?: () => void;
