@@ -1,86 +1,4 @@
-// Core entity types
-export interface User {
-  id: string;
-  username: string;
-  email?: string;
-  phone: string;
-  avatar?: string;
-  isLoggedIn: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Post {
-  id: string;
-  userId: string;
-  username: string;
-  content: string;
-  images: string[];
-  likes: number;
-  isLiked: boolean;
-  mealType?: MealType;
-  location?: Location;
-  nutritionInfo?: NutritionInfo;
-  aiAnalysis?: AIAnalysis;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Meal and nutrition related types
-export interface NutritionInfo {
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  fiber?: number;
-  sugar?: number;
-  sodium?: number;
-}
-
-export interface AIAnalysis {
-  detectedMeals: string[];
-  confidence: number;
-  estimatedCalories: number;
-  mealCategory: MealType;
-  ingredients: string[];
-  cuisineType?: string;
-}
-
-export interface Location {
-  latitude: number;
-  longitude: number;
-  address?: string;
-  restaurantName?: string;
-}
-
-// Enums and constants
-export enum MealType {
-  BREAKFAST = "breakfast",
-  LUNCH = "lunch",
-  DINNER = "dinner",
-  SNACK = "snack",
-}
-
-export enum PostPrivacy {
-  PUBLIC = "public",
-  FRIENDS = "friends",
-  PRIVATE = "private",
-}
-
-// Camera and media types
-export interface CapturedPhoto {
-  uri: string;
-  width: number;
-  height: number;
-  base64?: string;
-  exif?: any;
-}
-
-export interface CameraSettings {
-  type: "front" | "back";
-  flash: "on" | "off" | "auto";
-  quality: number;
-}
+// Common/shared types that are used across multiple domains
 
 // UI and component types
 export interface BaseComponentProps {
@@ -102,36 +20,6 @@ export interface PaginatedResponse<T> {
   hasNextPage: boolean;
 }
 
-// Form types
-export interface LoginFormData {
-  email: string;
-  password: string;
-}
-
-export interface RegisterFormData {
-  email: string;
-  username: string;
-  password: string;
-  confirmPassword: string;
-}
-
-// Phone auth types
-export interface PhoneAuthFormData {
-  phone: string;
-  countryCode: string;
-}
-
-export interface VerificationFormData {
-  code: string;
-}
-
-export interface PostFormData {
-  content: string;
-  images: string[];
-  mealType?: MealType;
-  privacy: PostPrivacy;
-  location?: Location;
-}
 
 // API response types
 export interface ApiResponse<T = any> {
@@ -192,26 +80,6 @@ export interface BorderRadius {
   full: number;
 }
 
-// Analytics and tracking types
-export interface AnalyticsEvent {
-  name: string;
-  properties?: Record<string, any>;
-  timestamp: Date;
-}
-
-export interface UserPreferences {
-  language: "en" | "ko";
-  theme: "light" | "dark" | "system";
-  notifications: {
-    posts: boolean;
-    likes: boolean;
-    follows: boolean;
-  };
-  privacy: {
-    showLocation: boolean;
-    allowAnalytics: boolean;
-  };
-}
 
 // Utility types
 export type DeepPartial<T> = {

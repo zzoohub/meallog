@@ -1,21 +1,46 @@
 // Core exports for better tree-shaking and module resolution
 
-// Types (always import types only)
+// Common Types (always import types only)
+export type {
+  PaginatedResponse,
+  ApiResponse,
+  ThemeColors,
+  BaseComponentProps,
+  LoadingState
+} from "./types";
+
+// Domain-specific Types
 export type {
   User,
-  Post,
-  CapturedPhoto,
-  CameraSettings,
-  PostFormData,
-  PaginatedResponse,
+  LoginFormData,
+  RegisterFormData,
+  PhoneAuthFormData,
+  VerificationFormData
+} from "./domains/auth/types";
+
+export type {
   MealType,
   PostPrivacy,
   NutritionInfo,
   Location,
-  ApiResponse,
-  ThemeColors,
+  AIAnalysis,
+  PostFormData,
+  CapturedPhoto,
+  CameraSettings,
+  Meal
+} from "./domains/meals/types";
+
+export type {
+  Post
+} from "./domains/social/types";
+
+export type {
+  AnalyticsEvent
+} from "./domains/analytics/types";
+
+export type {
   UserPreferences
-} from "./types";
+} from "./domains/settings/types";
 
 // Constants
 export { 

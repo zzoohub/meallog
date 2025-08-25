@@ -1,4 +1,68 @@
-import { NutritionInfo, MealType, AIAnalysis, Location } from "@/types";
+// Meal and nutrition related types
+
+// Enums first to avoid circular references
+export enum MealType {
+  BREAKFAST = "breakfast",
+  LUNCH = "lunch",
+  DINNER = "dinner",
+  SNACK = "snack",
+}
+
+export enum PostPrivacy {
+  PUBLIC = "public",
+  FRIENDS = "friends",
+  PRIVATE = "private",
+}
+
+// Interfaces
+export interface NutritionInfo {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber?: number;
+  sugar?: number;
+  sodium?: number;
+}
+
+export interface AIAnalysis {
+  detectedMeals: string[];
+  confidence: number;
+  estimatedCalories: number;
+  mealCategory: MealType;
+  ingredients: string[];
+  cuisineType?: string;
+}
+
+export interface Location {
+  latitude: number;
+  longitude: number;
+  address?: string;
+  restaurantName?: string;
+}
+
+export interface PostFormData {
+  content: string;
+  images: string[];
+  mealType?: MealType;
+  privacy: PostPrivacy;
+  location?: Location;
+}
+
+// Camera and media types for meal capture
+export interface CapturedPhoto {
+  uri: string;
+  width: number;
+  height: number;
+  base64?: string;
+  exif?: any;
+}
+
+export interface CameraSettings {
+  type: "front" | "back";
+  flash: "on" | "off" | "auto";
+  quality: number;
+}
 
 export interface Meal {
   id: string;
