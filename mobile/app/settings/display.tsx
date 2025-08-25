@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '@/lib/theme';
-import { SettingsItem, SettingsSection, SelectionModal, SettingsLayout } from '@/components/settings';
+import { SettingsItem, SettingsSection, SelectionModal, SettingsLayout } from '@/domains/settings/components';
 import { useSettingsStore } from '@/domains/settings/stores/settingsStore';
 import { changeLanguage, useSettingsI18n } from '@/lib/i18n';
 

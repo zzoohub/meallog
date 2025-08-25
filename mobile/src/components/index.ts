@@ -1,13 +1,12 @@
-// Providers
-export { default as AppProvider } from "./AppProvider";
-
 // UI Components
 export * from "./ui";
 
-// Feedback Components
-export * from "./feedback";
+// Providers
+export { default as AppProvider } from "./AppProvider";
 
 // New Components
 export { CircularProgress } from "./CircularProgress";
-export { NutritionChart } from "./NutritionChart";
 export { FloatingNotifications } from "./FloatingNotifications";
+export { ErrorState } from "./ErrorState";
+export { LoadingState } from "./LoadingState";
+export { OptimizedImage, usePrefetchImages } from "./OptimizedImage";

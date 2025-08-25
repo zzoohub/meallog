@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-nati
 import { Calendar } from "react-native-calendars";
 import { Ionicons } from "@expo/vector-icons";
 import { CircularProgress } from "@/components/CircularProgress";
-import { NutritionChart } from "@/components/NutritionChart";
+import { NutritionChart } from "@/domains/nutrition";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { StatsSuspenseWrapper } from "./StatsSuspenseWrapper";
 import RecentMeals from "@/domains/meals/components/RecentMeals";

@@ -1,7 +1,7 @@
 // Core exports for better tree-shaking and module resolution
 
 // Common Types (always import types only)
-export type { PaginatedResponse, ApiResponse, ThemeColors, BaseComponentProps, LoadingState } from "./types";
+export type { PaginatedResponse, ApiResponse, ThemeColors, BaseComponentProps, LoadingStateType } from "./types";
 
 // Domain-specific Types
 export type {
@@ -55,8 +55,7 @@ export type { Theme } from "./styles/tokens";
 // Components (organized by category)
 export { Button } from "./components/ui/Button";
 export { Card } from "./components/ui/Card";
-export { LoadingState } from "./components/feedback/LoadingState";
-export { ErrorState } from "./components/feedback/ErrorState";
+export { LoadingState, ErrorState } from "./components";
 
 // Domains (feature-based exports)
 // Camera moved to orbital components

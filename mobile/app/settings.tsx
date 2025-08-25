@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/lib/theme";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { SettingsSection, SettingsLayout } from "@/components/settings";
+import { SettingsSection, SettingsLayout } from "@/domains/settings/components";
 import { useAuthStore } from "@/domains/auth/stores/authStore";
 import * as Haptics from "expo-haptics";
 import { useSettingsI18n } from "@/lib/i18n";

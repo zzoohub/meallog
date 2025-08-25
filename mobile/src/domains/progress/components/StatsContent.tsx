@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { CircularProgress } from "@/components/CircularProgress";
-import { NutritionChart } from "@/components/NutritionChart";
+import { NutritionChart } from "@/domains/nutrition";
 import { useTheme } from "@/lib/theme";
 import { useProgressI18n } from "@/lib/i18n";
 import { useAnalyticsStore as useTimeContext, PeriodStats } from "@/domains/analytics";

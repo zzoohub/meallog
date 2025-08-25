@@ -7,7 +7,7 @@ import {
   Alert,
 } from 'react-native';
 import { useTheme } from '@/lib/theme';
-import { SettingsItem, SettingsSection, SettingsLayout } from '@/components/settings';
+import { SettingsItem, SettingsSection, SettingsLayout } from '@/domains/settings/components';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/domains/auth/stores/authStore';

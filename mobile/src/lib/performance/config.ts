@@ -1,4 +1,4 @@
-import { CacheConfig, VirtualizationConfig } from './types';
+import { CacheConfig, VirtualizationConfig } from "./types";
 
 // ============================================================================
 // PERFORMANCE CONSTANTS
@@ -23,9 +23,9 @@ export const DEBOUNCE_DELAY = 300; // ms
 // ============================================================================
 
 export const DOMAIN_IMPORT_MAP = {
-  camera: () => import('@/components/orbital/Camera'),
-  meals: () => import('../../../app/meal-history'),
-  aiCoach: () => import('@/domains/ai-coach/components/AICoach'),
-  settings: () => import('@/domains/settings/components/SettingsOrbital'),
-  progress: () => import('@/domains/progress/components/ProgressDashboard'),
+  camera: () => import("@/domains/camera/components/Camera"),
+  meals: () => import("../../../app/meal-history"),
+  aiCoach: () => import("@/domains/ai-coach/components/AICoach"),
+  settings: () => import("@/domains/settings/components/SettingsOrbital"),
+  progress: () => import("@/domains/progress/components/ProgressDashboard"),
 } as const;

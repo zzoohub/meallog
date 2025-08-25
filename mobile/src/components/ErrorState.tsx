@@ -1,15 +1,11 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/lib/theme';
-import { textStyles } from '@/styles/tokens';
-import { SPACING } from '@/constants';
-import { Button } from '../ui/Button';
-import type { BaseComponentProps } from '@/types';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/lib/theme";
+import { textStyles } from "@/styles/tokens";
+import { SPACING } from "@/constants";
+import { Button } from "./ui/Button";
+import type { BaseComponentProps } from "@/types";
 
 interface ErrorStateProps extends BaseComponentProps {
   title?: string;
@@ -21,11 +17,11 @@ interface ErrorStateProps extends BaseComponentProps {
 }
 
 export function ErrorState({
-  title = 'Something went wrong',
-  message = 'We encountered an error. Please try again.',
+  title = "Something went wrong",
+  message = "We encountered an error. Please try again.",
   onRetry,
-  retryLabel = 'Try again',
-  icon = 'alert-circle-outline',
+  retryLabel = "Try again",
+  icon = "alert-circle-outline",
   fullScreen = false,
   testID,
   style,
@@ -36,36 +32,19 @@ export function ErrorState({
 
   return (
     <View style={[containerStyle, style]} testID={testID}>
-      <Ionicons
-        name={icon}
-        size={64}
-        color={theme.colors.error}
-        style={styles.icon}
-        testID={`${testID}-icon`}
-      />
-      
-      <Text
-        style={[
-          textStyles.heading3,
-          { color: theme.colors.text },
-          styles.title,
-        ]}
-        testID={`${testID}-title`}
-      >
+      <Ionicons name={icon} size={64} color={theme.colors.error} style={styles.icon} testID={`${testID}-icon`} />
+
+      <Text style={[textStyles.heading3, { color: theme.colors.text }, styles.title]} testID={`${testID}-title`}>
         {title}
       </Text>
-      
+
       <Text
-        style={[
-          textStyles.body,
-          { color: theme.colors.textSecondary },
-          styles.message,
-        ]}
+        style={[textStyles.body, { color: theme.colors.textSecondary }, styles.message]}
         testID={`${testID}-message`}
       >
         {message}
       </Text>
-      
+
       {onRetry && (
         <Button
           title={retryLabel}
@@ -82,24 +61,24 @@ export function ErrorState({
 const styles = StyleSheet.create({
   fullScreen: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: SPACING.lg,
   },
   inline: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: SPACING.lg,
   },
   icon: {
     marginBottom: SPACING.lg,
   },
   title: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: SPACING.sm,
   },
   message: {
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 22,
     marginBottom: SPACING.xl,
   },

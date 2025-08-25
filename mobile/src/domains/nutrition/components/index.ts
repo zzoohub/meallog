@@ -1,0 +1,1 @@
+export { NutritionChart } from './NutritionChart';

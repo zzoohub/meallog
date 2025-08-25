@@ -7,7 +7,7 @@ export interface BaseComponentProps {
   children?: React.ReactNode;
 }
 
-export interface LoadingState {
+export interface LoadingStateType {
   isLoading: boolean;
   error?: string | null;
 }
@@ -19,7 +19,6 @@ export interface PaginatedResponse<T> {
   total: number;
   hasNextPage: boolean;
 }
-
 
 // API response types
 export interface ApiResponse<T = any> {
@@ -79,7 +78,6 @@ export interface BorderRadius {
   lg: number;
   full: number;
 }
-
 
 // Utility types
 export type DeepPartial<T> = {
