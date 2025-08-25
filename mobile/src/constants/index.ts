@@ -131,7 +131,7 @@ export const DARK_THEME_COLORS = {
   primary: BRAND_COLORS.PRIMARY,
   secondary: BRAND_COLORS.SECONDARY,
   background: "#000000",
-  surface: "#1C1C1E",
+  surface: "rgba(255, 255, 255, 0.06)",
   text: "#FFFFFF",
   textSecondary: "#8E8E93",
   border: "#38383A",
