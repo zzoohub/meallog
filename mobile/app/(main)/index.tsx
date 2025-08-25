@@ -56,7 +56,9 @@ export default function OrbitalNavigation() {
       const currentIndex = sections.indexOf(currentSection);
 
       // Preload next and previous sections
-      const adjacentSections = [sections[currentIndex - 1], sections[currentIndex + 1]].filter(Boolean);
+      const adjacentSections = [sections[currentIndex - 1], sections[currentIndex + 1]].filter(
+        (s): s is OrbitalSection => s !== undefined,
+      );
 
       adjacentSections.forEach(section => {
         if (!preloadedSections.has(section)) {

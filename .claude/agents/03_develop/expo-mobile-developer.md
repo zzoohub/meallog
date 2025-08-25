@@ -740,7 +740,6 @@ src/
 │   ├── auth/
 │   │   ├── components/
 │   │   ├── hooks/
-│   │   └── services/
 │   ├── notifications/
 │   │   ├── components/
 │   │   ├── hooks/
@@ -748,9 +747,7 @@ src/
 │   └── payments/
 │       ├── components/
 │       ├── hooks/
-│       └── services/
 ├── hooks/                 # Global hooks
-├── services/              # Global services
 ├── utils/                 # Global utilities
 └── constants/             # App constants
 ```
