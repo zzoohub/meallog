@@ -258,37 +258,6 @@ export const useCommonI18n = () => {
       settings: t("settings"),
       language: t("language"),
       about: t("about"),
-      onboarding: {
-        welcome: {
-          title: t("onboarding.welcome.title"),
-          subtitle: t("onboarding.welcome.subtitle"),
-          startJourney: t("onboarding.welcome.startJourney"),
-        },
-        camera: {
-          title: t("onboarding.camera.title"),
-          subtitle: t("onboarding.camera.subtitle"),
-          grantAccess: t("onboarding.camera.grantAccess"),
-          description: t("onboarding.camera.description"),
-        },
-        demo: {
-          title: t("onboarding.demo.title"),
-          subtitle: t("onboarding.demo.subtitle"),
-          tryDemo: t("onboarding.demo.tryDemo"),
-        },
-        goals: {
-          title: t("onboarding.goals.title"),
-          subtitle: t("onboarding.goals.subtitle"),
-        },
-        profile: {
-          title: t("onboarding.profile.title"),
-          subtitle: t("onboarding.profile.subtitle"),
-        },
-        buttons: {
-          next: t("onboarding.buttons.next"),
-          skip: t("onboarding.buttons.skip"),
-          getStarted: t("onboarding.buttons.getStarted"),
-        },
-      },
       formatNumber: format.number,
       formatCurrency: format.currency,
       formatDate: format.date,
