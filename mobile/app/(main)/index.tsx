@@ -3,8 +3,9 @@ import { StyleSheet } from "react-native";
 import { useTheme } from "@/lib/theme";
 import * as Haptics from "expo-haptics";
 
-// Import orbital sections with lazy loading
+// Import orbital sections - Camera eagerly loaded as it's the main screen
 import { FloatingNotifications } from "@/components/FloatingNotifications";
+import CameraCenter from "@/domains/camera/components/Camera";
 import {
   createLazyComponent,
   prefetchBatch,
@@ -13,8 +14,7 @@ import {
   usePerformanceMonitor,
 } from "@/lib/performance";
 
-// Lazy load heavy components for better performance
-const CameraCenter = createLazyComponent(() => import("@/domains/camera/components/Camera"));
+// Lazy load non-critical components for better performance
 const ProgressDashboard = createLazyComponent(() => import("@/domains/progress/components/ProgressDashboard"));
 const AICoach = createLazyComponent(() => import("@/domains/ai-coach/components/AICoach"));
 const SettingsOrbital = createLazyComponent(() => import("@/domains/settings/components/SettingsOrbital"));
