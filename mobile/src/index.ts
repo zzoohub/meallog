@@ -66,4 +66,4 @@ export { useSettingsStore } from "./domains/settings/stores/settingsStore";
 
 // Core libraries
 export { default as i18n } from "./lib/i18n/config";
-export { useTranslation, useI18n } from "./lib/i18n/hooks";
+export { useI18n } from "./lib/i18n";

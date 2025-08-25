@@ -36,7 +36,6 @@ export {
   useProgressI18n,
   useAICoachI18n,
   useSettingsI18n,
-  useTranslation,
 } from "./hooks";
 
 // Export TypeScript types
