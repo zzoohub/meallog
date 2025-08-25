@@ -1,5 +1,5 @@
 import { Meal } from "@/domains/meals/types";
-import { SortMethod } from "@/contexts/TimeContext";
+import { SortMethod } from "@/domains/analytics";
 
 interface SortMetadata {
   key: SortMethod;

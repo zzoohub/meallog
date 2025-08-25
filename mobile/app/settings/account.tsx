@@ -10,11 +10,11 @@ import { useTheme } from '@/lib/theme';
 import { SettingsItem, SettingsSection, SettingsLayout } from '@/components/settings';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { useAuth } from '@/domains/auth';
+import { useAuthStore } from '@/domains/auth/stores/authStore';
 
 export default function AccountSettings() {
   const { theme } = useTheme();
-  const { user, updateUser, logout, isLoading } = useAuth();
+  const { user, updateUser, logout, isLoading } = useAuthStore();
   
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({

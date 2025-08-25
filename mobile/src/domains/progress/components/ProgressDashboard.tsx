@@ -5,12 +5,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { CircularProgress } from "@/components/CircularProgress";
 import { NutritionChart } from "@/components/NutritionChart";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import { StatsSuspenseWrapper } from './StatsSuspenseWrapper';
+import { StatsSuspenseWrapper } from "./StatsSuspenseWrapper";
 import RecentMeals from "@/domains/meals/components/RecentMeals";
 import { useRouter } from "expo-router";
 import { useProgressI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
-import { useTimeContext, TimePeriod } from "@/contexts";
+import { useAnalyticsStore as useTimeContext, TimePeriod } from "@/domains/analytics";
 
 interface ProgressDashboardProps {
   onNavigate: (section: string) => void;
@@ -53,7 +53,7 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
 
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [markedDates, setMarkedDates] = useState<{ [key: string]: any }>({});
-  
+
   // Calendar range state for date selection
   const [calendarRange, setCalendarRange] = useState<{
     startDate: Date | null;
@@ -154,7 +154,7 @@ export default function ProgressDashboard({ onNavigate }: ProgressDashboardProps
         // Mark days in between
         const currentDate = new Date(start);
         currentDate.setDate(currentDate.getDate() + 1);
-        
+
         while (currentDate < end) {
           const dateString = currentDate.toISOString().split("T")[0];
           if (dateString) {

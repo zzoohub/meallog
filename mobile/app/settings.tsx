@@ -6,8 +6,7 @@ import { useTheme } from "@/lib/theme";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { SettingsSection, SettingsLayout } from "@/components/settings";
-import { useUserStore } from "@/domains/user/stores/userStore";
-import { useAuth } from "@/domains/auth";
+import { useAuthStore } from "@/domains/auth/stores/authStore";
 import * as Haptics from "expo-haptics";
 import { useSettingsI18n } from "@/lib/i18n";
 
@@ -21,8 +20,8 @@ interface SettingsCategory {
 
 export default function SettingsScreen() {
   const { theme } = useTheme();
-  const { user } = useUserStore();
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuthStore();
+  const isAuthenticated = !!user?.isLoggedIn;
   const settings = useSettingsI18n();
 
   const handleCategoryPress = (categoryId: string) => {

@@ -1,11 +1,11 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { CircularProgress } from '@/components/CircularProgress';
-import { NutritionChart } from '@/components/NutritionChart';
-import { useTheme } from '@/lib/theme';
-import { useProgressI18n } from '@/lib/i18n';
-import { useTimeContext, PeriodStats } from '@/contexts';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { CircularProgress } from "@/components/CircularProgress";
+import { NutritionChart } from "@/components/NutritionChart";
+import { useTheme } from "@/lib/theme";
+import { useProgressI18n } from "@/lib/i18n";
+import { useAnalyticsStore as useTimeContext, PeriodStats } from "@/domains/analytics";
 
 interface StatsContentProps {
   stats: PeriodStats;
@@ -63,15 +63,11 @@ export function StatsContent({ stats, onNavigate }: StatsContentProps) {
         )}
       </View>
 
-      <Text style={[styles.summaryDate, { color: theme.colors.textSecondary }]}>
-        {stats.periodLabel}
-      </Text>
+      <Text style={[styles.summaryDate, { color: theme.colors.textSecondary }]}>{stats.periodLabel}</Text>
 
       <View style={styles.calorieOverview}>
         <View style={styles.calorieMain}>
-          <Text style={[styles.calorieValue, { color: theme.colors.text }]}>
-            {Math.round(stats.calories.current)}
-          </Text>
+          <Text style={[styles.calorieValue, { color: theme.colors.text }]}>{Math.round(stats.calories.current)}</Text>
           <Text style={[styles.calorieLabel, { color: theme.colors.textSecondary }]}>
             {stats.metricsType === "dailyAverage" ? "avg calories/day" : "calories consumed"}
           </Text>
@@ -108,21 +104,21 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   summaryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 4,
   },
   summaryTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   summaryDate: {
     fontSize: 14,
     marginBottom: 16,
   },
   inlineToggleButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     borderRadius: 6,
     padding: 1,
   },
@@ -131,33 +127,33 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 4,
     minWidth: 36,
-    alignItems: 'center',
+    alignItems: "center",
   },
   inlineToggleText: {
     fontSize: 10,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   calorieOverview: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 16,
   },
   calorieMain: {
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   calorieValue: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   calorieLabel: {
     fontSize: 14,
   },
   calorieRemaining: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   remainingValue: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   remainingLabel: {
     fontSize: 14,
@@ -165,9 +161,9 @@ const styles = StyleSheet.create({
   calorieBar: {
     height: 8,
     borderRadius: 4,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   calorieBarFill: {
-    height: '100%',
+    height: "100%",
   },
 });

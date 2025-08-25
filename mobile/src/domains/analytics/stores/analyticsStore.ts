@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import { create } from "zustand";
 
 export interface TimePeriod {
   type: "day" | "week" | "month" | "custom";
@@ -32,24 +32,43 @@ export type SortMethod =
 
 export type MetricsDisplayType = "total" | "dailyAverage";
 
-interface TimeContextType {
+interface AnalyticsState {
   globalPeriod: TimePeriod;
-  setGlobalPeriod: (period: TimePeriod) => void;
   sortMethod: SortMethod;
-  setSortMethod: (method: SortMethod) => void;
   metricsDisplayType: MetricsDisplayType;
+}
+
+interface AnalyticsActions {
+  setGlobalPeriod: (period: TimePeriod) => void;
+  setSortMethod: (method: SortMethod) => void;
   setMetricsDisplayType: (type: MetricsDisplayType) => void;
   getPeriodLabel: (period: TimePeriod) => string;
 }
 
-export const TimeContext = createContext<TimeContextType | undefined>(undefined);
+type AnalyticsStore = AnalyticsState & AnalyticsActions;
 
-export function TimeProvider({ children }: { children: ReactNode }) {
-  const [globalPeriod, setGlobalPeriod] = useState<TimePeriod>({ type: "day" });
-  const [sortMethod, setSortMethod] = useState<SortMethod>("date-desc");
-  const [metricsDisplayType, setMetricsDisplayType] = useState<MetricsDisplayType>("total");
+const initialState: AnalyticsState = {
+  globalPeriod: { type: "day" },
+  sortMethod: "date-desc",
+  metricsDisplayType: "total",
+};
 
-  const getPeriodLabel = (period: TimePeriod): string => {
+export const useAnalyticsStore = create<AnalyticsStore>((set) => ({
+  ...initialState,
+
+  setGlobalPeriod: (period: TimePeriod) => {
+    set({ globalPeriod: period });
+  },
+
+  setSortMethod: (method: SortMethod) => {
+    set({ sortMethod: method });
+  },
+
+  setMetricsDisplayType: (type: MetricsDisplayType) => {
+    set({ metricsDisplayType: type });
+  },
+
+  getPeriodLabel: (period: TimePeriod): string => {
     const today = new Date();
 
     switch (period.type) {
@@ -90,25 +109,14 @@ export function TimeProvider({ children }: { children: ReactNode }) {
       default:
         return "Today";
     }
-  };
+  },
+}));
 
-  const contextValue: TimeContextType = {
-    globalPeriod,
-    setGlobalPeriod,
-    sortMethod,
-    setSortMethod,
-    metricsDisplayType,
-    setMetricsDisplayType,
-    getPeriodLabel,
-  };
+// Helper selectors for common use cases
+export const selectCurrentPeriodLabel = (state: AnalyticsStore) => 
+  state.getPeriodLabel(state.globalPeriod);
 
-  return <TimeContext.Provider value={contextValue}>{children}</TimeContext.Provider>;
-}
-
-export function useTimeContext(): TimeContextType {
-  const context = useContext(TimeContext);
-  if (!context) {
-    throw new Error("useTimeContext must be used within a TimeProvider");
-  }
-  return context;
-}
+export const selectIsCurrentPeriod = (state: AnalyticsStore, period: TimePeriod) => 
+  state.globalPeriod.type === period.type &&
+  state.globalPeriod.startDate?.getTime() === period.startDate?.getTime() &&
+  state.globalPeriod.endDate?.getTime() === period.endDate?.getTime();

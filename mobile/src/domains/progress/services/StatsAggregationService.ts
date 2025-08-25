@@ -1,5 +1,5 @@
 import { Meal } from "@/domains/meals/types";
-import { TimePeriod, PeriodStats } from "@/contexts/TimeContext";
+import { TimePeriod, PeriodStats } from "@/domains/analytics";
 
 interface CacheEntry {
   stats: PeriodStats;
@@ -246,9 +246,13 @@ class StatsAggregationService {
   /**
    * Aggregates meal statistics for a given period with caching and performance optimization
    */
-  async calculatePeriodStats(meals: Meal[], period: TimePeriod, userMetricsType?: "total" | "dailyAverage"): Promise<PeriodStats> {
+  async calculatePeriodStats(
+    meals: Meal[],
+    period: TimePeriod,
+    userMetricsType?: "total" | "dailyAverage",
+  ): Promise<PeriodStats> {
     // Check cache first
-    const cacheKey = this.generateCacheKey(period, meals.length) + `-${userMetricsType || 'auto'}`;
+    const cacheKey = this.generateCacheKey(period, meals.length) + `-${userMetricsType || "auto"}`;
     const cachedEntry = this.cache.get(cacheKey);
 
     if (cachedEntry && this.isValidCacheEntry(cachedEntry)) {

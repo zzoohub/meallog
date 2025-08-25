@@ -1,11 +1,13 @@
 import { View, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import { useAuth, AuthFlow } from '@/domains/auth';
+import { useAuthStore } from '@/domains/auth/stores/authStore';
+import { AuthFlow } from '@/domains/auth';
 import { useEffect } from 'react';
 
 export default function AuthScreen() {
   try {
-    const { isAuthenticated } = useAuth();
+    const { user } = useAuthStore();
+    const isAuthenticated = !!user?.isLoggedIn;
     
     useEffect(() => {
       // If user is already authenticated, redirect to main app

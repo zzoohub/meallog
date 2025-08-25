@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { useTheme } from '@/lib/theme';
 import { PhoneAuthScreen } from './PhoneAuthScreen';
 import { VerificationScreen } from './VerificationScreen';
-import { useAuth } from './AuthProvider';
+import { useAuthStore } from '../stores/authStore';
 
 interface AuthFlowProps {
   onComplete: () => void;
@@ -14,7 +14,7 @@ type AuthStep = 'phone' | 'verification';
 
 export function AuthFlow({ onComplete, onCancel }: AuthFlowProps) {
   const { theme } = useTheme();
-  const { clearPendingAuth } = useAuth();
+  const { clearPendingAuth } = useAuthStore();
   const [currentStep, setCurrentStep] = useState<AuthStep>('phone');
 
   const handlePhoneSuccess = () => {

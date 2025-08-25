@@ -61,7 +61,7 @@ export { CameraView } from "./domains/camera";
 export { useCamera } from "./domains/camera";
 // export { TakePicture } from "./domains/posts";  // TODO: Implement posts domain
 // export { usePosts } from "./domains/posts";    // TODO: Implement posts domain
-export { useUserStore } from "./domains/user/stores/userStore";
+export { useAuthStore } from "./domains/auth/stores/authStore";
 export { useSettingsStore } from "./domains/settings/stores/settingsStore";
 
 // Core libraries

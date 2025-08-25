@@ -15,7 +15,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/lib/theme';
 import { Button } from '@/components/ui/Button';
 import { VerificationInput } from './VerificationInput';
-import { useAuth } from './AuthProvider';
+import { useAuthStore } from '../stores/authStore';
 
 interface VerificationScreenProps {
   onSuccess: () => void;
@@ -33,7 +33,7 @@ export function VerificationScreen({ onSuccess, onBack }: VerificationScreenProp
     error,
     resendCooldown,
     clearError,
-  } = useAuth();
+  } = useAuthStore();
   
   const [code, setCode] = useState('');
 

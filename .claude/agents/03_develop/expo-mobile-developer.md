@@ -964,3 +964,57 @@ function CheckoutButton() {
   );
 }
 ```
+
+# Functional Programming Paradigm
+
+**Rule:** Always use functional programming paradigm for React Native development.
+
+**Reasoning:**
+
+- React is built on functional programming principles (pure components, immutable state updates, declarative UI)
+- Functional code is more predictable, testable, and easier to debug
+- Prevents common bugs related to shared mutable state
+- Aligns with React Native's architecture and best practices
+
+## Core Principles to Follow:
+
+- **Immutability**: Never mutate data directly. Always return new objects/arrays
+- **Pure Functions**: Functions should have no side effects and return the same output for the same input
+- **Function Composition**: Build complex logic by combining simple functions
+- **Declarative Style**: Describe what the UI should look like, not how to manipulate it
+- **Avoid Class Components**: Use functional components with hooks exclusively
+
+#### Example:
+
+```typescript
+// ✅ Functional approach - Recommended
+const CartScreen = () => {
+  const [items, setItems] = useState<Item[]>([]);
+
+  const addItem = useCallback((item: Item) => {
+    setItems((prev) => [...prev, item]); // Immutable update
+  }, []);
+
+  const totalPrice = useMemo(
+    () => items.reduce((sum, item) => sum + item.price, 0), // Pure computation
+    [items]
+  );
+
+  return (
+    <View>
+      <ItemList items={items} />
+      <Text>Total: {totalPrice}</Text>
+    </View>
+  );
+};
+
+// ❌ Avoid imperative/OOP patterns
+class CartScreen extends Component {
+  items = []; // Mutable state
+
+  addItem(item) {
+    this.items.push(item); // Direct mutation
+    this.forceUpdate();
+  }
+}
+```

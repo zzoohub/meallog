@@ -780,6 +780,84 @@ export default async function ProductsPage() {
 }
 ```
 
+# Functional Programming Paradigm
+
+**Rule:** Always use functional programming paradigm for Next.js App Router development.
+
+**Reasoning:**
+
+- Next.js App Router is built entirely on functional components and React Server Components
+- Server Components are inherently functional (async functions that return JSX)
+- Functional code aligns with React's unidirectional data flow and immutable state updates
+- Server Actions are pure functions that run on the server
+- Enables better code splitting and tree shaking
+
+## Core Principles to Follow:
+
+- **Functional Components Only**: Never use class components; use function components with hooks
+- **Server Components by Default**: These are async functions that execute on the server
+- **Immutable State Updates**: Always return new objects/arrays in Client Components
+- **Pure Server Actions**: Server Actions should be pure functions with predictable returns
+- **Declarative Data Fetching**: Use RSC's declarative approach over imperative API calls
+- **Function Composition**: Build complex features by composing simple functions
+
+#### Example:
+
+```typescript
+// ✅ Functional approach - Recommended
+// app/products/page.tsx - Server Component (async function)
+export default async function ProductsPage() {
+  const products = await getProducts(); // Pure data fetching
+
+  return (
+    <div>
+      {products.map((product) => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+  );
+}
+
+// app/components/cart.tsx - Client Component with functional updates
+("use client");
+
+export function Cart() {
+  const [items, setItems] = useState<Item[]>([]);
+
+  const addItem = useCallback((item: Item) => {
+    setItems((prev) => [...prev, item]); // Immutable update
+  }, []);
+
+  const total = useMemo(
+    () => items.reduce((sum, item) => sum + item.price, 0), // Pure computation
+    [items]
+  );
+
+  return <CartDisplay items={items} total={total} />;
+}
+
+// app/actions/user.ts - Pure Server Actions
+("use server");
+
+export async function updateUser(id: string, data: UserData) {
+  // Pure function - same input always produces same output
+  const validated = validateUserData(data);
+  const updated = await db.user.update({ where: { id }, data: validated });
+  revalidatePath("/users");
+  return { success: true, user: updated };
+}
+
+// ❌ Avoid: Class-based or imperative patterns
+class ProductService {
+  private cache = {};
+
+  async getProducts() {
+    if (this.cache.products) return this.cache.products;
+    // Stateful, imperative approach
+  }
+}
+```
+
 # Best Practices Summary
 
 1. **Server Components First**: Default to Server Components, use Client Components only for interactivity

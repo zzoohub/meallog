@@ -17,7 +17,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/lib/theme';
 import { Button } from '@/components/ui/Button';
 import { PhoneInput } from './PhoneInput';
-import { useAuth } from './AuthProvider';
+import { useAuthStore } from '../stores/authStore';
 import { STORAGE_KEYS } from '@/constants';
 
 interface PhoneAuthScreenProps {
@@ -27,7 +27,7 @@ interface PhoneAuthScreenProps {
 
 export function PhoneAuthScreen({ onSuccess, onCancel }: PhoneAuthScreenProps) {
   const { theme } = useTheme();
-  const { sendVerificationCode, isLoading, error, clearError } = useAuth();
+  const { sendVerificationCode, isLoading, error, clearError } = useAuthStore();
   
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('+1'); // Default to US

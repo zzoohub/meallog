@@ -19,7 +19,7 @@ import { Meal, MealHistoryFilter } from "@/domains/meals/types";
 import { MealStorageService, generateMockMeals } from "@/domains/meals/services/mealStorage";
 import { useTimelineI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
-import { useTimeContext, SortMethod } from "@/contexts";
+import { useAnalyticsStore as useTimeContext, SortMethod } from "@/domains/analytics";
 import { mealSortingService } from "@/domains/meals/services/mealSortingService";
 import { performanceOptimizationService } from "@/services/PerformanceOptimizationService";
 

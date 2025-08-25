@@ -96,8 +96,8 @@ export default function OrbitalNavigation() {
         {
           key: ['user', 'profile'],
           fetcher: async () => {
-            const { useUserStore } = await import('@/domains/user/stores/userStore');
-            return useUserStore.getState().user;
+            const { useAuthStore } = await import('@/domains/auth/stores/authStore');
+            return useAuthStore.getState().user;
           },
           staleTime: 1000 * 60 * 10, // 10 minutes
         },

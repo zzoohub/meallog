@@ -2,15 +2,11 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { STORAGE_KEYS, ERROR_MESSAGES } from "@/constants";
-import type { User, PhoneAuthFormData, VerificationFormData, UserPreferences } from "@/types";
+import type { User, PhoneAuthFormData, VerificationFormData } from "@/types";
 import { networkService } from "../services/networkService";
 
 interface AuthState {
-  // User data
   user: User | null;
-  preferences: UserPreferences;
-  
-  // Auth flow state
   isLoading: boolean;
   isVerifying: boolean;
   error: string | null;
@@ -27,12 +23,8 @@ interface AuthActions {
   // User management
   setUser: (user: Partial<User>) => void;
   updateUser: (updates: Partial<User>) => Promise<void>;
-  login: (user: Pick<User, "id" | "username" | "phone">) => Promise<void>;
   logout: () => Promise<void>;
   loadUserFromStorage: () => Promise<void>;
-  
-  // Preferences
-  setPreferences: (preferences: Partial<UserPreferences>) => Promise<void>;
   
   // Utility
   clearError: () => void;
@@ -42,32 +34,8 @@ interface AuthActions {
 
 type AuthStore = AuthState & AuthActions;
 
-const initialUser: User = {
-  id: "",
-  username: "",
-  phone: "",
-  isLoggedIn: false,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
-
-const initialPreferences: UserPreferences = {
-  language: "en",
-  theme: "system",
-  notifications: {
-    posts: true,
-    likes: true,
-    follows: true,
-  },
-  privacy: {
-    showLocation: false,
-    allowAnalytics: true,
-  },
-};
-
 const initialState: AuthState = {
   user: null,
-  preferences: initialPreferences,
   isLoading: false,
   isVerifying: false,
   error: null,
@@ -239,31 +207,9 @@ export const useAuthStore = create<AuthStore>()(
 
     setUser: (userData: Partial<User>) => {
       set(state => ({
-        user: state.user ? { ...state.user, ...userData } : { ...initialUser, ...userData },
+        user: state.user ? { ...state.user, ...userData } : null,
         error: null,
       }));
-    },
-
-    login: async (userData: Pick<User, "id" | "username" | "phone">) => {
-      try {
-        set({ isLoading: true, error: null });
-
-        const user: User = {
-          ...userData,
-          isLoggedIn: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        // Save to storage
-        await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
-
-        set({ user, isLoading: false });
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Login failed";
-        set({ error: errorMessage, isLoading: false });
-        throw error;
-      }
     },
 
     updateUser: async (updates: Partial<User>) => {
@@ -300,7 +246,6 @@ export const useAuthStore = create<AuthStore>()(
         await Promise.all([
           AsyncStorage.removeItem(STORAGE_KEYS.USER_DATA),
           AsyncStorage.removeItem(STORAGE_KEYS.PHONE_AUTH_TOKEN),
-          AsyncStorage.removeItem(STORAGE_KEYS.USER_TOKEN),
           AsyncStorage.removeItem(STORAGE_KEYS.LAST_PHONE_NUMBER),
         ]);
 
@@ -318,10 +263,9 @@ export const useAuthStore = create<AuthStore>()(
       try {
         set({ isLoading: true, error: null });
 
-        const [userData, authToken, preferencesData] = await Promise.all([
+        const [userData, authToken] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEYS.USER_DATA),
           AsyncStorage.getItem(STORAGE_KEYS.PHONE_AUTH_TOKEN),
-          AsyncStorage.getItem(STORAGE_KEYS.APP_SETTINGS),
         ]);
 
         if (userData && authToken) {
@@ -332,12 +276,6 @@ export const useAuthStore = create<AuthStore>()(
           set({ user });
         }
 
-        // Load preferences
-        if (preferencesData) {
-          const preferences = JSON.parse(preferencesData) as UserPreferences;
-          set({ preferences });
-        }
-
         set({ isLoading: false });
       } catch (error) {
         console.error("Failed to load user from storage:", error);
@@ -346,19 +284,6 @@ export const useAuthStore = create<AuthStore>()(
     },
 
     clearError: () => set({ error: null }),
-
-    setPreferences: async (updates: Partial<UserPreferences>) => {
-      try {
-        const newPreferences = { ...get().preferences, ...updates };
-
-        await AsyncStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(newPreferences));
-
-        set({ preferences: newPreferences });
-      } catch (error) {
-        console.error("Failed to save preferences:", error);
-        throw error;
-      }
-    },
 
     clearPendingAuth: () => set({ 
       pendingPhone: null, 
@@ -394,8 +319,3 @@ useAuthStore.subscribe(
     }
   },
 );
-
-// Helper selectors for common use cases
-export const selectIsAuthenticated = (state: AuthStore) => !!state.user?.isLoggedIn;
-export const selectUserId = (state: AuthStore) => state.user?.id;
-export const selectUsername = (state: AuthStore) => state.user?.username;
