@@ -1,0 +1,1 @@
+"""MealLog FastAPI server package."""
