@@ -28,7 +28,10 @@ class AnalyticsEvent(BaseModel, table=True):
     )
     properties: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
     session_id: str | None = Field(default=None, sa_column=Column(String(100), index=True))
-    platform: Literal["ios", "android", "web"] | None = Field(default=None)
+    platform: Literal["ios", "android", "web"] | None = Field(
+        default=None, 
+        sa_column=Column(String(20), nullable=True)
+    )
     app_version: str | None = Field(default=None, max_length=20)
     
     # Relationships
@@ -130,7 +133,7 @@ class Achievement(UUIDMixin, TimestampMixin, SQLModel, table=True):
     achievement_level: int = Field(default=1, ge=1)  # For multi-level achievements
     unlocked_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     progress: float = Field(default=100.0, ge=0, le=100)  # Progress towards achievement (100 = completed)
-    metadata: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
+    achievement_metadata: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
 
     # Relationships
     user: User = Relationship()

@@ -114,7 +114,7 @@ class AchievementResponse(BaseModel):
     achievement_level: int
     unlocked_at: datetime
     progress: float
-    metadata: dict[str, Any] | None
+    achievement_metadata: dict[str, Any] | None
 
 
 class WeeklySummaryResponse(BaseModel):

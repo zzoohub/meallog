@@ -108,10 +108,16 @@ class NotificationTemplate(UUIDMixin, TimestampMixin, SQLModel, table=True):
     
     # Delivery settings
     is_active: bool = Field(default=True)
-    priority: Literal["low", "normal", "high"] = Field(default="normal")
+    priority: Literal["low", "normal", "high"] = Field(
+        default="normal",
+        sa_column=Column(String(10), nullable=False)
+    )
     
     # Localization support
-    language: Literal["en", "ko"] = Field(default="en")
+    language: Literal["en", "ko"] = Field(
+        default="en",
+        sa_column=Column(String(5), nullable=False)
+    )
 
 
 class NotificationQueue(UUIDMixin, TimestampMixin, SQLModel, table=True):
