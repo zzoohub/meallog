@@ -2,7 +2,8 @@
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Literal
+from enum import Enum
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import JSON, Column, String
@@ -12,6 +13,15 @@ from src.auth.models import User
 from src.models import BaseModel, SoftDeleteMixin, TimestampMixin, UUIDMixin
 
 
+class MealType(str, Enum):
+    """Meal type enum."""
+    
+    BREAKFAST = "breakfast"
+    LUNCH = "lunch"
+    DINNER = "dinner"
+    SNACK = "snack"
+
+
 class Meal(BaseModel, SoftDeleteMixin, table=True):
     """Meal model."""
 
@@ -19,7 +29,7 @@ class Meal(BaseModel, SoftDeleteMixin, table=True):
 
     user_id: UUID = Field(foreign_key="users.id", index=True)
     name: str = Field(sa_column=Column(String(255), nullable=False))
-    meal_type: Literal["breakfast", "lunch", "dinner", "snack"] = Field(nullable=False)
+    meal_type: MealType = Field(nullable=False)
     timestamp: datetime = Field(nullable=False, index=True)
 
     # Nutrition information

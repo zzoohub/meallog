@@ -1,6 +1,6 @@
 """Social features models."""
 
-from typing import Literal
+from enum import Enum
 from uuid import UUID
 
 from sqlmodel import Field, Relationship, SQLModel
@@ -8,6 +8,14 @@ from sqlmodel import Field, Relationship, SQLModel
 from src.auth.models import User
 from src.meals.models import Meal
 from src.models import BaseModel, SoftDeleteMixin, TimestampMixin, UUIDMixin
+
+
+class PostPrivacy(str, Enum):
+    """Post privacy enum."""
+    
+    PUBLIC = "public"
+    FRIENDS = "friends"
+    PRIVATE = "private"
 
 
 class Post(BaseModel, SoftDeleteMixin, table=True):
@@ -18,7 +26,7 @@ class Post(BaseModel, SoftDeleteMixin, table=True):
     user_id: UUID = Field(foreign_key="users.id", index=True)
     meal_id: UUID | None = Field(default=None, foreign_key="meals.id", nullable=True, index=True)
     content: str | None = Field(default=None)
-    privacy: Literal["public", "friends", "private"] = Field(default="friends")
+    privacy: PostPrivacy = Field(default=PostPrivacy.FRIENDS)
     likes_count: int = Field(default=0, ge=0)
     comments_count: int = Field(default=0, ge=0)
     shares_count: int = Field(default=0, ge=0)
