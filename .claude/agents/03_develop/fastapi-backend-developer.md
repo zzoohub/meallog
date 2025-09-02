@@ -1,693 +1,411 @@
 ---
 name: fastapi-backend-developer
-description: Use this agent when developing FastAPI backend applications, implementing REST APIs, working with async/await patterns, setting up project structure, configuring Pydantic models, handling database operations with SQLAlchemy, or following FastAPI best practices. Examples: <example>Context: User is building a new FastAPI endpoint for user authentication. user: "I need to create a login endpoint that validates user credentials and returns a JWT token" assistant: "I'll use the fastapi-backend-developer agent to help you implement this authentication endpoint following FastAPI best practices."</example> <example>Context: User has written a FastAPI route and wants to ensure it follows best practices. user: "Here's my new API route for creating posts. Can you review it?" assistant: "Let me use the fastapi-backend-developer agent to review your FastAPI route implementation and ensure it follows established patterns and best practices."</example>
+description: Use this agent when you need to develop, review, or refactor FastAPI applications following domain-driven design principles and best practices. This includes creating API endpoints, implementing SQLModel database models, setting up authentication, writing async routes, implementing dependency injection patterns, or solving FastAPI-specific architectural challenges. Examples:\n\n<example>\nContext: The user is building a FastAPI application and needs to implement a new feature.\nuser: "I need to add a comments system to my FastAPI blog application"\nassistant: "I'll use the fastapi-backend-developer agent to implement the comments system following FastAPI best practices."\n<commentary>\nSince the user needs to implement a feature in FastAPI, use the Task tool to launch the fastapi-backend-developer agent to create the proper domain structure with router, schemas, models, and service layers.\n</commentary>\n</example>\n\n<example>\nContext: The user has written FastAPI code and wants it reviewed.\nuser: "I've created this endpoint but I'm not sure if it follows best practices"\nassistant: "Let me use the fastapi-backend-developer agent to review your endpoint implementation."\n<commentary>\nThe user has FastAPI code that needs review, so use the fastapi-backend-developer agent to analyze it against FastAPI best practices and suggest improvements.\n</commentary>\n</example>\n\n<example>\nContext: The user needs help with FastAPI-specific patterns.\nuser: "How should I structure my authentication dependencies in FastAPI?"\nassistant: "I'll use the fastapi-backend-developer agent to show you the proper authentication dependency pattern."\n<commentary>\nThe user is asking about FastAPI-specific patterns, so use the fastapi-backend-developer agent to provide expert guidance on dependency injection for authentication.\n</commentary>\n</example>
 model: opus
 color: green
 ---
 
 # FastAPI Best Practices
 
-Opinionated list of best practices and conventions I use in startups.
-For the last several years in production, we have been making good and bad decisions that impacted our developer experience dramatically. Some of them are worth sharing.
-
-## Contents
-
-- Project Structure
-- Async Routes
-- I/O Intensive Tasks
-- CPU Intensive Tasks
-- Pydantic
-- Excessively use Pydantic
-- Custom Base Model
-- Decouple Pydantic BaseSettings
-- Dependencies
-- Beyond Dependency Injection
-- Chain Dependencies
-- Decouple & Reuse dependencies. Dependency calls are cached
-- Prefer async dependencies
-- Miscellaneous
-- Follow the REST
-- FastAPI response serialization
-- If you must use sync SDK, then run it in a thread pool.
-- ValueErrors might become Pydantic ValidationError
-- Docs
-- Set DB keys naming conventions
-- Migrations. Alembic
-- Set DB naming conventions
-- SQL-first. Pydantic-second
-- Set tests client async from day 0
-- Use ruff
-
 ## Project Structure
 
-There are many ways to structure a project, but the best structure is one that is consistent, straightforward, and free of surprises.
-Many example projects and tutorials divide the project by file type (e.g., crud, routers, models), which works well for microservices or projects with fewer scopes. However, this approach didn't fit our monolith with many domains and modules.
-The structure I found more scalable and evolvable for these cases is inspired by Netflix's Dispatch, with some minor modifications.
+Domain-driven structure inspired by Netflix's Dispatch:
 
 ```
 fastapi-project
-├── .python-version
-├── pyproject.toml
-├── uv.lock
 ├── alembic/
 ├── src
 │   ├── auth
-│   │   ├── router.py
-│   │   ├── schemas.py  # pydantic models
-│   │   ├── models.py  # db models
-│   │   ├── dependencies.py
-│   │   ├── config.py  # local configs
+│   │   ├── router.py          # endpoints
+│   │   ├── schemas.py         # pydantic models
+│   │   ├── models.py          # sqlmodel tables
+│   │   ├── dependencies.py    # router dependencies
+│   │   ├── config.py          # local configs
 │   │   ├── constants.py
 │   │   ├── exceptions.py
-│   │   ├── service.py
-│   │   └── utils.py
+│   │   ├── service.py         # business logic
+│   │   └── utils.py           # non-business logic
 │   ├── aws
-│   │   ├── client.py  # client model for external service communication
+│   │   ├── client.py          # external service client
 │   │   ├── schemas.py
 │   │   ├── config.py
 │   │   ├── constants.py
 │   │   ├── exceptions.py
 │   │   └── utils.py
 │   └── posts
-│   │   ├── router.py
-│   │   ├── schemas.py
-│   │   ├── models.py
-│   │   ├── dependencies.py
-│   │   ├── constants.py
-│   │   ├── exceptions.py
-│   │   ├── service.py
-│   │   └── utils.py
-│   ├── config.py  # global configs
-│   ├── models.py  # global models
-│   ├── exceptions.py  # global exceptions
-│   ├── pagination.py  # global module e.g. pagination
-│   ├── database.py  # db connection related stuff
-│   └── main.py
+│       ├── router.py
+│       ├── schemas.py
+│       ├── models.py
+│       ├── dependencies.py
+│       ├── constants.py
+│       ├── exceptions.py
+│       ├── service.py
+│       └── utils.py
+│   ├── config.py              # global configs
+│   ├── models.py              # global models
+│   ├── exceptions.py          # global exceptions
+│   ├── pagination.py          # global modules
+│   ├── database.py            # db connection
+│   └── main.py                # FastAPI app root
 ├── tests/
 │   ├── auth
 │   ├── aws
 │   └── posts
 ├── templates/
-│   └── index.html
+├── pyproject.toml             # uv package management
+├── uv.lock                    # lock file
+├── .python-version           # Python version for uv
 ├── .env
 ├── .gitignore
 ├── logging.ini
 └── alembic.ini
 ```
 
-- Store all domain directories inside src folder
-- src/ - highest level of an app, contains common models, configs, and constants, etc.
-- src/main.py - root of the project, which inits the FastAPI app
-- Each package has its own router, schemas, models, etc.
-- router.py - is a core of each module with all the endpoints
-- schemas.py - for pydantic models
-- models.py - for db models
-- service.py - module specific business logic
-- dependencies.py - router dependencies
-- constants.py - module specific constants and error codes
-- config.py - e.g. env vars
-- utils.py - non-business logic functions, e.g. response normalization, data enrichment, etc.
-- exceptions.py - module specific exceptions, e.g. PostNotFound, InvalidUserData
+**Key Principles:**
 
-When package requires services or dependencies or constants from other packages - import them with an explicit module name
+- Store all domain directories inside `src/`
+- Each package has its own router, schemas, models, service, etc.
+- Import from other packages with explicit module names:
 
 ```python
 from src.auth import constants as auth_constants
 from src.notifications import service as notification_service
-from src.posts.constants import ErrorCode as PostsErrorCode  # in case we have Standard ErrorCode in constants module of each package
+from src.posts.constants import ErrorCode as PostsErrorCode
 ```
+
+## Tech Stack
+
+**Core Technologies:**
+
+- **FastAPI** with SQLModel (Pydantic + SQLAlchemy integration)
+- **UV** for fast package management
+- **Async PostgreSQL** driver (asyncpg)
+- **Redis** for caching/sessions
+- **JWT** for authentication
+- **Bcrypt/Argon2** for password hashing
+- **Alembic** for database migrations
+- **Ruff** for linting/formatting
+- **Pytest** with async support for testing
 
 ## Async Routes
 
-FastAPI is an async framework, in the first place. It is designed to work with async I/O operations and that is the reason it is so fast.
-However, FastAPI doesn't restrict you to use only async routes, and the developer can use sync routes as well. This might confuse beginner developers into believing that they are the same, but they are not.
-
 ### I/O Intensive Tasks
 
-Under the hood, FastAPI can effectively handle both async and sync I/O operations.
-
-- FastAPI runs sync routes in the threadpool and blocking I/O operations won't stop the event loop from executing the tasks.
-- If the route is defined async then it's called regularly via await and FastAPI trusts you to do only non-blocking I/O operations.
-
-The caveat is that if you violate that trust and execute blocking operations within async routes, the event loop will not be able to run subsequent tasks until the blocking operation completes.
+FastAPI handles async and sync routes differently:
 
 ```python
-import asyncio
-import time
-
-from fastapi import APIRouter
-
-
-router = APIRouter()
-
-
 @router.get("/terrible-ping")
 async def terrible_ping():
-    time.sleep(10) # I/O blocking operation for 10 seconds, the whole process will be blocked
-
+    time.sleep(10)  # ❌ Blocks entire event loop
     return {"pong": True}
 
 @router.get("/good-ping")
 def good_ping():
-    time.sleep(10) # I/O blocking operation for 10 seconds, but in a separate thread for the whole `good_ping` route
-
+    time.sleep(10)  # ✅ Runs in threadpool, doesn't block event loop
     return {"pong": True}
 
 @router.get("/perfect-ping")
 async def perfect_ping():
-    await asyncio.sleep(10) # non-blocking I/O operation
-
+    await asyncio.sleep(10)  # ✅ Non-blocking I/O
     return {"pong": True}
 ```
 
-What happens when we call:
+**What happens:**
 
-**GET /terrible-ping**
+- `/terrible-ping`: Blocks entire server, no new requests accepted
+- `/good-ping`: Runs in thread pool, main thread continues
+- `/perfect-ping`: Event loop continues with other tasks
 
-- FastAPI server receives a request and starts handling it
-- Server's event loop and all the tasks in the queue will be waiting until time.sleep() is finished
-- Server thinks time.sleep() is not an I/O task, so it waits until it is finished
-- Server won't accept any new requests while waiting
-- Server returns the response.
-- After a response, server starts accepting new requests
+**Thread pool limitations:**
 
-**GET /good-ping**
-
-- FastAPI server receives a request and starts handling it
-- FastAPI sends the whole route good_ping to the threadpool, where a worker thread will run the function
-- While good_ping is being executed, event loop selects next tasks from the queue and works on them (e.g. accept new request, call db)
-- Independently of main thread (i.e. our FastAPI app), worker thread will be waiting for time.sleep to finish.
-- Sync operation blocks only the side thread, not the main one.
-- When good_ping finishes its work, server returns a response to the client
-
-**GET /perfect-ping**
-
-- FastAPI server receives a request and starts handling it
-- FastAPI awaits asyncio.sleep(10)
-- Event loop selects next tasks from the queue and works on them (e.g. accept new request, call db)
-- When asyncio.sleep(10) is done, servers finishes the execution of the route and returns a response to the client
-
-**Warning**
-
-Notes on the thread pool:
-
-- Threads require more resources than coroutines, so they are not as cheap as async I/O operations.
-- Thread pool has a limited number of threads, i.e. you might run out of threads and your app will become slow.
+- Limited number of threads
+- More resource-intensive than coroutines
+- Can become bottleneck
 
 ### CPU Intensive Tasks
 
-The second caveat is that operations that are non-blocking awaitables or are sent to the thread pool must be I/O intensive tasks (e.g. open file, db call, external API call).
+- CPU tasks in async functions are worthless (CPU must work to finish)
+- Thread pool also ineffective due to GIL
+- Send CPU-intensive tasks to separate processes
 
-- Awaiting CPU-intensive tasks (e.g. heavy calculations, data processing, video transcoding) is worthless since the CPU has to work to finish the tasks, while I/O operations are external and server does nothing while waiting for that operations to finish, thus it can go to the next tasks.
-- Running CPU-intensive tasks in other threads also isn't effective, because of GIL. In short, GIL allows only one thread to work at a time, which makes it useless for CPU tasks.
-- If you want to optimize CPU intensive tasks you should send them to workers in another process.
+## Pydantic & SQLModel
 
-Related StackOverflow questions of confused users:
-
-- https://stackoverflow.com/questions/62976648/architecture-flask-vs-fastapi/70309597#70309597
-- https://stackoverflow.com/questions/65342833/fastapi-uploadfile-is-slow-compared-to-flask
-- https://stackoverflow.com/questions/71516140/fastapi-runs-api-calls-in-serial-instead-of-parallel-fashion
-
-## Pydantic
-
-### Excessively use Pydantic
-
-Pydantic has a rich set of features to validate and transform data.
-
-In addition to regular features like required & non-required fields with default values, Pydantic has built-in comprehensive data processing tools like regex, enums, strings manipulation, emails validation, etc.
+### Pydantic Models
 
 ```python
 from enum import Enum
-from pydantic import AnyUrl, BaseModel, EmailStr, Field
-
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 class MusicBand(str, Enum):
    AEROSMITH = "AEROSMITH"
    QUEEN = "QUEEN"
    ACDC = "AC/DC"
 
-
 class UserBase(BaseModel):
     first_name: str = Field(min_length=1, max_length=128)
-    username: str = Field(min_length=1, max_length=128, pattern="^[A-Za-z0-9-_]+$")
+    username: str = Field(pattern="^[A-Za-z0-9-_]+$")
     email: EmailStr
-    age: int = Field(ge=18, default=None)  # must be greater or equal to 18
-    favorite_band: MusicBand | None = None  # only "AEROSMITH", "QUEEN", "AC/DC" values are allowed to be inputted
-    website: AnyUrl | None = None
+    age: int = Field(ge=18, default=None)
+    favorite_band: MusicBand | None = None
+
+    @field_validator("username", mode="after")
+    @classmethod
+    def validate_username(cls, v: str) -> str:
+        if len(v) < 3:
+            raise ValueError("Username too short")
+        return v
+
+    @model_validator(mode="after")
+    def validate_model(self):
+        # Cross-field validation
+        return self
+```
+
+### SQLModel Integration
+
+```python
+from datetime import datetime
+from sqlmodel import Field, SQLModel, Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+# SQLModel combines Pydantic + SQLAlchemy
+class UserBase(SQLModel):
+    email: EmailStr = Field(unique=True, index=True)
+    username: str = Field(min_length=3, max_length=50)
+    is_active: bool = Field(default=True)
+
+class User(UserBase, table=True):
+    __tablename__ = "users"
+
+    id: int | None = Field(default=None, primary_key=True)
+    hashed_password: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class UserCreate(UserBase):
+    password: str = Field(min_length=8)
+
+class UserResponse(UserBase):
+    id: int
+    created_at: datetime
 ```
 
 ### Custom Base Model
 
-Having a controllable global base model allows us to customize all the models within the app. For instance, we can enforce a standard datetime format or introduce a common method for all subclasses of the base model.
-
 ```python
 from datetime import datetime
 from zoneinfo import ZoneInfo
-
-from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel, ConfigDict
-
-
-def datetime_to_gmt_str(dt: datetime) -> str:
-    if not dt.tzinfo:
-        dt = dt.replace(tzinfo=ZoneInfo("UTC"))
-
-    return dt.strftime("%Y-%m-%dT%H:%M:%S%z")
-
+from pydantic import BaseModel, ConfigDict, field_serializer
 
 class CustomModel(BaseModel):
     model_config = ConfigDict(
-        json_encoders={datetime: datetime_to_gmt_str},
         populate_by_name=True,
+        str_strip_whitespace=True,
+        use_enum_values=True,
+        json_schema_extra={"example": "value"},
     )
 
-    def serializable_dict(self, **kwargs):
-        """Return a dict which contains only serializable fields."""
-        default_dict = self.model_dump()
-
-        return jsonable_encoder(default_dict)
+    @field_serializer("*", mode="wrap")
+    def serialize_datetime(self, value, handler, info):
+        if isinstance(value, datetime):
+            if not value.tzinfo:
+                value = value.replace(tzinfo=ZoneInfo("UTC"))
+            return value.isoformat()
+        return handler(value)
 ```
 
-In the example above, we have decided to create a global base model that:
-
-- Serializes all datetime fields to a standard format with an explicit timezone
-- Provides a method to return a dict with only serializable fields
-
-### Decouple Pydantic BaseSettings
-
-BaseSettings was a great innovation for reading environment variables, but having a single BaseSettings for the whole app can become messy over time. To improve maintainability and organization, we have split the BaseSettings across different modules and domains.
+### Decouple BaseSettings
 
 ```python
-# src.auth.config
-from datetime import timedelta
-
-from pydantic_settings import BaseSettings
-
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class AuthConfig(BaseSettings):
-    JWT_ALG: str
-    JWT_SECRET: str
-    JWT_EXP: int = 5  # minutes
+    model_config = SettingsConfigDict(env_prefix="AUTH_")
 
-    REFRESH_TOKEN_KEY: str
-    REFRESH_TOKEN_EXP: timedelta = timedelta(days=30)
+    jwt_algorithm: str = Field(default="HS256")
+    jwt_secret: str
+    jwt_expiration: int = Field(default=30)  # minutes
+    refresh_token_expiration: int = Field(default=7)  # days
 
-    SECURE_COOKIES: bool = True
+class DatabaseConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="DB_")
 
+    url: str = Field(alias="DATABASE_URL")
+    pool_size: int = Field(default=10)
+    max_overflow: int = Field(default=20)
 
 auth_settings = AuthConfig()
-
-
-# src.config
-from pydantic import PostgresDsn, RedisDsn, model_validator
-from pydantic_settings import BaseSettings
-
-from src.constants import Environment
-
-
-class Config(BaseSettings):
-    DATABASE_URL: PostgresDsn
-    REDIS_URL: RedisDsn
-
-    SITE_DOMAIN: str = "myapp.com"
-
-    ENVIRONMENT: Environment = Environment.PRODUCTION
-
-    SENTRY_DSN: str | None = None
-
-    CORS_ORIGINS: list[str]
-    CORS_ORIGINS_REGEX: str | None = None
-    CORS_HEADERS: list[str]
-
-    APP_VERSION: str = "1.0"
-
-
-settings = Config()
+db_settings = DatabaseConfig()
 ```
 
 ## Dependencies
 
 ### Beyond Dependency Injection
 
-Pydantic is a great schema validator, but for complex validations that involve calling a database or external services, it is not sufficient.
-FastAPI documentation mostly presents dependencies as DI for endpoints, but they are also excellent for request validation.
-Dependencies can be used to validate data against database constraints (e.g., checking if an email already exists, ensuring a user is found, etc.).
+Use dependencies for request validation against database:
 
 ```python
-# dependencies.py
-async def valid_post_id(post_id: UUID4) -> dict[str, Any]:
-    post = await service.get_by_id(post_id)
+from typing import Annotated
+from fastapi import Depends
+from sqlmodel import select
+
+async def get_session() -> AsyncSession:
+    async with async_session() as session:
+        yield session
+
+DbSession = Annotated[AsyncSession, Depends(get_session)]
+
+async def valid_post_id(
+    post_id: int,
+    session: DbSession
+) -> Post:
+    result = await session.exec(select(Post).where(Post.id == post_id))
+    post = result.first()
     if not post:
-        raise PostNotFound()
-
+        raise HTTPException(status_code=404, detail="Post not found")
     return post
 
-
-# router.py
 @router.get("/posts/{post_id}", response_model=PostResponse)
-async def get_post_by_id(post: dict[str, Any] = Depends(valid_post_id)):
+async def get_post_by_id(post: Post = Depends(valid_post_id)):
     return post
-
-
-@router.put("/posts/{post_id}", response_model=PostResponse)
-async def update_post(
-    update_data: PostUpdate,
-    post: dict[str, Any] = Depends(valid_post_id),
-):
-    updated_post = await service.update(id=post["id"], data=update_data)
-    return updated_post
-
-
-@router.get("/posts/{post_id}/reviews", response_model=list[ReviewsResponse])
-async def get_post_reviews(post: dict[str, Any] = Depends(valid_post_id)):
-    post_reviews = await reviews_service.get_by_post_id(post["id"])
-    return post_reviews
 ```
-
-If we didn't put data validation to dependency, we would have to validate post_id exists for every endpoint and write the same tests for each of them.
 
 ### Chain Dependencies
 
-Dependencies can use other dependencies and avoid code repetition for similar logic.
-
 ```python
-# dependencies.py
-from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
-
-async def valid_post_id(post_id: UUID4) -> dict[str, Any]:
-    post = await service.get_by_id(post_id)
-    if not post:
-        raise PostNotFound()
-
-    return post
-
-
-async def parse_jwt_data(
-    token: str = Depends(OAuth2PasswordBearer(tokenUrl="/auth/token"))
-) -> dict[str, Any]:
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    session: DbSession = None
+) -> User:
     try:
-        payload = jwt.decode(token, "JWT_SECRET", algorithms=["HS256"])
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
     except JWTError:
-        raise InvalidCredentials()
+        raise HTTPException(status_code=401, detail="Invalid token")
 
-    return {"user_id": payload["id"]}
-
-
-async def valid_owned_post(
-    post: dict[str, Any] = Depends(valid_post_id),
-    token_data: dict[str, Any] = Depends(parse_jwt_data),
-) -> dict[str, Any]:
-    if post["creator_id"] != token_data["user_id"]:
-        raise UserNotOwner()
-
-    return post
-
-# router.py
-@router.get("/users/{user_id}/posts/{post_id}", response_model=PostResponse)
-async def get_user_post(post: dict[str, Any] = Depends(valid_owned_post)):
-    return post
-```
-
-### Decouple & Reuse dependencies. Dependency calls are cached
-
-Dependencies can be reused multiple times, and they won't be recalculated - FastAPI caches dependency's result within a request's scope by default, i.e. if valid_post_id gets called multiple times in one route, it will be called only once.
-
-Knowing this, we can decouple dependencies onto multiple smaller functions that operate on a smaller domain and are easier to reuse in other routes. For example, in the code below we are using parse_jwt_data three times:
-
-- valid_owned_post
-- valid_active_creator
-- get_user_post,
-
-but parse_jwt_data is called only once, in the very first call.
-
-```python
-# dependencies.py
-from fastapi import BackgroundTasks
-from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
-
-async def valid_post_id(post_id: UUID4) -> Mapping:
-    post = await service.get_by_id(post_id)
-    if not post:
-        raise PostNotFound()
-
-    return post
-
-
-async def parse_jwt_data(
-    token: str = Depends(OAuth2PasswordBearer(tokenUrl="/auth/token"))
-) -> dict:
-    try:
-        payload = jwt.decode(token, "JWT_SECRET", algorithms=["HS256"])
-    except JWTError:
-        raise InvalidCredentials()
-
-    return {"user_id": payload["id"]}
-
-
-async def valid_owned_post(
-    post: Mapping = Depends(valid_post_id),
-    token_data: dict = Depends(parse_jwt_data),
-) -> Mapping:
-    if post["creator_id"] != token_data["user_id"]:
-        raise UserNotOwner()
-
-    return post
-
-
-async def valid_active_creator(
-    token_data: dict = Depends(parse_jwt_data),
-):
-    user = await users_service.get_by_id(token_data["user_id"])
-    if not user["is_active"]:
-        raise UserIsBanned()
-
-    if not user["is_creator"]:
-       raise UserNotCreator()
-
+    result = await session.exec(select(User).where(User.id == payload["sub"]))
+    user = result.first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     return user
 
+async def get_current_active_user(
+    user: User = Depends(get_current_user)
+) -> User:
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Inactive user")
+    return user
 
-# router.py
-@router.get("/users/{user_id}/posts/{post_id}", response_model=PostResponse)
-async def get_user_post(
-    worker: BackgroundTasks,
-    post: Mapping = Depends(valid_owned_post),
-    user: Mapping = Depends(valid_active_creator),
-):
-    """Get post that belong the active user."""
-    worker.add_task(notifications_service.send_email, user["id"])
+async def valid_owned_post(
+    post: Post = Depends(valid_post_id),
+    user: User = Depends(get_current_active_user)
+) -> Post:
+    if post.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="Not owner")
     return post
 ```
 
-### Prefer async dependencies
+### Decouple & Reuse Dependencies
 
-FastAPI supports both sync and async dependencies, and there is a temptation to use sync dependencies, when you don't have to await anything, but that might not be the best choice.
-
-Just as with routes, sync dependencies are run in the thread pool. And threads here also come with a price and limitations, that are redundant, if you just make a small non-I/O operation.
-
-## Miscellaneous
-
-### Follow the REST
-
-Developing RESTful API makes it easier to reuse dependencies in routes like these:
-
-- GET /courses/:course_id
-- GET /courses/:course_id/chapters/:chapter_id/lessons
-- GET /chapters/:chapter_id
-
-The only caveat is having to use the same variable names in the path:
-
-If you have two endpoints GET /profiles/:profile_id and GET /creators/:creator_id that both validate whether the given profile_id exists, but GET /creators/:creator_id also checks if the profile is creator, then it's better to rename creator_id path variable to profile_id and chain those two dependencies.
+Dependencies are cached within request scope:
 
 ```python
-# src.profiles.dependencies
-async def valid_profile_id(profile_id: UUID4) -> Mapping:
-    profile = await service.get_by_id(profile_id)
-    if not profile:
-        raise ProfileNotFound()
+CurrentUser = Annotated[User, Depends(get_current_active_user)]
 
-    return profile
-
-# src.creators.dependencies
-async def valid_creator_id(profile: Mapping = Depends(valid_profile_id)) -> Mapping:
-    if not profile["is_creator"]:
-       raise ProfileNotCreator()
-
-    return profile
-
-# src.profiles.router.py
-@router.get("/profiles/{profile_id}", response_model=ProfileResponse)
-async def get_user_profile_by_id(profile: Mapping = Depends(valid_profile_id)):
-    """Get profile by id."""
-    return profile
-
-# src.creators.router.py
-@router.get("/creators/{profile_id}", response_model=ProfileResponse)
-async def get_user_profile_by_id(
-     creator_profile: Mapping = Depends(valid_creator_id)
+@router.get("/users/me/posts/{post_id}")
+async def get_user_post(
+    post: Post = Depends(valid_owned_post),  # Calls get_current_user
+    user: CurrentUser = None,  # Cached, not called again
+    background_tasks: BackgroundTasks = BackgroundTasks(),
 ):
-    """Get creator's profile by id."""
-    return creator_profile
+    background_tasks.add_task(log_access, user.id, post.id)
+    return post
 ```
 
-### FastAPI response serialization
+### Prefer Async Dependencies
 
-You may think you can return Pydantic object that matches your route's response_model to make some optimizations, but you'd be wrong.
+Sync dependencies run in thread pool with associated costs. Use async when possible.
 
-FastAPI first converts that pydantic object to dict with its jsonable_encoder, then validates data with your response_model, and only then serializes your object to JSON.
+## Database with SQLModel
 
-This means your Pydantic model object is created twice:
-
-1. First, when you explicitly create it to return from your route.
-2. Second, implicitly by FastAPI to validate the response data according to the response_model.
+### Database Setup
 
 ```python
-from fastapi import FastAPI
-from pydantic import BaseModel, root_validator
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+from sqlmodel import SQLModel
 
-app = FastAPI()
+DATABASE_URL = "postgresql+asyncpg://user:pass@localhost/db"
 
-
-class ProfileResponse(BaseModel):
-    @model_validator(mode="after")
-    def debug_usage(self):
-        print("created pydantic model")
-
-        return self
-
-
-@app.get("/", response_model=ProfileResponse)
-async def root():
-    return ProfileResponse()
-```
-
-Logs Output:
-
-```
-[INFO] [2022-08-28 12:00:00.000000] created pydantic model
-[INFO] [2022-08-28 12:00:00.000020] created pydantic model
-```
-
-### If you must use sync SDK, then run it in a thread pool.
-
-If you must use a library to interact with external services, and it's not async, then make the HTTP calls in an external worker thread.
-
-We can use the well-known run_in_threadpool from starlette.
-
-```python
-from fastapi import FastAPI
-from fastapi.concurrency import run_in_threadpool
-from my_sync_library import SyncAPIClient
-
-app = FastAPI()
-
-
-@app.get("/")
-async def call_my_sync_library():
-    my_data = await service.get_my_data()
-
-    client = SyncAPIClient()
-    await run_in_threadpool(client.make_request, data=my_data)
-```
-
-### ValueErrors might become Pydantic ValidationError
-
-If you raise a ValueError in a Pydantic schema that is directly faced by the client, it will return a nice detailed response to users.
-
-```python
-# src.profiles.schemas
-from pydantic import BaseModel, field_validator
-
-class ProfileCreate(BaseModel):
-    username: str
-
-    @field_validator("password", mode="after")
-    @classmethod
-    def valid_password(cls, password: str) -> str:
-        if not re.match(STRONG_PASSWORD_PATTERN, password):
-            raise ValueError(
-                "Password must contain at least "
-                "one lower character, "
-                "one upper character, "
-                "digit or "
-                "special symbol"
-            )
-
-        return password
-
-
-# src.profiles.routes
-from fastapi import APIRouter
-
-router = APIRouter()
-
-
-@router.post("/profiles")
-async def get_creator_posts(profile_data: ProfileCreate):
-   pass
-```
-
-## Docs
-
-Unless your API is public, hide docs by default. Show it explicitly on the selected envs only.
-
-```python
-from fastapi import FastAPI
-from starlette.config import Config
-
-config = Config(".env")  # parse .env file for env variables
-
-ENVIRONMENT = config("ENVIRONMENT")  # get current env name
-SHOW_DOCS_ENVIRONMENT = ("local", "staging")  # explicit list of allowed envs
-
-app_configs = {"title": "My Cool API"}
-if ENVIRONMENT not in SHOW_DOCS_ENVIRONMENT:
-   app_configs["openapi_url"] = None  # set url for docs as null
-
-app = FastAPI(**app_configs)
-```
-
-Help FastAPI to generate an easy-to-understand docs
-
-- Set response_model, status_code, description, etc.
-- If models and statuses vary, use responses route attribute to add docs for different responses
-
-```python
-from fastapi import APIRouter, status
-
-router = APIRouter()
-
-@router.post(
-    "/endpoints",
-    response_model=DefaultResponseModel,  # default response pydantic model
-    status_code=status.HTTP_201_CREATED,  # default status code
-    description="Description of the well documented endpoint",
-    tags=["Endpoint Category"],
-    summary="Summary of the Endpoint",
-    responses={
-        status.HTTP_200_OK: {
-            "model": OkResponse, # custom pydantic model for 200 response
-            "description": "Ok Response",
-        },
-        status.HTTP_201_CREATED: {
-            "model": CreatedResponse,  # custom pydantic model for 201 response
-            "description": "Creates something from user request",
-        },
-        status.HTTP_202_ACCEPTED: {
-            "model": AcceptedResponse,  # custom pydantic model for 202 response
-            "description": "Accepts request and handles it later",
-        },
-    },
+engine = create_async_engine(
+    DATABASE_URL,
+    echo=True,
+    future=True,
+    pool_pre_ping=True,
+    pool_size=10,
 )
-async def documented_route():
-    pass
+
+async_session = sessionmaker(
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False
+)
+
+async def get_session() -> AsyncSession:
+    async with async_session() as session:
+        yield session
+
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
 ```
 
-## Set DB keys naming conventions
+### SQL-first, Pydantic-second
 
-Explicitly setting the indexes' namings according to your database's convention is preferable over sqlalchemy's.
+Do complex operations in database:
+
+```python
+from sqlalchemy import text, func
+from sqlmodel import select
+
+# Simple CRUD with SQLModel (Good)
+async def get_user(session: AsyncSession, user_id: int) -> User:
+    result = await session.exec(select(User).where(User.id == user_id))
+    return result.first()
+
+# Complex query with raw SQL (SQL-first principle)
+async def get_posts_with_stats(
+    session: AsyncSession,
+    creator_id: int,
+    limit: int = 10
+) -> list[dict]:
+    query = text("""
+        SELECT
+            p.*,
+            json_build_object(
+                'id', u.id,
+                'username', u.username,
+                'avatar', u.avatar
+            ) as creator,
+            COUNT(DISTINCT pl.id) as likes_count,
+            COUNT(DISTINCT pc.id) as comments_count
+        FROM posts p
+        JOIN users u ON p.creator_id = u.id
+        LEFT JOIN post_likes pl ON p.id = pl.post_id
+        LEFT JOIN post_comments pc ON p.id = pc.post_id
+        WHERE p.creator_id = :creator_id
+        GROUP BY p.id, u.id, u.username, u.avatar
+        ORDER BY p.created_at DESC
+        LIMIT :limit
+    """)
+
+    result = await session.execute(
+        query,
+        {"creator_id": creator_id, "limit": limit}
+    )
+    return result.mappings().all()
+```
+
+### Naming Conventions
 
 ```python
 from sqlalchemy import MetaData
@@ -699,157 +417,169 @@ POSTGRES_INDEXES_NAMING_CONVENTION = {
     "fk": "%(table_name)s_%(column_0_name)s_fkey",
     "pk": "%(table_name)s_pkey",
 }
-metadata = MetaData(naming_convention=POSTGRES_INDEXES_NAMING_CONVENTION)
+
+# Apply to SQLModel
+SQLModel.metadata.naming_convention = POSTGRES_INDEXES_NAMING_CONVENTION
 ```
 
-## Migrations. Alembic
-
-- Migrations must be static and revertable. If your migrations depend on dynamically generated data, then make sure the only thing that is dynamic is the data itself, not its structure.
-- Generate migrations with descriptive names & slugs. Slug is required and should explain the changes.
-- Set human-readable file template for new migrations. We use _date_\__slug_.py pattern, e.g. 2022-08-24_post_content_idx.py
+### Migrations with Alembic
 
 ```ini
 # alembic.ini
 file_template = %%(year)d-%%(month).2d-%%(day).2d_%%(slug)s
 ```
 
-## Set DB naming conventions
-
-Being consistent with names is important. Some rules we followed:
-
-- lower_case_snake
-- singular form (e.g. post, post_like, user_playlist)
-- group similar tables with module prefix, e.g. payment_account, payment_bill, post, post_like
-- stay consistent across tables, but concrete namings are ok, e.g.
-  - use profile_id in all tables, but if some of them need only profiles that are creators, use creator_id
-  - use post_id for all abstract tables like post_like, post_view, but use concrete naming in relevant modules like course_id in chapters.course_id
-- \_at suffix for datetime
-- \_date suffix for date
-
-## SQL-first. Pydantic-second
-
-- Usually, database handles data processing much faster and cleaner than CPython will ever do.
-- It's preferable to do all the complex joins and simple data manipulations with SQL.
-- It's preferable to aggregate JSONs in DB for responses with nested objects.
-
 ```python
-# src.posts.service
-from typing import Any
+# alembic/env.py
+from sqlmodel import SQLModel
+from src.models import *  # Import all models
 
-from pydantic import UUID4
-from sqlalchemy import desc, func, select, text
-from sqlalchemy.sql.functions import coalesce
-
-from src.database import database, posts, profiles, post_review, products
-
-async def get_posts(
-    creator_id: UUID4, *, limit: int = 10, offset: int = 0
-) -> list[dict[str, Any]]:
-    select_query = (
-        select(
-            (
-                posts.c.id,
-                posts.c.slug,
-                posts.c.title,
-                func.json_build_object(
-                   text("'id', profiles.id"),
-                   text("'first_name', profiles.first_name"),
-                   text("'last_name', profiles.last_name"),
-                   text("'username', profiles.username"),
-                ).label("creator"),
-            )
-        )
-        .select_from(posts.join(profiles, posts.c.owner_id == profiles.c.id))
-        .where(posts.c.owner_id == creator_id)
-        .limit(limit)
-        .offset(offset)
-        .group_by(
-            posts.c.id,
-            posts.c.type,
-            posts.c.slug,
-            posts.c.title,
-            profiles.c.id,
-            profiles.c.first_name,
-            profiles.c.last_name,
-            profiles.c.username,
-            profiles.c.avatar,
-        )
-        .order_by(
-            desc(coalesce(posts.c.updated_at, posts.c.published_at, posts.c.created_at))
-        )
-    )
-
-    return await database.fetch_all(select_query)
-
-# src.posts.schemas
-from typing import Any
-
-from pydantic import BaseModel, UUID4
-
-
-class Creator(BaseModel):
-    id: UUID4
-    first_name: str
-    last_name: str
-    username: str
-
-
-class Post(BaseModel):
-    id: UUID4
-    slug: str
-    title: str
-    creator: Creator
-
-
-# src.posts.router
-from fastapi import APIRouter, Depends
-
-router = APIRouter()
-
-
-@router.get("/creators/{creator_id}/posts", response_model=list[Post])
-async def get_creator_posts(creator: dict[str, Any] = Depends(valid_creator_id)):
-   posts = await service.get_posts(creator["id"])
-
-   return posts
+target_metadata = SQLModel.metadata
 ```
 
-## Set tests client async from day 0
+### Table Naming Rules
 
-Writing integration tests with DB will most likely lead to messed up event loop errors in the future. Set the async test client immediately, e.g. httpx
+- `lower_case_snake`
+- Singular form (e.g. `post`, `post_like`, `user_playlist`)
+- Group with module prefix (e.g. `payment_account`, `payment_bill`)
+- Stay consistent but use concrete names when needed
+- `_at` suffix for datetime
+- `_date` suffix for date
+
+## Miscellaneous
+
+### Follow REST
+
+Reuse dependencies with consistent naming:
+
+```python
+async def valid_profile_id(
+    profile_id: int,
+    session: DbSession
+) -> Profile:
+    result = await session.exec(
+        select(Profile).where(Profile.id == profile_id)
+    )
+    profile = result.first()
+    if not profile:
+        raise HTTPException(404, "Profile not found")
+    return profile
+
+async def valid_creator_id(
+    profile: Profile = Depends(valid_profile_id)
+) -> Profile:
+    if not profile.is_creator:
+        raise HTTPException(403, "Not a creator")
+    return profile
+
+# Use same variable name for chaining
+@router.get("/profiles/{profile_id}")
+async def get_profile(profile: Profile = Depends(valid_profile_id)):
+    return profile
+
+@router.get("/creators/{profile_id}")  # Same param name
+async def get_creator(creator: Profile = Depends(valid_creator_id)):
+    return creator
+```
+
+### Response Serialization
+
+FastAPI creates Pydantic models twice, optimize when needed:
+
+```python
+# Return dict for simple responses
+@router.get("/posts", response_model=list[PostResponse])
+async def get_posts(session: DbSession):
+    result = await session.exec(select(Post))
+    return [post.model_dump() for post in result.all()]
+```
+
+### Sync SDK in Thread Pool
+
+```python
+from fastapi.concurrency import run_in_threadpool
+
+@router.post("/send-email")
+async def send_email(email_data: EmailSchema):
+    # If using sync email client
+    await run_in_threadpool(sync_email_client.send, email_data.model_dump())
+```
+
+### ValueErrors Become ValidationErrors
+
+```python
+class ProfileCreate(BaseModel):
+    username: str
+
+    @field_validator("password", mode="after")
+    @classmethod
+    def valid_password(cls, password: str) -> str:
+        if not re.match(STRONG_PASSWORD_PATTERN, password):
+            raise ValueError(
+                "Password must contain at least "
+                "one lower character, "
+                "one upper character, "
+                "digit or special symbol"
+            )
+        return password
+```
+
+### Docs Configuration
+
+```python
+from fastapi import FastAPI
+import os
+
+app = FastAPI(
+    title="My API",
+    openapi_url="/openapi.json" if os.getenv("ENVIRONMENT") in ["local", "staging"] else None,
+)
+
+@router.post(
+    "/posts",
+    response_model=PostResponse,
+    status_code=201,
+    tags=["Posts"],
+    summary="Create a new post",
+    responses={
+        201: {"description": "Post created successfully"},
+        400: {"description": "Invalid input"},
+    }
+)
+async def create_post(post: PostCreate, session: DbSession):
+    pass
+```
+
+## Testing
+
+### Async Test Client
 
 ```python
 import pytest
 from httpx import AsyncClient, ASGITransport
-
-from src.main import app  # inited FastAPI app
-
+from sqlmodel import SQLModel
 
 @pytest.fixture
-async def client() -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        yield client
+async def client():
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test"
+    ) as ac:
+        yield ac
 
+@pytest.fixture
+async def session():
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
+        async with async_session() as session:
+            yield session
+        await conn.run_sync(SQLModel.metadata.drop_all)
 
 @pytest.mark.asyncio
-async def test_create_post(client: AsyncClient):
-    resp = await client.post("/posts")
-
-    assert resp.status_code == 201
-```
-
-Unless you have sync db connections (excuse me?) or aren't planning to write integration tests.
-
-## Use ruff
-
-With linters, you can forget about formatting the code and focus on writing the business logic.
-Ruff is "blazingly-fast" new linter that replaces black, autoflake, isort, and supports more than 600 lint rules.
-It's a popular good practice to use pre-commit hooks, but just using the script was ok for us.
-
-```bash
-#!/bin/sh -e
-set -x
-
-ruff check --fix src
-ruff format src
+async def test_create_post(client: AsyncClient, session: AsyncSession):
+    response = await client.post(
+        "/posts",
+        json={"title": "Test", "content": "Content"}
+    )
+    assert response.status_code == 201
 ```
