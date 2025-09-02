@@ -4,12 +4,11 @@ from datetime import date, datetime, timezone
 from typing import Any, Literal
 from uuid import UUID
 
-from sqlalchemy import JSON, CheckConstraint, Column, Date, ForeignKey, Index, String
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
-from sqlmodel import Field, Relationship, SQLModel
+from sqlalchemy import JSON, CheckConstraint, Column, Date, Index, String
+from sqlmodel import Field, Relationship
 
 from src.auth.models import User
-from src.models import BaseModel, TimestampMixin, UUIDMixin
+from src.models import BaseModel, TimestampMixin, SQLModel
 
 
 class AnalyticsEvent(BaseModel, table=True):
@@ -22,15 +21,14 @@ class AnalyticsEvent(BaseModel, table=True):
     )
 
     user_id: UUID = Field(foreign_key="users.id", index=True)
-    event_type: str = Field(sa_column=Column(String(100), nullable=False, index=True))
+    event_type: str = Field(max_length=100, index=True)
     event_category: Literal["app", "meal", "social", "camera", "settings"] = Field(
-        sa_column=Column(String(50), nullable=False, index=True)
+        max_length=50, index=True
     )
-    properties: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
-    session_id: str | None = Field(default=None, sa_column=Column(String(100), index=True))
+    properties: dict[str, Any] | None = Field(default=None, sa_type=JSON)
+    session_id: str | None = Field(default=None, max_length=100, index=True)
     platform: Literal["ios", "android", "web"] | None = Field(
-        default=None, 
-        sa_column=Column(String(20), nullable=True)
+        default=None, max_length=20
     )
     app_version: str | None = Field(default=None, max_length=20)
     
@@ -38,7 +36,7 @@ class AnalyticsEvent(BaseModel, table=True):
     user: User = Relationship()
 
 
-class DailySummary(UUIDMixin, TimestampMixin, SQLModel, table=True):
+class DailySummary(BaseModel, table=True):
     """Daily summary analytics model."""
 
     __tablename__ = "daily_summaries"
@@ -91,6 +89,7 @@ class UserProgress(TimestampMixin, SQLModel, table=True):
 
     __tablename__ = "user_progress"
 
+    # user_id를 primary key로 사용하므로 BaseModel 불필요
     user_id: UUID = Field(foreign_key="users.id", primary_key=True)
     
     # Streaks
@@ -120,7 +119,7 @@ class UserProgress(TimestampMixin, SQLModel, table=True):
     user: User = Relationship()
 
 
-class Achievement(UUIDMixin, TimestampMixin, SQLModel, table=True):
+class Achievement(BaseModel, table=True):
     """User achievements model."""
 
     __tablename__ = "achievements"
@@ -129,11 +128,11 @@ class Achievement(UUIDMixin, TimestampMixin, SQLModel, table=True):
     )
 
     user_id: UUID = Field(foreign_key="users.id", index=True)
-    achievement_type: str = Field(sa_column=Column(String(100), nullable=False))
+    achievement_type: str = Field(max_length=100)
     achievement_level: int = Field(default=1, ge=1)  # For multi-level achievements
     unlocked_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     progress: float = Field(default=100.0, ge=0, le=100)  # Progress towards achievement (100 = completed)
-    achievement_metadata: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
+    achievement_metadata: dict[str, Any] | None = Field(default=None, sa_type=JSON)
 
     # Relationships
     user: User = Relationship()
