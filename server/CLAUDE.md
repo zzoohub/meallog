@@ -1,13 +1,7 @@
----
-name: fastapi-backend-developer
-description: Use this agent when developing FastAPI backend applications, implementing REST APIs, working with async/await patterns, setting up project structure, configuring Pydantic models, handling database operations with SQLAlchemy, or following FastAPI best practices. Examples: <example>Context: User is building a new FastAPI endpoint for user authentication. user: "I need to create a login endpoint that validates user credentials and returns a JWT token" assistant: "I'll use the fastapi-backend-developer agent to help you implement this authentication endpoint following FastAPI best practices."</example> <example>Context: User has written a FastAPI route and wants to ensure it follows best practices. user: "Here's my new API route for creating posts. Can you review it?" assistant: "Let me use the fastapi-backend-developer agent to review your FastAPI route implementation and ensure it follows established patterns and best practices."</example>
-model: opus
-color: green
----
-
 # FastAPI Best Practices
 
 Opinionated list of best practices and conventions I use in startups.
+
 For the last several years in production, we have been making good and bad decisions that impacted our developer experience dramatically. Some of them are worth sharing.
 
 ## Contents
@@ -41,7 +35,9 @@ For the last several years in production, we have been making good and bad decis
 ## Project Structure
 
 There are many ways to structure a project, but the best structure is one that is consistent, straightforward, and free of surprises.
+
 Many example projects and tutorials divide the project by file type (e.g., crud, routers, models), which works well for microservices or projects with fewer scopes. However, this approach didn't fit our monolith with many domains and modules.
+
 The structure I found more scalable and evolvable for these cases is inspired by Netflix's Dispatch, with some minor modifications.
 
 ```
@@ -49,6 +45,7 @@ fastapi-project
 ├── .python-version
 ├── pyproject.toml
 ├── uv.lock
+├── .claude_code_agent.yaml
 ├── alembic/
 ├── src
 │   ├── auth
@@ -120,6 +117,7 @@ from src.posts.constants import ErrorCode as PostsErrorCode  # in case we have S
 ## Async Routes
 
 FastAPI is an async framework, in the first place. It is designed to work with async I/O operations and that is the reason it is so fast.
+
 However, FastAPI doesn't restrict you to use only async routes, and the developer can use sync routes as well. This might confuse beginner developers into believing that they are the same, but they are not.
 
 ### I/O Intensive Tasks
@@ -192,7 +190,7 @@ What happens when we call:
 Notes on the thread pool:
 
 - Threads require more resources than coroutines, so they are not as cheap as async I/O operations.
-- Thread pool has a limited number of threads, i.e. you might run out of threads and your app will become slow.
+- Thread pool has a limited number of threads, i.e. you might run out of threads and your app will become slow. Read more (external link)
 
 ### CPU Intensive Tasks
 
@@ -205,6 +203,7 @@ The second caveat is that operations that are non-blocking awaitables or are sen
 Related StackOverflow questions of confused users:
 
 - https://stackoverflow.com/questions/62976648/architecture-flask-vs-fastapi/70309597#70309597
+- Here you can also check my answer
 - https://stackoverflow.com/questions/65342833/fastapi-uploadfile-is-slow-compared-to-flask
 - https://stackoverflow.com/questions/71516140/fastapi-runs-api-calls-in-serial-instead-of-parallel-fashion
 
@@ -330,7 +329,9 @@ settings = Config()
 ### Beyond Dependency Injection
 
 Pydantic is a great schema validator, but for complex validations that involve calling a database or external services, it is not sufficient.
+
 FastAPI documentation mostly presents dependencies as DI for endpoints, but they are also excellent for request validation.
+
 Dependencies can be used to validate data against database constraints (e.g., checking if an email already exists, ensuring a user is found, etc.).
 
 ```python
@@ -486,6 +487,8 @@ async def get_user_post(
 FastAPI supports both sync and async dependencies, and there is a temptation to use sync dependencies, when you don't have to await anything, but that might not be the best choice.
 
 Just as with routes, sync dependencies are run in the thread pool. And threads here also come with a price and limitations, that are redundant, if you just make a small non-I/O operation.
+
+See more (external link)
 
 ## Miscellaneous
 
@@ -843,7 +846,9 @@ Unless you have sync db connections (excuse me?) or aren't planning to write int
 ## Use ruff
 
 With linters, you can forget about formatting the code and focus on writing the business logic.
+
 Ruff is "blazingly-fast" new linter that replaces black, autoflake, isort, and supports more than 600 lint rules.
+
 It's a popular good practice to use pre-commit hooks, but just using the script was ok for us.
 
 ```bash
