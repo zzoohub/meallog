@@ -5,9 +5,10 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlmodel import select
 
 from src.exceptions import ForbiddenError, NotFoundError
 from src.meals.models import AIAnalysis, Meal, MealIngredient, MealPhoto
@@ -93,28 +94,40 @@ class MealService:
         meal_id: UUID,
         user_id: UUID | None = None,
     ) -> Meal:
-        """Get a meal by ID."""
-        query = (
-            select(Meal)
-            .options(
-                selectinload(Meal.photos),
-                selectinload(Meal.ingredients),
-                selectinload(Meal.ai_analysis),
+        """Get a meal by ID with optimized relationship loading."""
+        includes = [Meal.photos, Meal.ingredients, Meal.ai_analysis]
+        
+        if user_id is None:
+            # Get meal by ID with relationships, checking for soft delete
+            query = (
+                select(Meal)
+                .options(selectinload(include) for include in includes)
+                .where(Meal.id == meal_id)
+                .where(Meal.deleted_at.is_(None))
             )
-            .where(Meal.id == meal_id)
-            .where(Meal.deleted_at.is_(None))
-        )
-        
-        if user_id:
-            query = query.where(Meal.user_id == user_id)
-        
-        result = await session.exec(query)
-        meal = result.first()
-        
-        if not meal:
-            raise NotFoundError("Meal", meal_id)
-        
-        return meal
+            result = await session.exec(query)
+            meal = result.first()
+            
+            if not meal:
+                raise NotFoundError("Meal not found")
+                
+            return meal
+        else:
+            # Get meal owned by specific user
+            query = (
+                select(Meal)
+                .options(selectinload(include) for include in includes)
+                .where(Meal.id == meal_id)
+                .where(Meal.user_id == user_id)
+                .where(Meal.deleted_at.is_(None))
+            )
+            result = await session.exec(query)
+            meal = result.first()
+            
+            if not meal:
+                raise NotFoundError("Meal not found or not owned by user")
+                
+            return meal
 
     async def update_meal(
         self,

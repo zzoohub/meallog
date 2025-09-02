@@ -4,8 +4,9 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Any, List
 from uuid import UUID
 
-from sqlalchemy import and_, desc, func, or_, select, text
+from sqlalchemy import and_, desc, func, or_, text
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from src.analytics.models import (
     Achievement,
@@ -114,7 +115,7 @@ class AnalyticsService:
         summary_date: date,
     ) -> DailySummary:
         """Get or create daily summary for a user and date."""
-        result = await session.execute(
+        result = await session.exec(
             select(DailySummary).where(
                 and_(
                     DailySummary.user_id == user_id,
@@ -122,7 +123,7 @@ class AnalyticsService:
                 )
             )
         )
-        summary = result.scalar_one_or_none()
+        summary = result.first()
         
         if not summary:
             summary = DailySummary(
@@ -196,7 +197,7 @@ class AnalyticsService:
         summary_date: date,
     ) -> DailySummaryResponse | None:
         """Get daily summary for a specific date."""
-        result = await session.execute(
+        result = await session.exec(
             select(DailySummary).where(
                 and_(
                     DailySummary.user_id == user_id,
@@ -204,7 +205,7 @@ class AnalyticsService:
                 )
             )
         )
-        summary = result.scalar_one_or_none()
+        summary = result.first()
         
         if not summary:
             return None
@@ -248,7 +249,7 @@ class AnalyticsService:
         week_end_date = week_start_date + timedelta(days=6)
         
         # Get daily summaries for the week
-        result = await session.execute(
+        result = await session.exec(
             select(DailySummary).where(
                 and_(
                     DailySummary.user_id == user_id,
@@ -359,10 +360,10 @@ class AnalyticsService:
         user_id: UUID,
     ) -> UserProgressResponse:
         """Get or create user progress."""
-        result = await session.execute(
+        result = await session.exec(
             select(UserProgress).where(UserProgress.user_id == user_id)
         )
-        progress = result.scalar_one_or_none()
+        progress = result.first()
         
         if not progress:
             progress = UserProgress(user_id=user_id)
@@ -402,7 +403,7 @@ class AnalyticsService:
         end_date = date.today()
         start_date = end_date - timedelta(days=30)
         
-        result = await session.execute(
+        result = await session.exec(
             select(DailySummary).where(
                 and_(
                     DailySummary.user_id == user_id,

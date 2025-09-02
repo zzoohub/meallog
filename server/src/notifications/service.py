@@ -6,8 +6,9 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import and_, desc, func, or_, select, text, update
+from sqlalchemy import and_, desc, func, or_, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from src.exceptions import BadRequestError, NotFoundError
 from src.notifications.models import (
@@ -43,7 +44,7 @@ class NotificationService:
     ) -> PushTokenResponse:
         """Register or update push notification token."""
         # Check if token already exists for this user/platform
-        result = await session.execute(
+        result = await session.exec(
             select(PushToken).where(
                 and_(
                     PushToken.user_id == user_id,
@@ -51,7 +52,7 @@ class NotificationService:
                 )
             )
         )
-        existing_token = result.scalar_one_or_none()
+        existing_token = result.first()
         
         if existing_token:
             # Update existing token
@@ -94,7 +95,7 @@ class NotificationService:
         platform: str,
     ) -> None:
         """Deactivate push token for a user and platform."""
-        await session.execute(
+        await session.exec(
             update(PushToken)
             .where(
                 and_(
@@ -193,7 +194,7 @@ class NotificationService:
         
         # Get total count
         count_query = select(func.count()).select_from(query.subquery())
-        count_result = await session.execute(count_query)
+        count_result = await session.exec(count_query)
         total_count = count_result.scalar() or 0
         
         # Get unread count
@@ -203,12 +204,12 @@ class NotificationService:
                 Notification.is_read == False,
             )
         )
-        unread_result = await session.execute(unread_query)
+        unread_result = await session.exec(unread_query)
         unread_count = unread_result.scalar() or 0
         
         # Get notifications with pagination
         query = query.order_by(desc(Notification.created_at)).offset(offset).limit(limit)
-        result = await session.execute(query)
+        result = await session.exec(query)
         notifications = result.scalars().all()
         
         notification_responses = [
@@ -231,7 +232,7 @@ class NotificationService:
         update_data: NotificationUpdateRequest,
     ) -> NotificationResponse:
         """Update notification (mark as read/clicked)."""
-        result = await session.execute(
+        result = await session.exec(
             select(Notification).where(
                 and_(
                     Notification.id == notification_id,
@@ -239,7 +240,7 @@ class NotificationService:
                 )
             )
         )
-        notification = result.scalar_one_or_none()
+        notification = result.first()
         
         if not notification:
             raise NotFoundError("Notification not found")
@@ -283,7 +284,7 @@ class NotificationService:
             read_at=datetime.now(timezone.utc),
         )
         
-        result = await session.execute(query)
+        result = await session.exec(query)
         await session.commit()
         
         return result.rowcount
@@ -295,7 +296,7 @@ class NotificationService:
         notification_id: UUID,
     ) -> None:
         """Delete a notification."""
-        result = await session.execute(
+        result = await session.exec(
             select(Notification).where(
                 and_(
                     Notification.id == notification_id,
@@ -303,7 +304,7 @@ class NotificationService:
                 )
             )
         )
-        notification = result.scalar_one_or_none()
+        notification = result.first()
         
         if not notification:
             raise NotFoundError("Notification not found")
@@ -332,7 +333,7 @@ class NotificationService:
             ORDER BY notification_type NULLS LAST
         """)
         
-        result = await session.execute(query, {"user_id": str(user_id)})
+        result = await session.exec(query, {"user_id": str(user_id)})
         rows = result.mappings().all()
         
         if not rows:
@@ -382,7 +383,7 @@ class NotificationService:
         render_request: RenderTemplateRequest,
     ) -> dict[str, str]:
         """Render notification template with variables."""
-        result = await session.execute(
+        result = await session.exec(
             select(NotificationTemplate).where(
                 and_(
                     NotificationTemplate.template_key == render_request.template_key,
@@ -391,7 +392,7 @@ class NotificationService:
                 )
             )
         )
-        template = result.scalar_one_or_none()
+        template = result.first()
         
         if not template:
             raise NotFoundError(f"Template '{render_request.template_key}' not found")
@@ -456,7 +457,7 @@ class NotificationService:
         # For now, it's a placeholder that simulates delivery
         
         # Get pending notifications
-        result = await session.execute(
+        result = await session.exec(
             select(NotificationQueue)
             .where(
                 and_(
@@ -482,10 +483,10 @@ class NotificationService:
                 queue_item.processed_at = datetime.now(timezone.utc)
                 
                 # Update notification
-                notification_result = await session.execute(
+                notification_result = await session.exec(
                     select(Notification).where(Notification.id == queue_item.notification_id)
                 )
-                notification = notification_result.scalar_one_or_none()
+                notification = notification_result.first()
                 
                 if notification:
                     notification.is_delivered = True

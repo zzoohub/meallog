@@ -3,9 +3,9 @@
 from typing import Generic, TypeVar
 
 from pydantic import BaseModel, Field
-from sqlalchemy import func, select
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import SQLModel
+from sqlmodel import select, SQLModel
 
 from src.config import settings
 
@@ -46,9 +46,9 @@ async def paginate(
     query: select,
     page: int = 1,
     page_size: int = settings.default_page_size,
-) -> PaginatedResponse:
+) -> PaginatedResponse[T]:
     """
-    Paginate a SQLModel query.
+    Paginate a SQLModel query using SQLModel's exec() method.
     
     Args:
         session: Database session
@@ -59,7 +59,7 @@ async def paginate(
     Returns:
         PaginatedResponse with items and pagination metadata
     """
-    # Count total items
+    # Count total items using SQLModel's select and exec
     count_query = select(func.count()).select_from(query.subquery())
     total_result = await session.exec(count_query)
     total_items = total_result.one()
@@ -68,7 +68,7 @@ async def paginate(
     total_pages = (total_items + page_size - 1) // page_size
     offset = (page - 1) * page_size
     
-    # Get paginated items
+    # Get paginated items using SQLModel's exec method
     paginated_query = query.offset(offset).limit(page_size)
     result = await session.exec(paginated_query)
     items = result.all()
@@ -81,4 +81,49 @@ async def paginate(
         total_items=total_items,
         has_next=page < total_pages,
         has_previous=page > 1,
+    )
+
+
+async def paginate_model(
+    session: AsyncSession,
+    model: type[T],
+    params: PaginationParams,
+    where_clause=None,
+    order_by=None,
+    includes=None,
+) -> PaginatedResponse[T]:
+    """
+    Paginate a SQLModel with additional SQLModel-specific features.
+    
+    Args:
+        session: Database session
+        model: SQLModel class to query
+        params: Pagination parameters
+        where_clause: Optional where clause
+        order_by: Optional order by clause
+        includes: Optional relationships to include
+        
+    Returns:
+        PaginatedResponse with items and pagination metadata
+    """
+    # Build base query using SQLModel's select
+    query = select(model)
+    
+    if where_clause is not None:
+        query = query.where(where_clause)
+        
+    if order_by is not None:
+        query = query.order_by(order_by)
+    
+    # Add relationship loading if specified
+    if includes:
+        from sqlalchemy.orm import selectinload
+        for include in includes:
+            query = query.options(selectinload(include))
+    
+    return await paginate(
+        session=session,
+        query=query,
+        page=params.page,
+        page_size=params.page_size,
     )

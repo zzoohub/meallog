@@ -4,8 +4,9 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import and_, desc, func, or_, select, text
+from sqlalchemy import and_, desc, func, or_, text
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 from sqlalchemy.orm import selectinload
 
 from src.auth.models import User
@@ -68,7 +69,7 @@ class SocialService:
             WHERE p.id = :post_id AND p.deleted_at IS NULL
         """)
         
-        result = await session.execute(
+        result = await session.exec(
             query, 
             {"post_id": str(post_id), "current_user_id": str(current_user_id) if current_user_id else None}
         )
@@ -87,10 +88,10 @@ class SocialService:
         update_data: PostUpdateRequest,
     ) -> Post:
         """Update post (only by owner)."""
-        result = await session.execute(
+        result = await session.exec(
             select(Post).where(and_(Post.id == post_id, Post.deleted_at.is_(None)))
         )
-        post = result.scalar_one_or_none()
+        post = result.first()
         
         if not post:
             raise NotFoundError("Post not found")
@@ -114,10 +115,10 @@ class SocialService:
         user_id: UUID,
     ) -> None:
         """Soft delete post (only by owner)."""
-        result = await session.execute(
+        result = await session.exec(
             select(Post).where(and_(Post.id == post_id, Post.deleted_at.is_(None)))
         )
-        post = result.scalar_one_or_none()
+        post = result.first()
         
         if not post:
             raise NotFoundError("Post not found")
@@ -136,21 +137,21 @@ class SocialService:
     ) -> dict[str, Any]:
         """Like or unlike a post."""
         # Check if post exists
-        result = await session.execute(
+        result = await session.exec(
             select(Post).where(and_(Post.id == post_id, Post.deleted_at.is_(None)))
         )
-        post = result.scalar_one_or_none()
+        post = result.first()
         
         if not post:
             raise NotFoundError("Post not found")
         
         # Check if already liked
-        result = await session.execute(
+        result = await session.exec(
             select(PostLike).where(
                 and_(PostLike.post_id == post_id, PostLike.user_id == user_id)
             )
         )
-        existing_like = result.scalar_one_or_none()
+        existing_like = result.first()
         
         if existing_like:
             # Unlike
@@ -176,7 +177,7 @@ class SocialService:
     ) -> FeedResponse:
         """Get personalized social feed."""
         # Get following user IDs
-        following_result = await session.execute(
+        following_result = await session.exec(
             select(UserFollow.following_id).where(UserFollow.follower_id == user_id)
         )
         following_ids = [row[0] for row in following_result.all()]
@@ -213,7 +214,7 @@ class SocialService:
             except ValueError:
                 pass
         
-        result = await session.execute(query, {
+        result = await session.exec(query, {
             "user_id": str(user_id),
             "following_ids": following_ids,
             "cursor": cursor,
@@ -244,17 +245,17 @@ class SocialService:
     ) -> PostComment:
         """Create a comment on a post."""
         # Check if post exists
-        result = await session.execute(
+        result = await session.exec(
             select(Post).where(and_(Post.id == post_id, Post.deleted_at.is_(None)))
         )
-        post = result.scalar_one_or_none()
+        post = result.first()
         
         if not post:
             raise NotFoundError("Post not found")
         
         # Check if parent comment exists (if provided)
         if comment_data.parent_comment_id:
-            result = await session.execute(
+            result = await session.exec(
                 select(PostComment).where(
                     and_(
                         PostComment.id == comment_data.parent_comment_id,
@@ -263,7 +264,7 @@ class SocialService:
                     )
                 )
             )
-            parent_comment = result.scalar_one_or_none()
+            parent_comment = result.first()
             if not parent_comment:
                 raise BadRequestError("Parent comment not found")
         
@@ -322,7 +323,7 @@ class SocialService:
             ORDER BY level, created_at ASC
         """)
         
-        result = await session.execute(query, {"post_id": str(post_id)})
+        result = await session.exec(query, {"post_id": str(post_id)})
         rows = result.mappings().all()
         
         # Build nested structure
@@ -366,14 +367,14 @@ class SocialService:
             raise BadRequestError("You cannot follow yourself")
         
         # Check if target user exists
-        result = await session.execute(
+        result = await session.exec(
             select(User).where(and_(User.id == following_id, User.deleted_at.is_(None)))
         )
-        if not result.scalar_one_or_none():
+        if not result.first():
             raise NotFoundError("User not found")
         
         # Check if already following
-        result = await session.execute(
+        result = await session.exec(
             select(UserFollow).where(
                 and_(
                     UserFollow.follower_id == follower_id,
@@ -381,7 +382,7 @@ class SocialService:
                 )
             )
         )
-        existing_follow = result.scalar_one_or_none()
+        existing_follow = result.first()
         
         if existing_follow:
             # Unfollow
@@ -435,7 +436,7 @@ class SocialService:
             WHERE u.id = :user_id AND u.deleted_at IS NULL
         """)
         
-        result = await session.execute(query, {
+        result = await session.exec(query, {
             "user_id": str(user_id),
             "current_user_id": str(current_user_id) if current_user_id else None,
         })
@@ -491,7 +492,7 @@ class SocialService:
             ) total_comments ON true
         """)
         
-        result = await session.execute(query, {"user_id": str(user_id)})
+        result = await session.exec(query, {"user_id": str(user_id)})
         row = result.mappings().first()
         
         return SocialStatsResponse(**row)

@@ -158,7 +158,7 @@ async def create_comment(
     from src.auth.models import User
     from sqlalchemy import select
     
-    result = await session.execute(select(User).where(User.id == user.id))
+    result = await session.exec(select(User).where(User.id == user.id))
     user_data = result.scalar_one()
     
     return CommentResponse(
@@ -245,7 +245,7 @@ async def get_user_posts(
     query = query.order_by(desc(Post.created_at))
     
     # Apply pagination
-    result = await session.execute(query.offset(pagination.skip).limit(pagination.limit))
+    result = await session.exec(query.offset(pagination.skip).limit(pagination.limit))
     posts = result.scalars().all()
     
     # Convert to response format

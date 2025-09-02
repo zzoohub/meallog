@@ -4,8 +4,9 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
-from sqlalchemy import and_, select
+from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from src.auth.dependencies import DbSession, VerifiedUser
 from src.social.models import Post
@@ -16,10 +17,10 @@ async def get_valid_post(
     session: DbSession,
 ) -> Post:
     """Validate post exists and is not deleted."""
-    result = await session.execute(
+    result = await session.exec(
         select(Post).where(and_(Post.id == post_id, Post.deleted_at.is_(None)))
     )
-    post = result.scalar_one_or_none()
+    post = result.first()
     
     if not post:
         raise HTTPException(

@@ -4,8 +4,9 @@ from datetime import datetime, time, timezone
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import and_, func, select, text
+from sqlalchemy import and_, func, text
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from src.exceptions import BadRequestError, NotFoundError
 from src.users.models import (
@@ -37,17 +38,18 @@ class UserService:
     async def get_user_preferences(
         self, session: AsyncSession, user_id: UUID
     ) -> UserPreferencesResponse:
-        """Get or create user preferences."""
-        result = await session.execute(
+        """Get or create user preferences using SQLModel native patterns."""
+        result = await session.exec(
             select(UserPreferences).where(UserPreferences.user_id == user_id)
         )
-        preferences = result.scalar_one_or_none()
+        preferences = result.first()
         
         if not preferences:
             # Create default preferences
             preferences = UserPreferences(user_id=user_id)
             session.add(preferences)
             await session.commit()
+            await session.refresh(preferences)
         
         return UserPreferencesResponse(
             language=preferences.language,
@@ -62,10 +64,10 @@ class UserService:
         update_data: UserPreferencesUpdateRequest,
     ) -> UserPreferencesResponse:
         """Update user preferences."""
-        result = await session.execute(
+        result = await session.exec(
             select(UserPreferences).where(UserPreferences.user_id == user_id)
         )
-        preferences = result.scalar_one_or_none()
+        preferences = result.first()
         
         if not preferences:
             preferences = UserPreferences(user_id=user_id)
@@ -92,10 +94,10 @@ class UserService:
         self, session: AsyncSession, user_id: UUID
     ) -> NotificationSettingsResponse:
         """Get or create notification settings."""
-        result = await session.execute(
+        result = await session.exec(
             select(NotificationSettings).where(NotificationSettings.user_id == user_id)
         )
-        settings = result.scalar_one_or_none()
+        settings = result.first()
         
         if not settings:
             # Create default settings
@@ -123,10 +125,10 @@ class UserService:
         update_data: NotificationSettingsUpdateRequest,
     ) -> NotificationSettingsResponse:
         """Update notification settings."""
-        result = await session.execute(
+        result = await session.exec(
             select(NotificationSettings).where(NotificationSettings.user_id == user_id)
         )
-        settings = result.scalar_one_or_none()
+        settings = result.first()
         
         if not settings:
             settings = NotificationSettings(user_id=user_id)
@@ -157,10 +159,10 @@ class UserService:
         self, session: AsyncSession, user_id: UUID
     ) -> PrivacySettingsResponse:
         """Get or create privacy settings."""
-        result = await session.execute(
+        result = await session.exec(
             select(PrivacySettings).where(PrivacySettings.user_id == user_id)
         )
-        settings = result.scalar_one_or_none()
+        settings = result.first()
         
         if not settings:
             # Create default settings
@@ -184,10 +186,10 @@ class UserService:
         update_data: PrivacySettingsUpdateRequest,
     ) -> PrivacySettingsResponse:
         """Update privacy settings."""
-        result = await session.execute(
+        result = await session.exec(
             select(PrivacySettings).where(PrivacySettings.user_id == user_id)
         )
-        settings = result.scalar_one_or_none()
+        settings = result.first()
         
         if not settings:
             settings = PrivacySettings(user_id=user_id)
@@ -214,7 +216,7 @@ class UserService:
         self, session: AsyncSession, user_id: UUID
     ) -> UserGoalsResponse:
         """Get or create user goals."""
-        result = await session.execute(
+        result = await session.exec(
             select(UserGoals).where(UserGoals.user_id == user_id)
         )
         goals = result.scalar_one_or_none()
@@ -261,7 +263,7 @@ class UserService:
                     "Protein, carbs, and fat percentages must sum to 100"
                 )
         
-        result = await session.execute(
+        result = await session.exec(
             select(UserGoals).where(UserGoals.user_id == user_id)
         )
         goals = result.scalar_one_or_none()
@@ -295,10 +297,10 @@ class UserService:
         self, session: AsyncSession, user_id: UUID
     ) -> CameraSettingsResponse:
         """Get or create camera settings."""
-        result = await session.execute(
+        result = await session.exec(
             select(CameraSettings).where(CameraSettings.user_id == user_id)
         )
-        settings = result.scalar_one_or_none()
+        settings = result.first()
         
         if not settings:
             # Create default settings
@@ -321,10 +323,10 @@ class UserService:
         update_data: CameraSettingsUpdateRequest,
     ) -> CameraSettingsResponse:
         """Update camera settings."""
-        result = await session.execute(
+        result = await session.exec(
             select(CameraSettings).where(CameraSettings.user_id == user_id)
         )
-        settings = result.scalar_one_or_none()
+        settings = result.first()
         
         if not settings:
             settings = CameraSettings(user_id=user_id)
@@ -473,7 +475,7 @@ class UserService:
             ) mode_hour ON true
         """)
         
-        result = await session.execute(query, {"user_id": str(user_id)})
+        result = await session.exec(query, {"user_id": str(user_id)})
         row = result.mappings().first()
         
         if not row:
