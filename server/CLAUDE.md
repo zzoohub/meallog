@@ -354,47 +354,127 @@ async def init_db():
 
 ### SQL-first, Pydantic-second
 
-Do complex operations in database:
+Use Core DSL by default, never ORM style. Use raw SQL for performance-critical operations
 
 ```python
-from sqlalchemy import text, func
-from sqlmodel import select
+from sqlmodel import (
+    select, insert, update, delete,
+    func, text, col, distinct, case,
+    and_, or_, desc
+)
 
-# Simple CRUD with SQLModel (Good)
-async def get_user(session: AsyncSession, user_id: int) -> User:
-    result = await session.exec(select(User).where(User.id == user_id))
-    return result.first()
+# Basic CRUD with Core DSL
+async def get_user(session: AsyncSession, user_id: int) -> dict:
+    stmt = select(
+        User.id,
+        User.username,
+        User.email,
+        User.created_at
+    ).where(User.id == user_id)
 
-# Complex query with raw SQL (SQL-first principle)
+    result = await session.exec(stmt)
+    return result.first()._asdict()
+
+# Complex aggregation with joins
 async def get_posts_with_stats(
     session: AsyncSession,
     creator_id: int,
     limit: int = 10
 ) -> list[dict]:
+    stmt = (
+        select(
+            Post.id,
+            Post.title,
+            Post.created_at,
+            User.username.label('author'),
+            func.count(distinct(PostLike.user_id)).label('likes'),
+            func.count(distinct(PostComment.id)).label('comments')
+        )
+        .join(User, Post.creator_id == User.id)
+        .outerjoin(PostLike, Post.id == PostLike.post_id)
+        .outerjoin(PostComment, Post.id == PostComment.post_id)
+        .where(Post.creator_id == creator_id)
+        .group_by(Post.id, User.username)
+        .order_by(desc(Post.created_at))
+        .limit(limit)
+    )
+
+    result = await session.exec(stmt)
+    return [row._asdict() for row in result.all()]
+
+# Subquery example
+async def get_trending_posts(session: AsyncSession, days: int = 7) -> list[dict]:
+    # Subquery for recent interactions
+    recent_stats = (
+        select(
+            PostLike.post_id,
+            func.count(PostLike.id).label('score')
+        )
+        .where(PostLike.created_at > func.now() - text(f"INTERVAL '{days} days'"))
+        .group_by(PostLike.post_id)
+        .subquery()
+    )
+
+    # Main query with subquery join
+    stmt = (
+        select(
+            Post.id,
+            Post.title,
+            func.coalesce(recent_stats.c.score, 0).label('trending_score')
+        )
+        .outerjoin(recent_stats, Post.id == recent_stats.c.post_id)
+        .order_by(desc(recent_stats.c.score))
+        .limit(20)
+    )
+
+    result = await session.exec(stmt)
+    return [row._asdict() for row in result.all()]
+
+# Dynamic query building
+async def search_posts(
+    session: AsyncSession,
+    filters: dict
+) -> list[dict]:
+    stmt = select(Post.id, Post.title, Post.created_at)
+
+    conditions = []
+    if search := filters.get('search'):
+        conditions.append(
+            or_(
+                Post.title.ilike(f'%{search}%'),
+                Post.content.ilike(f'%{search}%')
+            )
+        )
+
+    if author_id := filters.get('author_id'):
+        conditions.append(Post.creator_id == author_id)
+
+    if conditions:
+        stmt = stmt.where(and_(*conditions))
+
+    stmt = stmt.order_by(desc(Post.created_at)).limit(20)
+
+    result = await session.exec(stmt)
+    return [row._asdict() for row in result.all()]
+
+# Raw SQL only when absolutely necessary (recursive CTEs, DB-specific features)
+async def get_comment_thread(session: AsyncSession, comment_id: int) -> list[dict]:
     query = text("""
-        SELECT
-            p.*,
-            json_build_object(
-                'id', u.id,
-                'username', u.username,
-                'avatar', u.avatar
-            ) as creator,
-            COUNT(DISTINCT pl.id) as likes_count,
-            COUNT(DISTINCT pc.id) as comments_count
-        FROM posts p
-        JOIN users u ON p.creator_id = u.id
-        LEFT JOIN post_likes pl ON p.id = pl.post_id
-        LEFT JOIN post_comments pc ON p.id = pc.post_id
-        WHERE p.creator_id = :creator_id
-        GROUP BY p.id, u.id, u.username, u.avatar
-        ORDER BY p.created_at DESC
-        LIMIT :limit
+        WITH RECURSIVE thread AS (
+            SELECT id, content, parent_id, 0 as depth
+            FROM comments WHERE id = :id
+
+            UNION ALL
+
+            SELECT c.id, c.content, c.parent_id, t.depth + 1
+            FROM comments c
+            JOIN thread t ON c.parent_id = t.id
+            WHERE t.depth < 10
+        )
+        SELECT * FROM thread ORDER BY depth
     """)
 
-    result = await session.execute(
-        query,
-        {"creator_id": creator_id, "limit": limit}
-    )
+    result = await session.execute(query, {"id": comment_id})
     return result.mappings().all()
 ```
 
