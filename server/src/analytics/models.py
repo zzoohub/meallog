@@ -4,7 +4,7 @@ from datetime import date, datetime, timezone
 from typing import Any, Literal
 from uuid import UUID
 
-from sqlalchemy import JSON, CheckConstraint, Column, Date, Index, String
+from sqlalchemy import CheckConstraint, Index
 from sqlmodel import Field, Relationship
 
 from src.auth.models import User
@@ -25,7 +25,7 @@ class AnalyticsEvent(BaseModel, table=True):
     event_category: Literal["app", "meal", "social", "camera", "settings"] = Field(
         max_length=50, index=True
     )
-    properties: dict[str, Any] | None = Field(default=None, sa_type=JSON)
+    properties: dict[str, Any] | None = Field(default=None)
     session_id: str | None = Field(default=None, max_length=100, index=True)
     platform: Literal["ios", "android", "web"] | None = Field(
         default=None, max_length=20
@@ -47,7 +47,7 @@ class DailySummary(BaseModel, table=True):
     )
 
     user_id: UUID = Field(foreign_key="users.id", index=True)
-    summary_date: date = Field(sa_column=Column(Date, nullable=False, index=True))
+    summary_date: date = Field(index=True)
     
     # Meal tracking metrics
     meals_logged: int = Field(default=0, ge=0)
@@ -102,7 +102,7 @@ class UserProgress(TimestampMixin, SQLModel, table=True):
     first_meal_logged_at: datetime | None = Field(default=None)
     first_goal_met_at: datetime | None = Field(default=None)
     first_social_post_at: datetime | None = Field(default=None)
-    last_active_date: date | None = Field(default=None, sa_column=Column(Date))
+    last_active_date: date | None = Field(default=None)
     
     # Totals
     total_meals_logged: int = Field(default=0, ge=0)
@@ -132,7 +132,7 @@ class Achievement(BaseModel, table=True):
     achievement_level: int = Field(default=1, ge=1)  # For multi-level achievements
     unlocked_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     progress: float = Field(default=100.0, ge=0, le=100)  # Progress towards achievement (100 = completed)
-    achievement_metadata: dict[str, Any] | None = Field(default=None, sa_type=JSON)
+    achievement_metadata: dict[str, Any] | None = Field(default=None)
 
     # Relationships
     user: User = Relationship()

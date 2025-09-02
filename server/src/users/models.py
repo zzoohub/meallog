@@ -5,7 +5,7 @@ from decimal import Decimal
 from enum import Enum
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, Column, Time
+from sqlalchemy import CheckConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 from src.auth.models import User
@@ -96,8 +96,8 @@ class NotificationSettings(TimestampMixin, SQLModel, table=True):
     progress_updates: bool = Field(default=True)
     ai_insights: bool = Field(default=True)
     quiet_hours_enabled: bool = Field(default=True)
-    quiet_hours_start: time = Field(default=time(22, 0), sa_column=Column(Time))
-    quiet_hours_end: time = Field(default=time(7, 0), sa_column=Column(Time))
+    quiet_hours_start: time = Field(default=time(22, 0))
+    quiet_hours_end: time = Field(default=time(7, 0))
     frequency: NotificationFrequency = Field(default=NotificationFrequency.IMMEDIATE)
     push_enabled: bool = Field(default=True)
     email_enabled: bool = Field(default=False)

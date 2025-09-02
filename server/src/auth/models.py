@@ -5,7 +5,6 @@ from typing import Any
 from uuid import UUID
 
 from pydantic import EmailStr
-from sqlalchemy import JSON
 from sqlmodel import Field, Relationship
 
 from src.models import BaseModel, SoftDeleteMixin
@@ -60,7 +59,7 @@ class UserSession(BaseModel, table=True):
 
     user_id: UUID = Field(foreign_key="users.id", index=True)
     token_hash: str = Field(max_length=64, unique=True, index=True)
-    device_info: dict[str, Any] | None = Field(default=None, sa_type=JSON)
+    device_info: dict[str, Any] | None = Field(default=None)
     ip_address: str | None = Field(default=None, max_length=45)
     expires_at: datetime = Field()
     last_used_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

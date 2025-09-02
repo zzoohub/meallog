@@ -4,8 +4,7 @@ from datetime import datetime, timezone
 from typing import Any, Literal
 from uuid import UUID
 
-from sqlalchemy import JSON, Column, ForeignKey, Index, String
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from sqlalchemy import Index
 from sqlmodel import Field, Relationship, SQLModel
 
 from src.auth.models import User
@@ -23,10 +22,10 @@ class PushToken(TimestampMixin, SQLModel, table=True):
 
     user_id: UUID = Field(foreign_key="users.id", primary_key=True, index=True)
     platform: Literal["ios", "android", "web"] = Field(
-        sa_column=Column(String(20), primary_key=True)
+        max_length=20, primary_key=True
     )
-    token: str = Field(sa_column=Column(String(500), nullable=False, unique=True))
-    device_id: str | None = Field(default=None, sa_column=Column(String(100), index=True))
+    token: str = Field(max_length=500, unique=True)
+    device_id: str | None = Field(default=None, max_length=100, index=True)
     app_version: str | None = Field(default=None, max_length=20)
     is_active: bool = Field(default=True)
     last_used_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -56,11 +55,11 @@ class Notification(BaseModel, table=True):
         "weekly_summary",
         "ai_insight",
         "system_announcement",
-    ] = Field(sa_column=Column(String(50), nullable=False, index=True))
+    ] = Field(max_length=50, index=True)
     
-    title: str = Field(sa_column=Column(String(255), nullable=False))
-    body: str = Field(sa_column=Column(String(500), nullable=False))
-    data: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
+    title: str = Field(max_length=255)
+    body: str = Field(max_length=500)
+    data: dict[str, Any] | None = Field(default=None)
     
     # Delivery scheduling
     scheduled_for: datetime | None = Field(default=None, index=True)
@@ -74,7 +73,7 @@ class Notification(BaseModel, table=True):
     clicked_at: datetime | None = Field(default=None)
     
     # Delivery metadata
-    push_response: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
+    push_response: dict[str, Any] | None = Field(default=None)
     delivery_attempts: int = Field(default=0)
     last_delivery_attempt: datetime | None = Field(default=None)
 
@@ -87,7 +86,7 @@ class NotificationTemplate(UUIDMixin, TimestampMixin, SQLModel, table=True):
 
     __tablename__ = "notification_templates"
 
-    template_key: str = Field(sa_column=Column(String(100), unique=True, nullable=False, index=True))
+    template_key: str = Field(max_length=100, unique=True, index=True)
     notification_type: Literal[
         "meal_reminder",
         "goal_achievement",
@@ -98,25 +97,25 @@ class NotificationTemplate(UUIDMixin, TimestampMixin, SQLModel, table=True):
         "weekly_summary",
         "ai_insight",
         "system_announcement",
-    ] = Field(sa_column=Column(String(50), nullable=False))
+    ] = Field(max_length=50)
     
-    title_template: str = Field(sa_column=Column(String(255), nullable=False))
-    body_template: str = Field(sa_column=Column(String(500), nullable=False))
+    title_template: str = Field(max_length=255)
+    body_template: str = Field(max_length=500)
     
     # Template variables and their types
-    variables: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
+    variables: dict[str, Any] | None = Field(default=None)
     
     # Delivery settings
     is_active: bool = Field(default=True)
     priority: Literal["low", "normal", "high"] = Field(
         default="normal",
-        sa_column=Column(String(10), nullable=False)
+        max_length=10
     )
     
     # Localization support
     language: Literal["en", "ko"] = Field(
         default="en",
-        sa_column=Column(String(5), nullable=False)
+        max_length=5
     )
 
 
@@ -132,7 +131,7 @@ class NotificationQueue(UUIDMixin, TimestampMixin, SQLModel, table=True):
     notification_id: UUID = Field(foreign_key="notifications.id", index=True)
     status: Literal["pending", "processing", "sent", "failed", "cancelled"] = Field(
         default="pending",
-        sa_column=Column(String(20), nullable=False, index=True)
+        max_length=20, index=True
     )
     scheduled_for: datetime = Field(nullable=False, index=True)
     processed_at: datetime | None = Field(default=None)

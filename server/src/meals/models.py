@@ -6,7 +6,6 @@ from enum import Enum
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import JSON, Column, String
 from sqlmodel import Field, Relationship, SQLModel
 
 from src.auth.models import User
@@ -28,7 +27,7 @@ class Meal(BaseModel, SoftDeleteMixin, table=True):
     __tablename__ = "meals"
 
     user_id: UUID = Field(foreign_key="users.id", index=True)
-    name: str = Field(sa_column=Column(String(255), nullable=False))
+    name: str = Field(max_length=255)
     meal_type: MealType = Field(nullable=False)
     timestamp: datetime = Field(nullable=False, index=True)
 
@@ -47,7 +46,7 @@ class Meal(BaseModel, SoftDeleteMixin, table=True):
     is_verified: bool = Field(default=False)
 
     # Location (stored as JSON for simplicity, PostGIS in production)
-    location: dict | None = Field(default=None, sa_column=Column(JSON))
+    location: dict | None = Field(default=None)
     location_name: str | None = Field(default=None, max_length=255)
     restaurant_name: str | None = Field(default=None, max_length=255)
 
@@ -91,7 +90,7 @@ class MealIngredient(UUIDMixin, TimestampMixin, SQLModel, table=True):
     __tablename__ = "meal_ingredients"
 
     meal_id: UUID = Field(foreign_key="meals.id", nullable=False, index=True)
-    ingredient_name: str = Field(sa_column=Column(String(255), nullable=False))
+    ingredient_name: str = Field(max_length=255)
     quantity: Decimal | None = Field(default=None, max_digits=10, decimal_places=3)
     unit: str | None = Field(default=None, max_length=50)
     calories_per_serving: Decimal | None = Field(default=None, max_digits=8, decimal_places=2)
@@ -107,7 +106,7 @@ class AIAnalysis(UUIDMixin, TimestampMixin, SQLModel, table=True):
     __tablename__ = "ai_analyses"
 
     meal_id: UUID = Field(foreign_key="meals.id", nullable=False, unique=True, index=True)
-    detected_items: list[dict] = Field(sa_column=Column(JSON, nullable=False))
+    detected_items: list[dict] = Field()
     confidence: Decimal | None = Field(default=None, max_digits=3, decimal_places=2, ge=0, le=1)
     estimated_calories: int | None = Field(default=None)
     suggested_meal_type: str | None = Field(default=None, max_length=20)
@@ -116,8 +115,8 @@ class AIAnalysis(UUIDMixin, TimestampMixin, SQLModel, table=True):
     # AI insights
     health_score: int | None = Field(default=None, ge=0, le=100)
     nutrition_balance: str | None = Field(default=None)
-    recommendations: list[str] | None = Field(default=None, sa_column=Column(JSON))
-    warnings: list[str] | None = Field(default=None, sa_column=Column(JSON))
+    recommendations: list[str] | None = Field(default=None)
+    warnings: list[str] | None = Field(default=None)
 
     # Processing metadata
     ai_model_version: str | None = Field(default=None, max_length=50)
