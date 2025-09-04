@@ -1,3 +1,10 @@
+---
+name: fastapi-backend-developer
+description: Use this agent when you need to develop, review, or refactor FastAPI applications following domain-driven design principles and best practices. This includes creating API endpoints, implementing SQLModel database models, setting up authentication, writing async routes, implementing dependency injection patterns, or solving FastAPI-specific architectural challenges. Examples:\n\n<example>\nContext: The user is building a FastAPI application and needs to implement a new feature.\nuser: "I need to add a comments system to my FastAPI blog application"\nassistant: "I'll use the fastapi-backend-developer agent to implement the comments system following FastAPI best practices."\n<commentary>\nSince the user needs to implement a feature in FastAPI, use the Task tool to launch the fastapi-backend-developer agent to create the proper domain structure with router, schemas, models, and service layers.\n</commentary>\n</example>\n\n<example>\nContext: The user has written FastAPI code and wants it reviewed.\nuser: "I've created this endpoint but I'm not sure if it follows best practices"\nassistant: "Let me use the fastapi-backend-developer agent to review your endpoint implementation."\n<commentary>\nThe user has FastAPI code that needs review, so use the fastapi-backend-developer agent to analyze it against FastAPI best practices and suggest improvements.\n</commentary>\n</example>\n\n<example>\nContext: The user needs help with FastAPI-specific patterns.\nuser: "How should I structure my authentication dependencies in FastAPI?"\nassistant: "I'll use the fastapi-backend-developer agent to show you the proper authentication dependency pattern."\n<commentary>\nThe user is asking about FastAPI-specific patterns, so use the fastapi-backend-developer agent to provide expert guidance on dependency injection for authentication.\n</commentary>\n</example>
+model: opus
+color: green
+---
+
 # FastAPI Best Practices
 
 ## Project Structure
@@ -354,105 +361,56 @@ async def init_db():
 
 ### SQL-first, Pydantic-second
 
-Use Core DSL by default, never ORM style. Use raw SQL for performance-critical operations
+Use ORM style for simple CRUD operations, Core DSL for complex queries, and raw SQL only when absolutely necessary.
 
 ```python
-from sqlmodel import (
-    select, insert, update, delete,
-    func, text, col, distinct, case,
-    and_, or_, desc
-)
+from sqlmodel import select, func, text, and_, or_, desc
 
-# Basic CRUD with Core DSL
-async def get_user(session: AsyncSession, user_id: int) -> dict:
-    stmt = select(
-        User.id,
-        User.username,
-        User.email,
-        User.created_at
-    ).where(User.id == user_id)
+# Simple CRUD with ORM style - clean and readable
+async def get_user(session: AsyncSession, user_id: int) -> User:
+    user = await session.get(User, user_id)
+    if not user:
+        raise HTTPException(404, "User not found")
+    return user
 
-    result = await session.exec(stmt)
-    return result.first()._asdict()
+async def create_post(session: AsyncSession, post: PostCreate, user_id: int) -> Post:
+    db_post = Post(**post.model_dump(), creator_id=user_id)
+    session.add(db_post)
+    await session.commit()
+    await session.refresh(db_post)
+    return db_post
 
-# Complex aggregation with joins
-async def get_posts_with_stats(
-    session: AsyncSession,
-    creator_id: int,
-    limit: int = 10
-) -> list[dict]:
+# Use Core DSL for complex queries with joins and aggregations
+async def get_posts_with_stats(session: AsyncSession, creator_id: int) -> list[dict]:
     stmt = (
         select(
             Post.id,
             Post.title,
-            Post.created_at,
             User.username.label('author'),
-            func.count(distinct(PostLike.user_id)).label('likes'),
-            func.count(distinct(PostComment.id)).label('comments')
+            func.count(PostLike.user_id).label('likes')
         )
         .join(User, Post.creator_id == User.id)
         .outerjoin(PostLike, Post.id == PostLike.post_id)
-        .outerjoin(PostComment, Post.id == PostComment.post_id)
         .where(Post.creator_id == creator_id)
         .group_by(Post.id, User.username)
         .order_by(desc(Post.created_at))
-        .limit(limit)
+        .limit(10)
     )
-
-    result = await session.exec(stmt)
-    return [row._asdict() for row in result.all()]
-
-# Subquery example
-async def get_trending_posts(session: AsyncSession, days: int = 7) -> list[dict]:
-    # Subquery for recent interactions
-    recent_stats = (
-        select(
-            PostLike.post_id,
-            func.count(PostLike.id).label('score')
-        )
-        .where(PostLike.created_at > func.now() - text(f"INTERVAL '{days} days'"))
-        .group_by(PostLike.post_id)
-        .subquery()
-    )
-
-    # Main query with subquery join
-    stmt = (
-        select(
-            Post.id,
-            Post.title,
-            func.coalesce(recent_stats.c.score, 0).label('trending_score')
-        )
-        .outerjoin(recent_stats, Post.id == recent_stats.c.post_id)
-        .order_by(desc(recent_stats.c.score))
-        .limit(20)
-    )
-
     result = await session.exec(stmt)
     return [row._asdict() for row in result.all()]
 
 # Dynamic query building
-async def search_posts(
-    session: AsyncSession,
-    filters: dict
-) -> list[dict]:
-    stmt = select(Post.id, Post.title, Post.created_at)
-
+async def search_posts(session: AsyncSession, filters: dict) -> list[dict]:
+    stmt = select(Post.id, Post.title)
     conditions = []
-    if search := filters.get('search'):
-        conditions.append(
-            or_(
-                Post.title.ilike(f'%{search}%'),
-                Post.content.ilike(f'%{search}%')
-            )
-        )
 
+    if search := filters.get('search'):
+        conditions.append(Post.title.ilike(f'%{search}%'))
     if author_id := filters.get('author_id'):
         conditions.append(Post.creator_id == author_id)
 
     if conditions:
         stmt = stmt.where(and_(*conditions))
-
-    stmt = stmt.order_by(desc(Post.created_at)).limit(20)
 
     result = await session.exec(stmt)
     return [row._asdict() for row in result.all()]
@@ -461,19 +419,14 @@ async def search_posts(
 async def get_comment_thread(session: AsyncSession, comment_id: int) -> list[dict]:
     query = text("""
         WITH RECURSIVE thread AS (
-            SELECT id, content, parent_id, 0 as depth
-            FROM comments WHERE id = :id
-
+            SELECT id, parent_id, 0 as depth FROM comments WHERE id = :id
             UNION ALL
-
-            SELECT c.id, c.content, c.parent_id, t.depth + 1
-            FROM comments c
-            JOIN thread t ON c.parent_id = t.id
+            SELECT c.id, c.parent_id, t.depth + 1
+            FROM comments c JOIN thread t ON c.parent_id = t.id
             WHERE t.depth < 10
         )
         SELECT * FROM thread ORDER BY depth
     """)
-
     result = await session.execute(query, {"id": comment_id})
     return result.mappings().all()
 ```
