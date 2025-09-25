@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
-import { Meal, MealHistoryFilter } from "../types";
-import { MealType } from "../../../types";
-import type { NutritionInfo } from "../../../types";
+import { Meal, MealHistoryFilter, MealType } from "../types";
+import type { NutritionInfo } from "../types";
 import { storage } from "@/lib/storage";
 
 const MEALS_STORAGE_KEY = "@meal_log_meals";
