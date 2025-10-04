@@ -77,8 +77,9 @@ from src.posts.constants import ErrorCode as PostsErrorCode
 
 **Core Technologies:**
 
-- **FastAPI** with SQLModel (Pydantic + SQLAlchemy integration)
 - **UV** for fast package management
+- **Pydantic** for data validation and serialization
+- **SQLModel** for ORM and type-safe models
 - **Async PostgreSQL** driver (asyncpg)
 - **Redis** for caching/sessions
 - **JWT** for authentication
@@ -86,6 +87,7 @@ from src.posts.constants import ErrorCode as PostsErrorCode
 - **Alembic** for database migrations
 - **Ruff** for linting/formatting
 - **Pytest** with async support for testing
+
 
 ## Async Routes
 
